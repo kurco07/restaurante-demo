@@ -1,0 +1,294 @@
+@startuml modelo_de_datos_mvp
+title Modelo de Datos — MVP — Plataforma de Gestión para Restaurantes
+
+skinparam linetype ortho
+hide circle
+
+' ==========================================
+' 1. Identidad y multi-tenancy
+' ==========================================
+
+entity "tenants" as tenants {
+  * id : uuid <<PK>>
+  --
+  nombre : text
+  slug_subdominio : text
+  plan : text
+  estado : text
+  creado_en : timestamp
+}
+
+entity "sedes" as sedes {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  nombre : text
+  direccion : text
+  zona_horaria : text
+}
+
+entity "usuarios" as usuarios {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  sede_id : uuid <<FK>>
+  nombre : text
+  contacto : text
+  rol : text
+  credenciales : text
+}
+
+entity "permisos_rol" as permisos_rol {
+  * rol : text <<PK>>
+  * accion : text <<PK>>
+  --
+  permitido : boolean
+}
+
+' ==========================================
+' 2. Operación de servicio
+' ==========================================
+
+entity "mesas" as mesas {
+  * id : uuid <<PK>>
+  --
+  * sede_id : uuid <<FK>>
+  nombre_numero : text
+  posicion_x : int
+  posicion_y : int
+  estado : text
+}
+
+entity "sesiones_mesa" as sesiones_mesa {
+  * id : uuid <<PK>>
+  --
+  * mesa_id : uuid <<FK>>
+  mesonero_id : uuid <<FK>>
+  estado : text
+  origen : text
+  abierta_en : timestamp
+  cerrada_en : timestamp
+}
+
+entity "pedidos_items" as pedidos_items {
+  * id : uuid <<PK>>
+  --
+  * sesion_id : uuid <<FK>>
+  * menu_item_id : uuid <<FK>>
+  cantidad : int
+  notas : text
+  agregado_por : text
+  estado : text
+  client_local_id : uuid
+  sincronizado_en : timestamp
+}
+
+entity "pagos_cierre" as pagos_cierre {
+  * id : uuid <<PK>>
+  --
+  * sesion_id : uuid <<FK>>
+  metodo_de_pago : text
+  monto : decimal
+  propina : decimal
+  * cerrado_por : uuid <<FK>>
+}
+
+' ==========================================
+' 3. Menú e inventario
+' ==========================================
+
+entity "categorias_menu" as categorias_menu {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  nombre : text
+  orden : int
+}
+
+entity "menu_items" as menu_items {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  * categoria_id : uuid <<FK>>
+  nombre : text
+  descripcion : text
+  precio_base : decimal
+  imagen_url : text
+}
+
+entity "menu_item_sede" as menu_item_sede {
+  * id : uuid <<PK>>
+  --
+  * menu_item_id : uuid <<FK>>
+  * sede_id : uuid <<FK>>
+  disponible : boolean
+  precio_override : decimal
+}
+
+entity "insumos" as insumos {
+  * id : uuid <<PK>>
+  --
+  * sede_id : uuid <<FK>>
+  nombre : text
+  unidad_de_medida : text
+  tipo : text
+  cantidad_actual : decimal
+}
+
+entity "recetas" as recetas {
+  * id : uuid <<PK>>
+  --
+  * menu_item_id : uuid <<FK>>
+  * insumo_id : uuid <<FK>>
+  cantidad_requerida : decimal
+  unidad : text
+}
+
+entity "lotes_insumo" as lotes_insumo {
+  * id : uuid <<PK>>
+  --
+  * insumo_id : uuid <<FK>>
+  cantidad_inicial : decimal
+  cantidad_restante : decimal
+  abierto_en : timestamp
+  cerrado_en : timestamp
+}
+
+entity "movimientos_inventario" as movimientos_inventario {
+  * id : uuid <<PK>>
+  --
+  * insumo_id : uuid <<FK>>
+  tipo : text
+  cantidad : decimal
+  referencia : text
+  fecha : timestamp
+}
+
+' ==========================================
+' 4. Compras e inteligencia artificial
+' ==========================================
+
+entity "proveedores" as proveedores {
+  * id : uuid <<PK>>
+  --
+  sede_id : uuid <<FK>>
+  tenant_id : uuid <<FK>>
+  nombre : text
+  contacto : text
+}
+
+entity "ordenes_compra" as ordenes_compra {
+  * id : uuid <<PK>>
+  --
+  * sede_id : uuid <<FK>>
+  * proveedor_id : uuid <<FK>>
+  estado : text
+  creada_por : text
+  aprobada_por : uuid <<FK>>
+}
+
+entity "ordenes_compra_items" as ordenes_compra_items {
+  * id : uuid <<PK>>
+  --
+  * orden_compra_id : uuid <<FK>>
+  * insumo_id : uuid <<FK>>
+  cantidad : decimal
+  costo_estimado : decimal
+}
+
+entity "sugerencias_ia" as sugerencias_ia {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  sede_id : uuid <<FK>>
+  tipo : text
+  contenido : text
+  estado : text
+  generada_en : timestamp
+  revisada_por : uuid <<FK>>
+}
+
+' ==========================================
+' 5. Negocio y facturación
+' ==========================================
+
+entity "suscripciones" as suscripciones {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  plan : text
+  precio_acordado : decimal
+  proveedor_de_pago : text
+  referencia_externa : text
+  estado : text
+  proximo_cobro : date
+}
+
+entity "personalizacion_marca" as personalizacion_marca {
+  * id : uuid <<PK>>
+  --
+  * tenant_id : uuid <<FK>>
+  logo_url : text
+  color_primario : text
+  color_secundario : text
+  nombre_mostrado : text
+}
+
+' ==========================================
+' Relaciones — Identidad
+' ==========================================
+
+tenants ||--o{ sedes : tiene
+tenants ||--o{ usuarios : emplea
+sedes |o--o{ usuarios : asigna
+
+' ==========================================
+' Relaciones — Operación de servicio
+' ==========================================
+
+sedes ||--o{ mesas : contiene
+mesas ||--o{ sesiones_mesa : abre
+usuarios |o--o{ sesiones_mesa : atiende
+sesiones_mesa ||--o{ pedidos_items : incluye
+menu_items ||--o{ pedidos_items : referencia
+sesiones_mesa ||--o{ pagos_cierre : cierra
+usuarios ||--o{ pagos_cierre : cobra
+
+' ==========================================
+' Relaciones — Menú e inventario
+' ==========================================
+
+tenants ||--o{ categorias_menu : define
+tenants ||--o{ menu_items : ofrece
+categorias_menu ||--o{ menu_items : agrupa
+menu_items ||--o{ menu_item_sede : excepciona
+sedes ||--o{ menu_item_sede : ajusta
+sedes ||--o{ insumos : almacena
+menu_items ||--o{ recetas : requiere
+insumos ||--o{ recetas : compone
+insumos ||--o{ lotes_insumo : agrupa
+insumos ||--o{ movimientos_inventario : registra
+
+' ==========================================
+' Relaciones — Compras e IA
+' ==========================================
+
+sedes |o--o{ proveedores : contrata
+tenants |o--o{ proveedores : centraliza
+sedes ||--o{ ordenes_compra : solicita
+proveedores ||--o{ ordenes_compra : recibe
+usuarios |o--o{ ordenes_compra : aprueba
+ordenes_compra ||--o{ ordenes_compra_items : detalla
+insumos ||--o{ ordenes_compra_items : incluye
+tenants ||--o{ sugerencias_ia : recibe
+sedes |o--o{ sugerencias_ia : contextualiza
+usuarios |o--o{ sugerencias_ia : revisa
+
+' ==========================================
+' Relaciones — Negocio y facturación
+' ==========================================
+
+tenants ||--o{ suscripciones : paga
+tenants ||--o{ personalizacion_marca : configura
+
+@enduml
