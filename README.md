@@ -1,4 +1,4 @@
-# Plataforma de Restaurantes — Frontend
+# Plataforma de Restaurantes — Frontend hola cesar
 
 SaaS multi-tenant para restaurantes (mesoneros, autopedido por QR, cocina en
 tiempo real, administración/inventario, gerencia y un panel de super-admin),
