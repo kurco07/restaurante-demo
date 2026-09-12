@@ -1,26 +1,40 @@
 -- ============================================================
 -- Modelo de Datos — MVP — Plataforma de Gestión para Restaurantes
 -- Motor: Supabase (Postgres)
+-- Revisión: correcciones tras auditoría externa del esquema
 -- ============================================================
 --
--- Decisión de diseño respecto al documento Modelo_de_Datos.md:
--- se agrega tenant_id directamente en TODAS las tablas (no solo
--- donde aparecía en el documento original), aunque en varios casos
--- se pueda derivar por join (por ejemplo, insumos ya tiene sede_id,
--- y sede ya apunta a tenant_id). Es a propósito: así cada política
--- de seguridad a nivel de fila (RLS) revisa una sola columna directa
--- en vez de encadenar varios joins, lo que las hace más simples y
--- más rápidas. Es una práctica estándar en esquemas multi-tenant
--- sobre Postgres.
+-- Decisiones de diseño:
+-- - tenant_id directo en todas las tablas (denormalizado a propósito)
+--   para que las políticas RLS revisen una sola columna, no varios joins.
+-- - insumos vive a nivel de TENANT (catálogo: qué existe para la cadena).
+--   inventario_sede vive a nivel de SEDE (cuánto hay en cada lugar).
+--   Antes ambos estaban mezclados en una sola tabla — ver nota de la
+--   auditoría: eso rompía la idea de "un menú, definido una vez".
+-- - Moneda: pendiente a propósito. No se resuelve todavía porque el
+--   mercado piloto probable (Venezuela) maneja varias monedas de forma
+--   simultánea y merece una decisión propia, no una columna improvisada.
 --
--- El orden de creación de las tablas sigue las dependencias (una
--- tabla debe existir antes de que otra la referencie), no el orden
--- conceptual del documento de modelo de datos.
+-- Esta migración reemplaza por completo a 0001_esquema_inicial.sql (que ya
+-- no existe en este repo) — no es incremental. Por eso arranca borrando y
+-- recreando el schema public entero: así se puede aplicar de cero en
+-- cualquier proyecto de Supabase nuevo sin arrastrar el esquema viejo.
+
+drop schema public cascade;
+create schema public;
+
+grant usage on schema public to postgres, anon, authenticated, service_role;
+grant all on all tables in schema public to postgres, anon, authenticated, service_role;
+grant all on all sequences in schema public to postgres, anon, authenticated, service_role;
+grant all on all functions in schema public to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on tables to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to postgres, anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to postgres, anon, authenticated, service_role;
 
 create extension if not exists "pgcrypto";
 
 -- ============================================================
--- 1. Identidad y multi-tenancy
+-- 1. Identidad, roles y multi-tenancy
 -- ============================================================
 
 create table public.tenants (
@@ -41,28 +55,48 @@ create table public.sedes (
   creado_en timestamptz not null default now()
 );
 
--- usuarios está ligada 1 a 1 con auth.users, la tabla de autenticación de Supabase
+-- Catálogo fijo de roles de la plataforma. Si en el futuro cada tenant
+-- necesita personalizar sus propios roles, esta tabla gana tenant_id
+-- y deja de ser un catálogo único — decisión pendiente, no resuelta aquí.
+create table public.roles (
+  nombre text primary key
+);
+insert into public.roles (nombre) values
+  ('mesonero'), ('cocina'), ('supervisor'), ('administracion'), ('gerencia'), ('super_admin');
+
+-- usuarios está ligada 1 a 1 con auth.users, la tabla de autenticación de Supabase.
+-- Nunca guarda contraseña ni ningún tipo de credencial — Supabase Auth la maneja aparte.
 create table public.usuarios (
   id uuid primary key references auth.users(id) on delete cascade,
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   sede_id uuid references public.sedes(id) on delete set null,
   nombre text not null,
   contacto text,
-  rol text not null check (rol in ('mesonero','cocina','supervisor','administracion','gerencia','super_admin')),
+  rol text not null references public.roles(nombre),
   creado_en timestamptz not null default now()
 );
+-- Limitación conocida y aceptada por ahora: un usuario pertenece a una sola
+-- sede (o a ninguna, si opera a nivel de cadena). Un usuario en varias sedes
+-- específicas no se puede representar todavía — no hay caso de uso real
+-- esperando esto en el piloto actual.
 
 create table public.permisos_rol (
-  rol text not null,
+  rol text not null references public.roles(nombre),
   accion text not null,
   permitido boolean not null default false,
   primary key (rol, accion)
 );
+-- Pendiente de decidir: si cada restaurante puede personalizar sus propios
+-- permisos por rol, esta tabla necesita tenant_id. Hoy asume permisos
+-- estándar de la plataforma, iguales para todos los tenants.
 
--- Funciones de apoyo para las políticas RLS.
--- security definer + search_path fijo evita que un usuario
--- manipule estas consultas, y evita recursión infinita al
--- consultar la propia tabla usuarios desde dentro de una política.
+-- Catálogos globales, sin tenant_id: por diseño no llevan RLS (ver arriba).
+-- Supabase fuerza RLS por defecto en tablas nuevas creadas por SQL Editor,
+-- así que hay que desactivarlo explícitamente o quedan invisibles para
+-- anon/authenticated sin ninguna política que las libere.
+alter table public.roles disable row level security;
+alter table public.permisos_rol disable row level security;
+
 create or replace function public.current_tenant_id()
 returns uuid language sql stable security definer set search_path = public as $$
   select tenant_id from public.usuarios where id = auth.uid()
@@ -79,15 +113,15 @@ returns text language sql stable security definer set search_path = public as $$
 $$;
 
 -- ============================================================
--- 2. Menú e inventario
--- (se crea antes que "operación" porque pedidos_items depende de menu_items)
+-- 2. Menú (nivel tenant)
 -- ============================================================
 
 create table public.categorias_menu (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   nombre text not null,
-  orden integer not null default 0
+  orden integer not null default 0,
+  unique (tenant_id, nombre)
 );
 
 create table public.menu_items (
@@ -111,28 +145,49 @@ create table public.menu_item_sede (
   unique (menu_item_id, sede_id)
 );
 
+-- ============================================================
+-- 3. Inventario — catálogo (tenant) vs existencias (sede)
+-- ============================================================
+
+-- Catálogo de insumos de la cadena: QUÉ existe conceptualmente, una vez
+-- por tenant. No guarda cantidad — eso es local a cada sede.
 create table public.insumos (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
-  sede_id uuid not null references public.sedes(id) on delete cascade,
   nombre text not null,
   unidad_de_medida text not null,
   tipo text not null check (tipo in ('exacto','por_lote','estimado')),
-  cantidad_actual numeric(12,3) not null default 0
+  unique (tenant_id, nombre)
 );
 
+-- CUÁNTO hay de cada insumo, en cada sede específica.
+create table public.inventario_sede (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  sede_id uuid not null references public.sedes(id) on delete cascade,
+  insumo_id uuid not null references public.insumos(id) on delete cascade,
+  cantidad_actual numeric(12,3) not null default 0,
+  unique (sede_id, insumo_id)
+);
+
+-- La receta conecta un plato (tenant) con insumos (tenant) — ya no mezcla
+-- niveles, porque insumos dejó de vivir en sede.
 create table public.recetas (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   menu_item_id uuid not null references public.menu_items(id) on delete cascade,
   insumo_id uuid not null references public.insumos(id) on delete restrict,
   cantidad_requerida numeric(12,3) not null,
-  unidad text not null
+  unidad text not null,
+  unique (menu_item_id, insumo_id)
 );
 
+-- Los lotes sí son físicos y locales: una salsa preparada existe en una
+-- sede concreta, no en el catálogo abstracto del tenant.
 create table public.lotes_insumo (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
+  sede_id uuid not null references public.sedes(id) on delete cascade,
   insumo_id uuid not null references public.insumos(id) on delete cascade,
   cantidad_inicial numeric(12,3) not null,
   cantidad_restante numeric(12,3) not null,
@@ -140,9 +195,11 @@ create table public.lotes_insumo (
   cerrado_en timestamptz
 );
 
+-- Los movimientos también son físicos y locales, por la misma razón.
 create table public.movimientos_inventario (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
+  sede_id uuid not null references public.sedes(id) on delete cascade,
   insumo_id uuid not null references public.insumos(id) on delete cascade,
   tipo text not null check (tipo in ('entrada','salida','merma','ajuste')),
   cantidad numeric(12,3) not null,
@@ -151,7 +208,7 @@ create table public.movimientos_inventario (
 );
 
 -- ============================================================
--- 3. Operación de servicio
+-- 4. Operación de servicio
 -- ============================================================
 
 create table public.mesas (
@@ -183,8 +240,9 @@ create table public.pedidos_items (
   sesion_id uuid not null references public.sesiones_mesa(id) on delete cascade,
   menu_item_id uuid not null references public.menu_items(id),
   cantidad integer not null default 1,
+  precio_unitario numeric(10,2) not null, -- precio congelado al momento del pedido, no se recalcula si el menú cambia después
   notas text,
-  agregado_por text not null, -- id de usuario (mesonero) o el texto "cliente"
+  agregado_por uuid references public.usuarios(id), -- nulo = lo agregó el cliente por autopedido
   estado text not null default 'pendiente' check (estado in ('pendiente','en_preparacion','listo','entregado')),
   client_local_id uuid not null, -- generado en el dispositivo, clave para la sincronización offline
   sincronizado_en timestamptz,
@@ -204,12 +262,12 @@ create table public.pagos_cierre (
 );
 
 -- ============================================================
--- 4. Compras e inteligencia artificial
+-- 5. Compras e inteligencia artificial
 -- ============================================================
 
 create table public.proveedores (
   id uuid primary key default gen_random_uuid(),
-  tenant_id uuid not null references public.tenants(id) on delete cascade,
+  tenant_id uuid not null references public.tenants(id) on delete cascade, -- siempre requerido
   sede_id uuid references public.sedes(id) on delete set null, -- nulo si la compra se centraliza a nivel de cadena
   nombre text not null,
   contacto text
@@ -221,7 +279,7 @@ create table public.ordenes_compra (
   sede_id uuid not null references public.sedes(id) on delete cascade,
   proveedor_id uuid not null references public.proveedores(id),
   estado text not null default 'borrador' check (estado in ('borrador','aprobada','recibida')),
-  creada_por text not null, -- id de usuario o el texto "ia"
+  creada_por uuid references public.usuarios(id), -- nulo = generada por la IA
   aprobada_por uuid references public.usuarios(id) -- nulo hasta que alguien la apruebe; nunca se ejecuta sin este dato
 );
 
@@ -246,7 +304,7 @@ create table public.sugerencias_ia (
 );
 
 -- ============================================================
--- 5. Negocio y facturación
+-- 6. Negocio y facturación
 -- ============================================================
 
 create table public.suscripciones (
@@ -259,6 +317,11 @@ create table public.suscripciones (
   estado text not null default 'activa' check (estado in ('activa','pausada','cancelada')),
   proximo_cobro date
 );
+-- Solo una suscripción activa por tenant a la vez — pero sí se permite
+-- historial de suscripciones pausadas o canceladas, por eso es un índice
+-- parcial y no un unique directo sobre la columna.
+create unique index suscripciones_una_activa_por_tenant
+  on public.suscripciones(tenant_id) where estado = 'activa';
 
 create table public.personalizacion_marca (
   id uuid primary key default gen_random_uuid(),
@@ -272,123 +335,98 @@ create table public.personalizacion_marca (
 -- ============================================================
 -- Row Level Security — aislamiento por tenant en todas las tablas
 -- ============================================================
--- Patrón base: cualquier fila solo es visible/editable si su
--- tenant_id coincide con el tenant del usuario autenticado.
--- Para las tablas operativas del día a día (mesas, sesiones_mesa,
--- pedidos_items, pagos_cierre, insumos, ordenes_compra), se suma
--- una segunda condición: los roles de piso (mesonero, cocina,
--- supervisor) solo ven su propia sede; administración y gerencia
--- ven todas las sedes de su tenant.
 
 alter table public.tenants enable row level security;
-create policy "tenants_propio" on public.tenants
-  for select using (id = public.current_tenant_id());
+create policy "tenants_propio" on public.tenants for select using (id = public.current_tenant_id());
 
 alter table public.sedes enable row level security;
-create policy "sedes_tenant" on public.sedes
-  for all using (tenant_id = public.current_tenant_id());
+create policy "sedes_tenant" on public.sedes for all using (tenant_id = public.current_tenant_id());
 
 alter table public.usuarios enable row level security;
-create policy "usuarios_tenant" on public.usuarios
-  for all using (tenant_id = public.current_tenant_id());
+create policy "usuarios_tenant" on public.usuarios for all using (tenant_id = public.current_tenant_id());
 
 alter table public.categorias_menu enable row level security;
-create policy "categorias_menu_tenant" on public.categorias_menu
-  for all using (tenant_id = public.current_tenant_id());
+create policy "categorias_menu_tenant" on public.categorias_menu for all using (tenant_id = public.current_tenant_id());
 
 alter table public.menu_items enable row level security;
-create policy "menu_items_tenant" on public.menu_items
-  for all using (tenant_id = public.current_tenant_id());
+create policy "menu_items_tenant" on public.menu_items for all using (tenant_id = public.current_tenant_id());
 
 alter table public.menu_item_sede enable row level security;
-create policy "menu_item_sede_tenant" on public.menu_item_sede
-  for all using (tenant_id = public.current_tenant_id());
+create policy "menu_item_sede_tenant" on public.menu_item_sede for all using (tenant_id = public.current_tenant_id());
+
+alter table public.insumos enable row level security;
+create policy "insumos_tenant" on public.insumos for all using (tenant_id = public.current_tenant_id());
+
+alter table public.recetas enable row level security;
+create policy "recetas_tenant" on public.recetas for all using (tenant_id = public.current_tenant_id());
 
 alter table public.suscripciones enable row level security;
-create policy "suscripciones_tenant" on public.suscripciones
-  for all using (tenant_id = public.current_tenant_id());
+create policy "suscripciones_tenant" on public.suscripciones for all using (tenant_id = public.current_tenant_id());
 
 alter table public.personalizacion_marca enable row level security;
-create policy "personalizacion_marca_tenant" on public.personalizacion_marca
-  for all using (tenant_id = public.current_tenant_id());
+create policy "personalizacion_marca_tenant" on public.personalizacion_marca for all using (tenant_id = public.current_tenant_id());
 
 alter table public.sugerencias_ia enable row level security;
-create policy "sugerencias_ia_tenant" on public.sugerencias_ia
-  for all using (tenant_id = public.current_tenant_id());
+create policy "sugerencias_ia_tenant" on public.sugerencias_ia for all using (tenant_id = public.current_tenant_id());
+
+alter table public.proveedores enable row level security;
+create policy "proveedores_tenant" on public.proveedores for all using (tenant_id = public.current_tenant_id());
+
+alter table public.ordenes_compra_items enable row level security;
+create policy "ordenes_compra_items_tenant" on public.ordenes_compra_items for all using (tenant_id = public.current_tenant_id());
 
 -- Tablas con doble filtro: tenant + sede (según el rol)
 
-alter table public.mesas enable row level security;
-create policy "mesas_tenant_sede" on public.mesas
-  for all using (
-    tenant_id = public.current_tenant_id()
-    and (public.current_rol() in ('administracion','gerencia','super_admin')
-         or sede_id = public.current_sede_id())
-  );
-
-alter table public.sesiones_mesa enable row level security;
-create policy "sesiones_mesa_tenant_sede" on public.sesiones_mesa
-  for all using (
-    tenant_id = public.current_tenant_id()
-    and (public.current_rol() in ('administracion','gerencia','super_admin')
-         or sede_id = public.current_sede_id())
-  );
-
-alter table public.pedidos_items enable row level security;
-create policy "pedidos_items_tenant_sede" on public.pedidos_items
-  for all using (
-    tenant_id = public.current_tenant_id()
-    and (public.current_rol() in ('administracion','gerencia','super_admin')
-         or sede_id = public.current_sede_id())
-  );
-
-alter table public.pagos_cierre enable row level security;
-create policy "pagos_cierre_tenant_sede" on public.pagos_cierre
-  for all using (
-    tenant_id = public.current_tenant_id()
-    and (public.current_rol() in ('administracion','gerencia','super_admin')
-         or sede_id = public.current_sede_id())
-  );
-
-alter table public.insumos enable row level security;
-create policy "insumos_tenant_sede" on public.insumos
-  for all using (
-    tenant_id = public.current_tenant_id()
-    and (public.current_rol() in ('administracion','gerencia','super_admin')
-         or sede_id = public.current_sede_id())
-  );
-
-alter table public.recetas enable row level security;
-create policy "recetas_tenant" on public.recetas
-  for all using (tenant_id = public.current_tenant_id());
+alter table public.inventario_sede enable row level security;
+create policy "inventario_sede_tenant_sede" on public.inventario_sede for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
 
 alter table public.lotes_insumo enable row level security;
-create policy "lotes_insumo_tenant" on public.lotes_insumo
-  for all using (tenant_id = public.current_tenant_id());
+create policy "lotes_insumo_tenant_sede" on public.lotes_insumo for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
 
 alter table public.movimientos_inventario enable row level security;
-create policy "movimientos_inventario_tenant" on public.movimientos_inventario
-  for all using (tenant_id = public.current_tenant_id());
+create policy "movimientos_inventario_tenant_sede" on public.movimientos_inventario for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
 
-alter table public.proveedores enable row level security;
-create policy "proveedores_tenant" on public.proveedores
-  for all using (tenant_id = public.current_tenant_id());
+alter table public.mesas enable row level security;
+create policy "mesas_tenant_sede" on public.mesas for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
+
+alter table public.sesiones_mesa enable row level security;
+create policy "sesiones_mesa_tenant_sede" on public.sesiones_mesa for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
+
+alter table public.pedidos_items enable row level security;
+create policy "pedidos_items_tenant_sede" on public.pedidos_items for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
+
+alter table public.pagos_cierre enable row level security;
+create policy "pagos_cierre_tenant_sede" on public.pagos_cierre for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
 
 alter table public.ordenes_compra enable row level security;
-create policy "ordenes_compra_tenant_sede" on public.ordenes_compra
-  for all using (
-    tenant_id = public.current_tenant_id()
-    and (public.current_rol() in ('administracion','gerencia','super_admin')
-         or sede_id = public.current_sede_id())
-  );
-
-alter table public.ordenes_compra_items enable row level security;
-create policy "ordenes_compra_items_tenant" on public.ordenes_compra_items
-  for all using (tenant_id = public.current_tenant_id());
+create policy "ordenes_compra_tenant_sede" on public.ordenes_compra for all using (
+  tenant_id = public.current_tenant_id()
+  and (public.current_rol() in ('administracion','gerencia','super_admin') or sede_id = public.current_sede_id())
+);
 
 -- ============================================================
--- Tiempo real — necesario para que mesonero, cocina y cliente
--- vean la misma mesa actualizarse en vivo
+-- Tiempo real
 -- ============================================================
 
 alter publication supabase_realtime add table public.sesiones_mesa;
@@ -396,13 +434,17 @@ alter publication supabase_realtime add table public.pedidos_items;
 alter publication supabase_realtime add table public.mesas;
 
 -- ============================================================
--- Nota pendiente, importante: el autopedido del cliente por QR
--- NO debe escribir directo a pedidos_items usando RLS anónimo.
--- El cliente no tiene una fila en "usuarios", así que las
--- funciones current_tenant_id() y current_sede_id() no aplican
--- para él. La forma correcta es una función de Postgres (RPC) o
--- un Edge Function que reciba el token de la mesa incluido en el
--- QR, lo valide, y haga el insert con permisos elevados por dentro
--- — no exponer la tabla directamente a escritura pública. Esto se
--- construye en el mismo paso en que se diseñe el flujo de
--- autopedido, no antes.
+-- Notas pendientes, sin resolver a propósito:
+-- - Moneda: no se agregó todavía (ver encabezado del archivo).
+-- - Sistema de personalización de platos (proteína, quitar ingredientes,
+--   extras) del trabajo de interfaz: todavía no tiene tablas — se agrega
+--   en una revisión aparte, dedicada solo a eso.
+-- - Pedidos "para llevar": hoy toda sesión de mesa exige una mesa física.
+--   Un pedido para llevar no encaja en el modelo actual.
+-- - Número de pedido legible (ej. "Pedido #108"): hoy solo existe el
+--   UUID interno, no un número secuencial simple para mostrar en cocina.
+-- - El autopedido del cliente no debe escribir directo a pedidos_items
+--   usando RLS anónimo — necesita una función (RPC) o Edge Function que
+--   valide el token de la mesa desde el QR y escriba con permisos
+--   elevados por dentro.
+-- ============================================================
