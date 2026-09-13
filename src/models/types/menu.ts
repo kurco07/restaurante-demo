@@ -3,7 +3,6 @@ export interface CategoriaMenu {
   tenant_id: string
   nombre: string
   orden: number
-  creado_en: string
 }
 
 export interface MenuItem {
@@ -12,14 +11,13 @@ export interface MenuItem {
   categoria_id: string
   nombre: string
   descripcion: string | null
-  precio: number
-  disponible: boolean
+  precio_base: number
   imagen_url: string | null
-  creado_en: string
 }
 
 export interface MenuItemSede {
   id: string
+  tenant_id: string
   menu_item_id: string
   sede_id: string
   disponible: boolean

@@ -1,10 +1,10 @@
 import { supabase } from '../../lib/supabaseClient'
 
-export async function fetchPedidos(sesionMesaId: string) {
+export async function fetchPedidos(sesionId: string) {
   const { data, error } = await supabase
     .from('pedidos_items')
     .select('*')
-    .eq('sesion_mesa_id', sesionMesaId)
+    .eq('sesion_id', sesionId)
     .order('creado_en')
 
   if (error) throw error
@@ -12,15 +12,18 @@ export async function fetchPedidos(sesionMesaId: string) {
 }
 
 export async function crearPedidoItem(item: {
-  sesion_mesa_id: string
+  tenant_id: string
+  sede_id: string
+  sesion_id: string
   menu_item_id: string
   cantidad: number
   precio_unitario: number
   notas?: string
+  agregado_por?: string
 }) {
   const { data, error } = await supabase
     .from('pedidos_items')
-    .insert(item)
+    .insert({ ...item, client_local_id: crypto.randomUUID() })
     .select()
     .single()
 

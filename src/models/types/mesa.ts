@@ -2,19 +2,20 @@ export interface Mesa {
   id: string
   tenant_id: string
   sede_id: string
-  numero: number
-  capacidad: number
-  estado: 'libre' | 'ocupada' | 'reservada'
-  qr_token: string
-  creado_en: string
+  nombre_numero: string
+  posicion_x: number | null
+  posicion_y: number | null
+  estado: 'libre' | 'ocupada' | 'por_limpiar'
 }
 
 export interface SesionMesa {
   id: string
+  tenant_id: string
+  sede_id: string
   mesa_id: string
   mesonero_id: string | null
   estado: 'abierta' | 'cerrada'
-  total: number
-  creado_en: string
-  cerrado_en: string | null
+  origen: 'mesonero' | 'autopedido' | 'hibrido'
+  abierta_en: string
+  cerrada_en: string | null
 }

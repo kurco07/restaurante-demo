@@ -1,4 +1,4 @@
-# Plataforma de Restaurantes — Frontend hola cesar
+# Plataforma de Restaurantes — Frontend
 
 SaaS multi-tenant para restaurantes (mesoneros, autopedido por QR, cocina en
 tiempo real, administración/inventario, gerencia y un panel de super-admin),
@@ -30,17 +30,11 @@ Variables de entorno requeridas (ver `.env.example`):
 - `VITE_SUPABASE_ANON_KEY`
 - `VITE_POWERSYNC_URL`
 
-## Estructura de `src/modules/`
+## Estructura del código (MVC)
 
-Cada carpeta es un módulo de la plataforma, con su propio placeholder de
-página por ahora — todavía sin lógica de negocio:
+Ver `docs/estructura-mvc/README.md` para el detalle completo. En resumen:
 
-- `mesoneros/` — toma de pedidos por mesa, envío a cocina, cierre de cuenta
-- `cocina/` — pantalla de cocina (KDS) en tiempo real
-- `autopedido/` — autoatención del cliente por QR en la mesa
-- `administracion/` — inventario, recetas, compras, proveedores
-- `gerencia/` — dashboards y reportes
-- `super-admin/` — panel interno del equipo del SaaS (alta de tenants, uso)
-
-Código compartido entre módulos vive en `src/components/`, `src/hooks/` y
-`src/types/`. Los clientes de Supabase y PowerSync están en `src/lib/`.
+- `src/models/` — tipos (`types/`) y llamadas a Supabase (`services/`)
+- `src/views/` — componentes de UI: `components/` (reutilizables y providers) y `modules/` (una carpeta por módulo de la plataforma — `mesoneros`, `cocina`, `autopedido`, `administracion`, `gerencia`, `super-admin`, `login`)
+- `src/controllers/` — hooks que conectan las vistas con los models (`useAuth`, `useUsuario`, `ProtectedRoute`)
+- `src/lib/` — clientes de Supabase y PowerSync, configuración compartida

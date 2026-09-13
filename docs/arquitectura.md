@@ -140,6 +140,7 @@ Decidieron ampliar presupuesto/timeline de fase 1 en vez de recortar alcance o h
 - Panel de "super-admin" para el equipo del SaaS: alta de restaurantes, ver uso, soporte — en fase 1 puede ser interno y manual, no expuesto al cliente
 - ✅ **Multi-sede — propuesta (no lo habían pensado, sigo con esta base):** un tenant por restaurante/cadena, con soporte para varias sedes dentro de ese mismo tenant. Cada sede tiene su propio inventario, mesas y equipo de trabajo, pero la gerencia puede ver reportes consolidados de toda la cadena o filtrar por sede individual. Es el modelo más flexible: cubre tanto al restaurante de una sola sede como a una pequeña cadena, sin duplicar cuentas ni facturación. Dímelo si preferían que cada sede fuera un tenant independiente
 - ✅ **El detalle de tablas, campos y relaciones vive en un documento aparte: Modelo de Datos.**
+- ✅ **Organización del código del frontend: patrón MVC adaptado a React** (`models/` para tipos y llamadas a Supabase, `views/` para componentes y módulos de UI, `controllers/` para los hooks que los conectan). El detalle completo vive en `docs/estructura-mvc/README.md`.
 
 ### 4.10 Seguridad y roles
 - Roles base: mesonero, cocina, supervisor de sala, administración, gerencia/dueño, super-admin (equipo del SaaS)

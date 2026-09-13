@@ -5,16 +5,27 @@ export async function fetchMesas(sedeId: string) {
     .from('mesas')
     .select('*')
     .eq('sede_id', sedeId)
-    .order('numero')
+    .order('nombre_numero')
 
   if (error) throw error
   return data
 }
 
-export async function abrirSesionMesa(mesaId: string, mesoneroId?: string) {
+export async function abrirSesionMesa(params: {
+  tenantId: string
+  sedeId: string
+  mesaId: string
+  mesoneroId?: string
+}) {
   const { data, error } = await supabase
     .from('sesiones_mesa')
-    .insert({ mesa_id: mesaId, mesonero_id: mesoneroId })
+    .insert({
+      tenant_id: params.tenantId,
+      sede_id: params.sedeId,
+      mesa_id: params.mesaId,
+      mesonero_id: params.mesoneroId,
+      origen: 'mesonero',
+    })
     .select()
     .single()
 
@@ -25,7 +36,7 @@ export async function abrirSesionMesa(mesaId: string, mesoneroId?: string) {
 export async function cerrarSesionMesa(sesionId: string) {
   const { data, error } = await supabase
     .from('sesiones_mesa')
-    .update({ estado: 'cerrada', cerrado_en: new Date().toISOString() })
+    .update({ estado: 'cerrada', cerrada_en: new Date().toISOString() })
     .eq('id', sesionId)
     .select()
     .single()
