@@ -82,6 +82,7 @@ const pedidos_items = new Table({
   sesion_id: column.text,
   menu_item_id: column.text,
   cantidad: column.integer,
+  precio_unitario: column.real,
   notas: column.text,
   agregado_por: column.text,
   estado: column.text,
@@ -90,13 +91,13 @@ const pedidos_items = new Table({
   creado_en: column.text,
 })
 
+// Catálogo por tenant (0002): ya no guarda cantidad, eso vive en
+// inventario_sede (Fase 4, todavía no sincronizada offline).
 const insumos = new Table({
   tenant_id: column.text,
-  sede_id: column.text,
   nombre: column.text,
   unidad_de_medida: column.text,
   tipo: column.text,
-  cantidad_actual: column.real,
 })
 
 const recetas = new Table({
