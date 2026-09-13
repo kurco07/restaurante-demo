@@ -1,4 +1,4 @@
-import type { Rol } from '../types/usuario'
+import type { Rol } from '../models/types/usuario'
 
 // Matriz de acceso por ruta de módulo, según arquitectura.md (sección 4.10).
 // /autopedido queda fuera a propósito: es la vista pública del cliente por QR,

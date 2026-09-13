@@ -1,6 +1,6 @@
 # Flujo de colaboración (2 desarrolladores)
 
-Trabajamos en paralelo dividiendo por **módulo del roadmap** (`docs/Roadmap_Construccion_MVP.md`), no por capas. Cada módulo vive en su propia rama y, en la mayoría de los casos, en su propia carpeta de `src/modules/`, así que el riesgo de pisarnos es bajo si seguimos esto.
+Trabajamos en paralelo dividiendo por **módulo del roadmap** (`docs/Roadmap_Construccion_MVP.md`), no por capas. Cada módulo vive en su propia rama y en su propia carpeta de `src/views/modules/`, así que el riesgo de pisarnos es bajo si seguimos esto.
 
 ## Reparto completo del roadmap
 
@@ -74,7 +74,7 @@ Estos archivos los vamos a tocar los dos tarde o temprano. Antes de editarlos, a
 - **`supabase/migrations/`** — nunca se edita un archivo ya aplicado. Si tu módulo necesita cambios de esquema, crea un archivo nuevo (`0002_...sql`, `0003_...sql`, numerado después del último que exista) y avisa antes de correrlo contra el Supabase compartido — afecta la base de datos de los dos.
 - **`src/lib/powerSyncClient.ts`** — el schema de PowerSync. Si tu módulo necesita una tabla nueva disponible offline, agrégala aquí y avisa (puede generar conflicto de merge si los dos la tocan el mismo día).
 - **`src/App.tsx`** — rutas de la app. Cambios normalmente chicos (agregar una ruta), bajo riesgo pero pueden chocar si los dos agregan rutas la misma semana.
-- **`src/lib/rolesPorModulo.ts`** y **`src/types/`** — tipos y matriz de roles compartidos.
+- **`src/lib/rolesPorModulo.ts`** y **`src/models/types/`** — tipos y matriz de roles compartidos.
 - **`docs/Roadmap_Construccion_MVP.md`** — al marcar ✅, jala primero `main` para no pisar la marca del otro.
 
 ## Migraciones de base de datos — flujo concreto
