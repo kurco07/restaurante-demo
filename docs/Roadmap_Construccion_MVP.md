@@ -48,8 +48,10 @@ Verificado end-to-end con una sesión real: `powerSync.currentStatus` reporta `c
 
 Este es el ciclo central del producto — el que resuelve los tres dolores originales (pedidos, cierres manuales, inventario ciego). Todo lo demás es soporte a este ciclo.
 
-**Módulo 1 — Menú y recetas (versión mínima)**
+**Módulo 1 — Menú y recetas (versión mínima)** ✅
 Alta de categorías, platos, precio, y los insumos con su cantidad que componen cada plato. Suficiente para poder tomar pedidos y descontar inventario — la gestión completa de insumos (proveedores, compras, lotes) se construye en la Fase 4, no aquí.
+
+Implementado en `src/views/modules/administracion/` (alta, edición y borrado de categorías y platos; editor de receta por plato que reutiliza un insumo existente o crea uno nuevo al vuelo). Verificado en vivo contra Supabase con una sesión real, incluida recarga de página para confirmar persistencia. El menú real del cliente piloto (`docs/Menu.md`) ya está cargado: 13 categorías, 45 platos — sin recetas todavía, porque el documento del cliente no trae cantidades de insumo por plato.
 
 **Módulo 2 — Mapeo de mesas**
 Editor visual simple para crear la distribución de mesas del salón (posición, nombre o número). Vista de estado de cada mesa: libre, ocupada, por limpiar.
