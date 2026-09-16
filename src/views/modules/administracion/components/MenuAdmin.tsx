@@ -1,9 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { CategoriaMenu, Insumo, MenuItem, Receta } from '../../../../models/types'
 import {
+  actualizarCategoria,
+  actualizarMenuItem,
   agregarRecetaItem,
   crearCategoria,
   crearMenuItem,
+  eliminarCategoria,
+  eliminarMenuItem,
   eliminarRecetaItem,
   fetchCategorias,
   fetchMenuItems,
@@ -56,6 +60,16 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
     setCategorias((prev) => [...prev, nueva])
   }
 
+  async function handleActualizarCategoria(id: string, nombre: string) {
+    const actualizada = await actualizarCategoria(id, nombre)
+    setCategorias((prev) => prev.map((c) => (c.id === id ? actualizada : c)))
+  }
+
+  async function handleEliminarCategoria(id: string) {
+    await eliminarCategoria(id)
+    setCategorias((prev) => prev.filter((c) => c.id !== id))
+  }
+
   async function handleCrearItem(item: {
     categoria_id: string
     nombre: string
@@ -64,6 +78,20 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
   }) {
     const nuevo = await crearMenuItem({ tenant_id: tenantId, ...item })
     setMenuItems((prev) => [...prev, nuevo])
+  }
+
+  async function handleActualizarItem(
+    id: string,
+    cambios: { categoria_id: string; nombre: string; descripcion?: string; precio_base: number },
+  ) {
+    const actualizado = await actualizarMenuItem(id, cambios)
+    setMenuItems((prev) => prev.map((item) => (item.id === id ? actualizado : item)))
+  }
+
+  async function handleEliminarItem(id: string) {
+    await eliminarMenuItem(id)
+    setMenuItems((prev) => prev.filter((item) => item.id !== id))
+    if (itemExpandido === id) setItemExpandido(null)
   }
 
   async function handleToggleReceta(menuItemId: string) {
@@ -123,7 +151,12 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
-      <CategoriasSection categorias={categorias} onCrear={handleCrearCategoria} />
+      <CategoriasSection
+        categorias={categorias}
+        onCrear={handleCrearCategoria}
+        onActualizar={handleActualizarCategoria}
+        onEliminar={handleEliminarCategoria}
+      />
       <MenuItemsSection
         categorias={categorias}
         menuItems={menuItems}
@@ -131,6 +164,8 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
         recetaPorItem={recetaPorItem}
         itemExpandido={itemExpandido}
         onCrearItem={handleCrearItem}
+        onActualizarItem={handleActualizarItem}
+        onEliminarItem={handleEliminarItem}
         onToggleReceta={handleToggleReceta}
         onAgregarRecetaLinea={handleAgregarRecetaLinea}
         onEliminarRecetaLinea={handleEliminarRecetaLinea}

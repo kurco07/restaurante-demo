@@ -14,6 +14,11 @@ interface MenuItemsSectionProps {
     descripcion?: string
     precio_base: number
   }) => Promise<void>
+  onActualizarItem: (
+    id: string,
+    cambios: { categoria_id: string; nombre: string; descripcion?: string; precio_base: number },
+  ) => Promise<void>
+  onEliminarItem: (id: string) => Promise<void>
   onToggleReceta: (menuItemId: string) => void
   onAgregarRecetaLinea: (
     menuItemId: string,
@@ -27,6 +32,8 @@ interface MenuItemsSectionProps {
   onEliminarRecetaLinea: (menuItemId: string, recetaId: string) => Promise<void>
 }
 
+const FORM_VACIO = { categoriaId: '', nombre: '', descripcion: '', precio: '' }
+
 export function MenuItemsSection({
   categorias,
   menuItems,
@@ -34,14 +41,14 @@ export function MenuItemsSection({
   recetaPorItem,
   itemExpandido,
   onCrearItem,
+  onActualizarItem,
+  onEliminarItem,
   onToggleReceta,
   onAgregarRecetaLinea,
   onEliminarRecetaLinea,
 }: MenuItemsSectionProps) {
-  const [categoriaId, setCategoriaId] = useState('')
-  const [nombre, setNombre] = useState('')
-  const [descripcion, setDescripcion] = useState('')
-  const [precio, setPrecio] = useState('')
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [form, setForm] = useState(FORM_VACIO)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -49,28 +56,65 @@ export function MenuItemsSection({
     return categorias.find((c) => c.id === id)?.nombre ?? 'Sin categoría'
   }
 
+  function empezarEdicion(item: MenuItem) {
+    setEditandoId(item.id)
+    setForm({
+      categoriaId: item.categoria_id,
+      nombre: item.nombre,
+      descripcion: item.descripcion ?? '',
+      precio: String(item.precio_base),
+    })
+    setError(null)
+  }
+
+  function cancelarEdicion() {
+    setEditandoId(null)
+    setForm(FORM_VACIO)
+    setError(null)
+  }
+
+  async function handleEliminar(id: string) {
+    if (!confirm('¿Eliminar este plato?')) return
+    setError(null)
+    try {
+      await onEliminarItem(id)
+      if (editandoId === id) cancelarEdicion()
+    } catch (err) {
+      setError(
+        err instanceof Error ? `No se pudo eliminar: ${err.message}` : 'No se pudo eliminar el plato.',
+      )
+    }
+  }
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
 
-    if (!categoriaId) {
+    if (!form.categoriaId) {
       setError('Selecciona una categoría (créala arriba si todavía no existe).')
       return
     }
 
     setSubmitting(true)
     try {
-      await onCrearItem({
-        categoria_id: categoriaId,
-        nombre: nombre.trim(),
-        descripcion: descripcion.trim() || undefined,
-        precio_base: Number(precio),
-      })
-      setNombre('')
-      setDescripcion('')
-      setPrecio('')
+      const payload = {
+        categoria_id: form.categoriaId,
+        nombre: form.nombre.trim(),
+        descripcion: form.descripcion.trim() || undefined,
+        precio_base: Number(form.precio),
+      }
+      if (editandoId) {
+        await onActualizarItem(editandoId, payload)
+      } else {
+        await onCrearItem(payload)
+      }
+      cancelarEdicion()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el plato.')
+      setError(
+        err instanceof Error
+          ? err.message
+          : `No se pudo ${editandoId ? 'actualizar' : 'crear'} el plato.`,
+      )
     } finally {
       setSubmitting(false)
     }
@@ -91,13 +135,29 @@ export function MenuItemsSection({
                 </p>
                 {item.descripcion && <p className="mt-1 text-sm text-gray-600">{item.descripcion}</p>}
               </div>
-              <button
-                type="button"
-                onClick={() => onToggleReceta(item.id)}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {itemExpandido === item.id ? 'Ocultar receta' : 'Receta'}
-              </button>
+              <div className="flex shrink-0 gap-3 text-sm">
+                <button
+                  type="button"
+                  onClick={() => onToggleReceta(item.id)}
+                  className="text-blue-600 hover:underline"
+                >
+                  {itemExpandido === item.id ? 'Ocultar receta' : 'Receta'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => empezarEdicion(item)}
+                  className="text-gray-500 hover:text-blue-600 hover:underline"
+                >
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleEliminar(item.id)}
+                  className="text-gray-500 hover:text-red-600 hover:underline"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
 
             {itemExpandido === item.id && (
@@ -118,11 +178,15 @@ export function MenuItemsSection({
       </ul>
 
       <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2 border-t border-gray-100 pt-3">
+        {editandoId && (
+          <p className="w-full text-xs font-medium text-blue-600">Editando "{form.nombre}"</p>
+        )}
+
         <label className="flex flex-col gap-1 text-xs text-gray-600">
           Categoría
           <select
-            value={categoriaId}
-            onChange={(event) => setCategoriaId(event.target.value)}
+            value={form.categoriaId}
+            onChange={(event) => setForm((f) => ({ ...f, categoriaId: event.target.value }))}
             className="rounded border border-gray-300 px-2 py-1.5 text-sm"
           >
             <option value="">Selecciona…</option>
@@ -139,8 +203,8 @@ export function MenuItemsSection({
           <input
             type="text"
             required
-            value={nombre}
-            onChange={(event) => setNombre(event.target.value)}
+            value={form.nombre}
+            onChange={(event) => setForm((f) => ({ ...f, nombre: event.target.value }))}
             className="rounded border border-gray-300 px-2 py-1.5 text-sm"
           />
         </label>
@@ -149,8 +213,8 @@ export function MenuItemsSection({
           Descripción
           <input
             type="text"
-            value={descripcion}
-            onChange={(event) => setDescripcion(event.target.value)}
+            value={form.descripcion}
+            onChange={(event) => setForm((f) => ({ ...f, descripcion: event.target.value }))}
             className="rounded border border-gray-300 px-2 py-1.5 text-sm"
           />
         </label>
@@ -162,8 +226,8 @@ export function MenuItemsSection({
             step="0.01"
             min="0"
             required
-            value={precio}
-            onChange={(event) => setPrecio(event.target.value)}
+            value={form.precio}
+            onChange={(event) => setForm((f) => ({ ...f, precio: event.target.value }))}
             className="w-24 rounded border border-gray-300 px-2 py-1.5 text-sm"
           />
         </label>
@@ -173,8 +237,18 @@ export function MenuItemsSection({
           disabled={submitting}
           className="rounded bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
         >
-          {submitting ? 'Agregando…' : 'Agregar plato'}
+          {submitting ? 'Guardando…' : editandoId ? 'Guardar cambios' : 'Agregar plato'}
         </button>
+
+        {editandoId && (
+          <button
+            type="button"
+            onClick={cancelarEdicion}
+            className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700"
+          >
+            Cancelar
+          </button>
+        )}
       </form>
 
       {error && <p className="text-sm text-red-600">{error}</p>}

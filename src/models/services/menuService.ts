@@ -23,6 +23,26 @@ export async function crearCategoria(tenantId: string, nombre: string, orden: nu
   return data as CategoriaMenu
 }
 
+export async function actualizarCategoria(id: string, nombre: string) {
+  const { data, error } = await supabase
+    .from('categorias_menu')
+    .update({ nombre })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as CategoriaMenu
+}
+
+// menu_items.categoria_id no permite borrar una categoría con platos
+// asociados (on delete restrict) — el error de Postgres ya es bastante
+// claro, se lo pasamos al usuario tal cual en vez de adivinar el motivo.
+export async function eliminarCategoria(id: string) {
+  const { error } = await supabase.from('categorias_menu').delete().eq('id', id)
+  if (error) throw error
+}
+
 export async function fetchMenuItems(tenantId: string) {
   const { data, error } = await supabase
     .from('menu_items')
@@ -46,6 +66,33 @@ export async function crearMenuItem(item: {
 
   if (error) throw error
   return data as MenuItem
+}
+
+export async function actualizarMenuItem(
+  id: string,
+  cambios: {
+    categoria_id: string
+    nombre: string
+    descripcion?: string
+    precio_base: number
+  },
+) {
+  const { data, error } = await supabase
+    .from('menu_items')
+    .update(cambios)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as MenuItem
+}
+
+// pedidos_items.menu_item_id no permite borrar un plato con pedidos ya
+// hechos — de nuevo, se propaga el error de Postgres tal cual.
+export async function eliminarMenuItem(id: string) {
+  const { error } = await supabase.from('menu_items').delete().eq('id', id)
+  if (error) throw error
 }
 
 export async function fetchRecetaPorMenuItem(menuItemId: string) {
