@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Pedidos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  a { text-decoration: none; color: inherit; cursor: pointer; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+
+  .app-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  .sidebar { background: var(--ink); color: #fff; padding: 22px 16px; display: flex; flex-direction: column; }
+  .sidebar-brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; margin: 4px 0 28px; padding: 0 10px; }
+  .sidebar-brand span { color: var(--orange); }
+  .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .side-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #cfc6ba; }
+  .side-link svg { width: 17px; height: 17px; stroke: currentColor; flex-shrink: 0; }
+  .side-link.active { background: var(--orange); color: #fff; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid #423528; margin-top: 10px; }
+  .sidebar-user .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
+  .sidebar-user .u-name { font-size: 12.5px; font-weight: 700; color: #fff; }
+  .sidebar-user .u-role { font-size: 11px; color: #a89d8d; }
+
+  .content { padding: 28px 34px 40px; max-width: 1380px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px; }
+  .greeting-eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-dark); font-weight: 700; }
+  .greeting { font-family: 'Baloo 2', sans-serif; font-size: 27px; font-weight: 700; margin: 4px 0 0; }
+  .search { width: 220px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--ink-soft); font-size: 13.5px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; }
+  .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; }
+  .stat-value.alert { color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+  .pills { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .pill { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); color: var(--ink-soft); background: var(--surface); }
+  .pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+  .layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }
+
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .t-head, .t-row { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 0.8fr 1.1fr 1fr; align-items: center; padding: 12px 18px; gap: 8px; }
+  .t-head { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+  .t-row { border-bottom: 1px solid var(--border); font-size: 13px; }
+  .t-row:last-child { border-bottom: none; }
+  .t-row.selected { background: var(--orange-bg); }
+  .t-order { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .t-badge { width: 32px; height: 32px; border-radius: 9px; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11.5px; flex-shrink: 0; }
+  .t-name { font-weight: 700; }
+  .t-mesero { font-size: 12.5px; color: var(--ink-soft); }
+  .t-num { text-align: center; font-weight: 600; }
+  .t-total { text-align: right; font-weight: 700; }
+  .t-time { font-size: 11.5px; color: var(--ink-soft); text-align: right; }
+  .status-chip { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .status-chip.cocina { background: var(--orange-bg); color: var(--orange-dark); }
+  .status-chip.listo { background: var(--green-bg); color: var(--green); }
+  .status-chip.entregado { background: var(--green-bg); color: var(--green); }
+  .status-chip.cuenta { background: var(--red-bg); color: var(--red); }
+  .status-chip.cancelado { background: var(--red-bg); color: var(--red); }
+  .table-foot { padding: 12px 18px; font-size: 11.5px; color: var(--ink-soft); text-align: center; }
+
+  .sidebar-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .sidebar-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+  .sidebar-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  .po-item { display: flex; justify-content: space-between; padding: 9px 0; border-top: 1px solid var(--border); font-size: 12.5px; }
+  .po-item:first-of-type { border-top: none; }
+  .po-item .name { font-weight: 600; }
+  .po-item .calc { color: var(--ink-soft); }
+  .po-item .sub { font-weight: 700; }
+
+  .totals { margin-top: 4px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .total-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .total-row.final { font-size: 16px; color: var(--ink); font-weight: 700; margin-top: 4px; }
+  .total-row.final .amount { color: var(--orange-dark); }
+
+  .cancel-btn { margin-top: 16px; background: var(--red-bg); color: var(--red); border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-brand">Fast <span>&amp; Co.</span></div>
+    <nav class="side-nav">
+      <a class="side-link" href="mockup-admin-home.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+      <a class="side-link active" href="mockup-admin-pedidos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Pedidos
+      </a>
+      <a class="side-link" href="mockup-admin-menu.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+        Menú
+      </a>
+      <a class="side-link" href="mockup-admin-insumos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Inventario
+      </a>
+      <a class="side-link" href="mockup-admin-mesas.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="9" width="18" height="4" rx="1.5"/><path d="M5 13v7M19 13v7"/></svg>
+        Mesas
+      </a>
+      <a class="side-link" href="mockup-admin-personal.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="9" r="2.3"/><path d="M15.5 14.2c2 .6 3.5 2.5 3.5 5.8"/></svg>
+        Personal
+      </a>
+      <a class="side-link" href="mockup-admin-reportes.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
+        Reportes
+      </a>
+      <a class="side-link" href="mockup-admin-configuracion.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        Configuración
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar-sm">D</div>
+      <div>
+        <div class="u-name">Daniela Roa</div>
+        <div class="u-role">Administradora</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <div class="header">
+      <div>
+        <div class="greeting-eyebrow">Administración · Pedidos</div>
+        <h1 class="greeting">Pedidos</h1>
+      </div>
+      <input class="search" placeholder="Buscar por mesa o mesero..." />
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value">96</div><div class="stat-label">Pedidos de hoy</div></div>
+      <div class="stat"><div class="stat-value">$13.40</div><div class="stat-label">Ticket promedio</div></div>
+      <div class="stat"><div class="stat-value alert">2</div><div class="stat-label">Pedidos demorados</div></div>
+    </div>
+
+    <div class="pills">
+      <div class="pill active">Todos</div>
+      <div class="pill">En cocina</div>
+      <div class="pill">Listo para servir</div>
+      <div class="pill">Cuenta pedida</div>
+      <div class="pill">Entregado</div>
+      <div class="pill">Cancelado</div>
+    </div>
+
+    <div class="layout">
+      <div class="table-wrap">
+        <div class="t-head">
+          <span>Pedido</span><span>Mesero</span><span class="t-num">Ítems</span><span style="text-align:right;">Total</span><span>Estado</span><span style="text-align:right;">Hora</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-order"><div class="t-badge">12</div><div class="t-name">Mesa 12</div></div>
+          <span class="t-mesero">Valentina</span><span class="t-num">5</span><span class="t-total">$40.00</span>
+          <span class="status-chip entregado">Entregado</span><span class="t-time">hace 2 min</span>
+        </div>
+
+        <div class="t-row selected">
+          <div class="t-order"><div class="t-badge">7</div><div class="t-name">Mesa 7</div></div>
+          <span class="t-mesero">Carlos</span><span class="t-num">3</span><span class="t-total">$27.50</span>
+          <span class="status-chip cocina">En cocina</span><span class="t-time">hace 8 min</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-order"><div class="t-badge">#204</div><div class="t-name">Para llevar</div></div>
+          <span class="t-mesero">Valentina</span><span class="t-num">2</span><span class="t-total">$14.00</span>
+          <span class="status-chip entregado">Entregado</span><span class="t-time">hace 15 min</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-order"><div class="t-badge">3</div><div class="t-name">Mesa 3</div></div>
+          <span class="t-mesero">Carlos</span><span class="t-num">1</span><span class="t-total">$12.00</span>
+          <span class="status-chip cancelado">Cancelado</span><span class="t-time">hace 22 min</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-order"><div class="t-badge">9</div><div class="t-name">Mesa 9</div></div>
+          <span class="t-mesero">Valentina</span><span class="t-num">4</span><span class="t-total">$33.50</span>
+          <span class="status-chip entregado">Entregado</span><span class="t-time">hace 30 min</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-order"><div class="t-badge">2</div><div class="t-name">Mesa 2</div></div>
+          <span class="t-mesero">Valentina</span><span class="t-num">4</span><span class="t-total">$31.00</span>
+          <span class="status-chip entregado">Entregado</span><span class="t-time">hace 55 min</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-order"><div class="t-badge">#203</div><div class="t-name">Para llevar</div></div>
+          <span class="t-mesero">Carlos</span><span class="t-num">3</span><span class="t-total">$22.00</span>
+          <span class="status-chip entregado">Entregado</span><span class="t-time">hoy 9:40 a.m.</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-order"><div class="t-badge">10</div><div class="t-name">Mesa 10</div></div>
+          <span class="t-mesero">Carlos</span><span class="t-num">2</span><span class="t-total">$18.50</span>
+          <span class="status-chip entregado">Entregado</span><span class="t-time">hoy 9:05 a.m.</span>
+        </div>
+
+        <div class="table-foot">Mostrando 8 de 96 pedidos de hoy</div>
+      </div>
+
+      <div class="sidebar-panel">
+        <p class="sidebar-title">Pedido · Mesa 7</p>
+        <p class="sidebar-sub">Carlos · hace 8 min</p>
+
+        <span class="status-chip cocina" style="margin-bottom:14px; display:inline-block;">En cocina</span>
+
+        <div class="po-item">
+          <span class="name">Pizza pepperoni familiar</span>
+          <span class="calc">1 × $12.00</span>
+          <span class="sub">$12.00</span>
+        </div>
+        <div class="po-item">
+          <span class="name">Alitas picantes BBQ</span>
+          <span class="calc">1 × $9.50</span>
+          <span class="sub">$9.50</span>
+        </div>
+        <div class="po-item">
+          <span class="name">Papas cheddar bacon</span>
+          <span class="calc">1 × $6.00</span>
+          <span class="sub">$6.00</span>
+        </div>
+
+        <div class="totals">
+          <div class="total-row final"><span>Total del pedido</span><span class="amount">$27.50</span></div>
+        </div>
+
+        <div class="cancel-btn">Cancelar pedido</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

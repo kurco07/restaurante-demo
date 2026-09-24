@@ -1,12 +1,13 @@
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './views/components/AuthProvider'
 import { UsuarioProvider } from './views/components/UsuarioProvider'
-import { ProtectedRoute } from './controllers/ProtectedRoute'
+import { ProtectedRoute } from './controllers/auth/ProtectedRoute'
 import LoginPage from './views/modules/login/LoginPage'
-import { useAuth } from './controllers/useAuth'
-import { useUsuario } from './controllers/useUsuario'
+import { useAuth } from './controllers/auth/useAuth'
+import { useUsuario } from './controllers/usuario/useUsuario'
 import { rolesPorModulo } from './lib/rolesPorModulo'
 import MesonerosPage from './views/modules/mesoneros/MesonerosPage'
+import PedidosPage from './views/modules/pedidos/PedidosPage'
 import CocinaPage from './views/modules/cocina/CocinaPage'
 import AutopedidoPage from './views/modules/autopedido/AutopedidoPage'
 import AdministracionPage from './views/modules/administracion/AdministracionPage'
@@ -99,6 +100,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/mesoneros']}>
                   <MesonerosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mesoneros/pedidos/:mesaId"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/mesoneros']}>
+                  <PedidosPage />
                 </ProtectedRoute>
               }
             />

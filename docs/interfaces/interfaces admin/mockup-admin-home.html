@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Panel de administración</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  a { text-decoration: none; color: inherit; cursor: pointer; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+
+  .app-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* Sidebar */
+  .sidebar { background: var(--ink); color: #fff; padding: 22px 16px; display: flex; flex-direction: column; }
+  .sidebar-brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; margin: 4px 0 28px; padding: 0 10px; }
+  .sidebar-brand span { color: var(--orange); }
+  .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .side-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #cfc6ba; }
+  .side-link svg { width: 17px; height: 17px; stroke: currentColor; flex-shrink: 0; }
+  .side-link.active { background: var(--orange); color: #fff; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid #423528; margin-top: 10px; }
+  .sidebar-user .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
+  .sidebar-user .u-name { font-size: 12.5px; font-weight: 700; color: #fff; }
+  .sidebar-user .u-role { font-size: 11px; color: #a89d8d; }
+
+  /* Content */
+  .content { padding: 28px 34px 40px; max-width: 1280px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+  .greeting-eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-dark); font-weight: 700; }
+  .greeting { font-family: 'Baloo 2', sans-serif; font-size: 27px; font-weight: 700; margin: 4px 0 0; }
+  .header-actions { display: flex; align-items: center; gap: 12px; }
+  .period-pills { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 999px; padding: 4px; }
+  .period-pill { padding: 7px 15px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+  .period-pill.active { background: var(--orange); color: #fff; }
+  .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; justify-content: center; color: var(--ink-soft); position: relative; flex-shrink: 0; }
+  .icon-btn svg { width: 16px; height: 16px; stroke: currentColor; }
+  .icon-btn .ping { position: absolute; top: 7px; right: 8px; width: 7px; height: 7px; border-radius: 50%; background: var(--red); border: 1.5px solid var(--surface); }
+  .avatar-lg { width: 42px; height: 42px; border-radius: 50%; background: var(--orange-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--orange-dark); flex-shrink: 0; }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .stat-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 23px; font-weight: 700; }
+  .stat-value.alert { color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 5px; }
+  .stat-delta { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+  .stat-delta.up { background: var(--green-bg); color: var(--green); }
+  .stat-delta.down { background: var(--red-bg); color: var(--red); }
+
+  .layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px 20px; margin-bottom: 20px; }
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .panel-title { font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; margin: 0 0 3px; }
+  .panel-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 16px; }
+  .panel-link { font-size: 12px; font-weight: 700; color: var(--orange-dark); white-space: nowrap; }
+
+  /* Chart */
+  .chart { display: flex; align-items: flex-end; gap: 12px; height: 160px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+  .bar-value { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); margin-bottom: 6px; }
+  .bar-col.today .bar-value { color: var(--orange-dark); }
+  .bar { width: 100%; max-width: 32px; border-radius: 8px 8px 4px 4px; background: var(--orange-bg); }
+  .bar-col.today .bar { background: linear-gradient(180deg, #ffb877, var(--orange)); }
+  .bar-day { font-size: 11px; color: var(--ink-soft); margin-top: 8px; font-weight: 600; }
+  .bar-col.today .bar-day { color: var(--orange-dark); font-weight: 700; }
+
+  /* Recent orders */
+  .order-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--border); gap: 10px; }
+  .order-row:first-of-type { border-top: none; padding-top: 2px; }
+  .order-left { display: flex; align-items: center; gap: 12px; }
+  .order-badge { width: 34px; height: 34px; border-radius: 10px; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12.5px; flex-shrink: 0; }
+  .order-info .mesa-name { font-size: 13.5px; font-weight: 700; }
+  .order-info .items-count { font-size: 11.5px; color: var(--ink-soft); }
+  .status-chip { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .status-chip.entregado { background: var(--green-bg); color: var(--green); }
+  .status-chip.cocina { background: var(--orange-bg); color: var(--orange-dark); }
+  .status-chip.cancelado { background: var(--red-bg); color: var(--red); }
+  .order-time { font-size: 11px; color: var(--ink-soft); margin-top: 3px; text-align: right; }
+
+  /* Top products */
+  .top-list { display: flex; flex-direction: column; gap: 14px; }
+  .top-item { display: flex; align-items: center; gap: 12px; }
+  .top-thumb { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .top-thumb svg { width: 19px; height: 19px; stroke: #fff; }
+  .p1 { background: linear-gradient(135deg, #ffb877, #ff7a1a); }
+  .p2 { background: linear-gradient(135deg, #ffdca0, #ffb04a); }
+  .p3 { background: linear-gradient(135deg, #ffcf6b, #f5a623); }
+  .p4 { background: linear-gradient(135deg, #ff9d6b, #e0650a); }
+  .top-info { flex: 1; min-width: 0; }
+  .top-name { font-size: 13px; font-weight: 700; }
+  .top-units { font-size: 11.5px; color: var(--ink-soft); }
+  .top-revenue { font-size: 13px; font-weight: 700; color: var(--orange-dark); white-space: nowrap; }
+
+  /* Inventory alerts */
+  .alert-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border); gap: 10px; }
+  .alert-row:first-of-type { border-top: none; padding-top: 2px; }
+  .alert-name { font-size: 13px; font-weight: 600; }
+  .alert-qty { font-size: 11.5px; color: var(--ink-soft); margin-top: 2px; }
+
+  /* Mini table map */
+  .mini-legend { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+  .mini-legend .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-soft); }
+  .legend-dot { width: 9px; height: 9px; border-radius: 3px; }
+  .mini-map { display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; margin-bottom: 12px; }
+  .mini-tile { aspect-ratio: 1; border-radius: 8px; border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--ink-soft); background: var(--surface); }
+  .mini-tile.ocupada { background: var(--orange-bg); border-color: var(--orange); color: var(--orange-dark); }
+  .mini-tile.libre { border-style: dashed; }
+  .mini-tile.limpiar { background: var(--surface-alt); }
+  .mini-summary { font-size: 11.5px; color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">Fast <span>&amp; Co.</span></div>
+    <nav class="side-nav">
+      <a class="side-link active" href="mockup-admin-pedidos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+      <a class="side-link" href="mockup-admin-mesas.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Pedidos
+      </a>
+      <a class="side-link" href="mockup-admin-personal.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+        Menú
+      </a>
+      <a class="side-link" href="mockup-admin-insumos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Inventario
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="9" width="18" height="4" rx="1.5"/><path d="M5 13v7M19 13v7"/></svg>
+        Mesas
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="9" r="2.3"/><path d="M15.5 14.2c2 .6 3.5 2.5 3.5 5.8"/></svg>
+        Personal
+      </a>
+      <a class="side-link" href="mockup-admin-reportes.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
+        Reportes
+      </a>
+      <a class="side-link" href="mockup-admin-configuracion.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        Configuración
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar-sm">D</div>
+      <div>
+        <div class="u-name">Daniela Roa</div>
+        <div class="u-role">Administradora</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <div class="header">
+      <div>
+        <div class="greeting-eyebrow">Panel de administración · lun 7 sep</div>
+        <h1 class="greeting">Hola, Daniela</h1>
+      </div>
+      <div class="header-actions">
+        <div class="period-pills">
+          <div class="period-pill active">Hoy</div>
+          <div class="period-pill">Semana</div>
+          <div class="period-pill">Mes</div>
+        </div>
+        <div class="icon-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 8a6 6 0 1112 0c0 4 1.5 5.5 1.5 5.5H4.5S6 12 6 8z"/><path d="M9.5 16a2.5 2.5 0 005 0"/></svg>
+          <span class="ping"></span>
+        </div>
+        <div class="avatar-lg">D</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-top"><div class="stat-value">$1,284.50</div><span class="stat-delta up">+12%</span></div>
+        <div class="stat-label">Ventas de hoy</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><div class="stat-value">96</div><span class="stat-delta up">+8%</span></div>
+        <div class="stat-label">Pedidos de hoy</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><div class="stat-value">$13.40</div><span class="stat-delta down">-3%</span></div>
+        <div class="stat-label">Ticket promedio</div>
+      </div>
+      <div class="stat">
+        <div class="stat-top"><div class="stat-value alert">3</div></div>
+        <div class="stat-label">Productos con bajo stock</div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-title">Ventas de la semana</p>
+              <p class="panel-sub">Ingresos por día · últimos 7 días</p>
+            </div>
+            <span class="panel-link">Ver reporte completo →</span>
+          </div>
+          <div class="chart">
+            <div class="bar-col"><div class="bar-value">$610</div><div class="bar" style="height:54px;"></div><div class="bar-day">Mar</div></div>
+            <div class="bar-col"><div class="bar-value">$540</div><div class="bar" style="height:48px;"></div><div class="bar-day">Mié</div></div>
+            <div class="bar-col"><div class="bar-value">$680</div><div class="bar" style="height:60px;"></div><div class="bar-day">Jue</div></div>
+            <div class="bar-col"><div class="bar-value">$890</div><div class="bar" style="height:79px;"></div><div class="bar-day">Vie</div></div>
+            <div class="bar-col"><div class="bar-value">$1,240</div><div class="bar" style="height:110px;"></div><div class="bar-day">Sáb</div></div>
+            <div class="bar-col"><div class="bar-value">$980</div><div class="bar" style="height:87px;"></div><div class="bar-day">Dom</div></div>
+            <div class="bar-col today"><div class="bar-value">$420</div><div class="bar" style="height:37px;"></div><div class="bar-day">Lun</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-title">Pedidos recientes</p>
+              <p class="panel-sub">Últimos pedidos de todas las mesas</p>
+            </div>
+            <span class="panel-link">Ver todos →</span>
+          </div>
+          <div class="order-list">
+            <div class="order-row">
+              <div class="order-left"><div class="order-badge">12</div><div class="order-info"><div class="mesa-name">Mesa 12</div><div class="items-count">5 ítems · Valentina</div></div></div>
+              <div style="text-align:right;"><span class="status-chip entregado">Entregado</span><div class="order-time">$40.00 · hace 2 min</div></div>
+            </div>
+            <div class="order-row">
+              <div class="order-left"><div class="order-badge">7</div><div class="order-info"><div class="mesa-name">Mesa 7</div><div class="items-count">3 ítems · Carlos</div></div></div>
+              <div style="text-align:right;"><span class="status-chip cocina">En cocina</span><div class="order-time">$27.50 · hace 8 min</div></div>
+            </div>
+            <div class="order-row">
+              <div class="order-left"><div class="order-badge">#204</div><div class="order-info"><div class="mesa-name">Para llevar</div><div class="items-count">2 ítems · Valentina</div></div></div>
+              <div style="text-align:right;"><span class="status-chip entregado">Entregado</span><div class="order-time">$14.00 · hace 15 min</div></div>
+            </div>
+            <div class="order-row">
+              <div class="order-left"><div class="order-badge">3</div><div class="order-info"><div class="mesa-name">Mesa 3</div><div class="items-count">1 ítem · Carlos</div></div></div>
+              <div style="text-align:right;"><span class="status-chip cancelado">Cancelado</span><div class="order-time">$12.00 · hace 22 min</div></div>
+            </div>
+            <div class="order-row">
+              <div class="order-left"><div class="order-badge">9</div><div class="order-info"><div class="mesa-name">Mesa 9</div><div class="items-count">4 ítems · Valentina</div></div></div>
+              <div style="text-align:right;"><span class="status-chip entregado">Entregado</span><div class="order-time">$33.50 · hace 30 min</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <p class="panel-title">Más vendidos hoy</p>
+          <p class="panel-sub">Unidades e ingresos por producto</p>
+          <div class="top-list">
+            <div class="top-item">
+              <div class="top-thumb p1"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg></div>
+              <div class="top-info"><div class="top-name">Hamburguesa doble clásica</div><div class="top-units">42 vendidas</div></div>
+              <div class="top-revenue">$357.00</div>
+            </div>
+            <div class="top-item">
+              <div class="top-thumb p2"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M6 8l1 12h10l1-12M5 8h14M9 8V5a3 3 0 016 0v3"/></svg></div>
+              <div class="top-info"><div class="top-name">Papas cheddar bacon</div><div class="top-units">38 vendidas</div></div>
+              <div class="top-revenue">$228.00</div>
+            </div>
+            <div class="top-item">
+              <div class="top-thumb p3"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="9"/></svg></div>
+              <div class="top-info"><div class="top-name">Pizza pepperoni familiar</div><div class="top-units">21 vendidas</div></div>
+              <div class="top-revenue">$252.00</div>
+            </div>
+            <div class="top-item">
+              <div class="top-thumb p4"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M7 3l1 14a2 2 0 002 2h4a2 2 0 002-2l1-14M7 8h10"/></svg></div>
+              <div class="top-info"><div class="top-name">Combo pollo frito x3</div><div class="top-units">18 vendidas</div></div>
+              <div class="top-revenue">$180.00</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="panel-title">Alertas de inventario</p>
+              <p class="panel-sub">Productos con bajo stock</p>
+            </div>
+            <a class="panel-link" href="mockup-admin-insumos.html">Ir a inventario →</a>
+          </div>
+          <div>
+            <div class="alert-row">
+              <div><div class="alert-name">Papas congeladas</div><div class="alert-qty">Quedan 4 kg</div></div>
+              <span class="status-chip cancelado">Bajo stock</span>
+            </div>
+            <div class="alert-row">
+              <div><div class="alert-name">Queso cheddar</div><div class="alert-qty">Quedan 2.5 kg</div></div>
+              <span class="status-chip cancelado">Bajo stock</span>
+            </div>
+            <div class="alert-row">
+              <div><div class="alert-name">Pan para hamburguesa</div><div class="alert-qty">Quedan 15 uds</div></div>
+              <span class="status-chip cancelado">Bajo stock</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <p class="panel-title">Estado de mesas</p>
+          <p class="panel-sub">Vista general del salón</p>
+          <div class="mini-legend">
+            <div class="legend-item"><div class="legend-dot" style="background: var(--orange-bg); border: 1.5px solid var(--orange);"></div>Ocupada</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--surface); border: 1.5px dashed var(--border);"></div>Libre</div>
+            <div class="legend-item"><div class="legend-dot" style="background: var(--surface-alt);"></div>Por limpiar</div>
+          </div>
+          <div class="mini-map">
+            <div class="mini-tile libre">1</div>
+            <div class="mini-tile ocupada">2</div>
+            <div class="mini-tile ocupada">3</div>
+            <div class="mini-tile ocupada">4</div>
+            <div class="mini-tile libre">5</div>
+            <div class="mini-tile limpiar">6</div>
+            <div class="mini-tile ocupada">7</div>
+            <div class="mini-tile libre">8</div>
+            <div class="mini-tile ocupada">9</div>
+            <div class="mini-tile ocupada">10</div>
+            <div class="mini-tile ocupada">11</div>
+            <div class="mini-tile ocupada">12</div>
+          </div>
+          <div class="mini-summary">8 ocupadas · 3 libres · 1 por limpiar</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

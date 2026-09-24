@@ -13,3 +13,31 @@ export interface PedidoItem {
   sincronizado_en: string | null
   creado_en: string
 }
+
+export interface PlatoConExtras {
+  id: string
+  tenant_id: string
+  categoria_id: string
+  nombre: string
+  descripcion: string | null
+  precio_base: number
+  imagen_url: string | null
+  receta?: import('./inventario').Receta[]
+  extras: { nombre: string; precio: number }[]
+  proteina?: { opciones: string[] }
+  quitar?: string[]
+}
+
+export interface ItemCarrito {
+  id: string
+  menuItemId: string
+  nombre: string
+  cantidad: number
+  precioBase: number
+  extras: { nombre: string; precio: number }[]
+  proteinaSeleccionada?: string
+  ingredientesQuitados: string[]
+  nota: string
+  precioTotal: number
+  agregadoPor: string
+}

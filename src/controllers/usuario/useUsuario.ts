@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { UsuarioContext } from '../views/components/UsuarioProvider'
+import { UsuarioContext } from '../../views/components/UsuarioProvider'
 
 export function useUsuario() {
   const context = useContext(UsuarioContext)

@@ -1,6 +1,6 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { supabase } from '../../lib/supabaseClient'
-import { useAuth } from '../../controllers/useAuth'
+import { useAuth } from '../../controllers/auth/useAuth'
 import type { Usuario } from '../../models/types/usuario'
 
 interface UsuarioContextValue {

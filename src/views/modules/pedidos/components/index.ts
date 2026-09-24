@@ -1,0 +1,7 @@
+export { PlatoCard } from './PlatoCard'
+export { CategoriaPills } from './CategoriaPills'
+export { BuscadorPlatos } from './BuscadorPlatos'
+export { MesaSwitcher } from './MesaSwitcher'
+export { HeaderMesa } from './HeaderMesa'
+export { ResumenPedido } from './ResumenPedido'
+export { ModalPersonalizacion } from './ModalPersonalizacion'

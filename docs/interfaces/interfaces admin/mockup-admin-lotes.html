@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Lotes de insumo (vista de detalle)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  a { text-decoration: none; color: inherit; cursor: pointer; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+
+  .app-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* Sidebar (idéntico al resto del panel) */
+  .sidebar { background: var(--ink); color: #fff; padding: 22px 16px; display: flex; flex-direction: column; }
+  .sidebar-brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; margin: 4px 0 28px; padding: 0 10px; }
+  .sidebar-brand span { color: var(--orange); }
+  .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .side-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #cfc6ba; }
+  .side-link svg { width: 17px; height: 17px; stroke: currentColor; flex-shrink: 0; }
+  .side-link.active { background: var(--orange); color: #fff; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid #423528; margin-top: 10px; }
+  .sidebar-user .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
+  .sidebar-user .u-name { font-size: 12.5px; font-weight: 700; color: #fff; }
+  .sidebar-user .u-role { font-size: 11px; color: #a89d8d; }
+
+  /* Content */
+  .content { padding: 28px 34px 40px; max-width: 1360px; }
+
+  .back-link { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--ink-soft); margin-bottom: 16px; }
+
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 14px; }
+  .item-info { display: flex; align-items: center; gap: 14px; }
+  .item-badge { background: var(--orange); color: #fff; font-weight: 800; font-size: 13px; width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .item-info .label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+  .item-info .name { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; }
+  .header-right { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-soft); }
+  .header-right .sep { color: var(--border); }
+  .edit-link { font-size: 12.5px; font-weight: 700; color: var(--orange-dark); white-space: nowrap; }
+
+  /* Selector de insumo (switcher) */
+  .switcher { display: flex; gap: 8px; margin-bottom: 18px; overflow-x: auto; }
+  .switch-pill { flex-shrink: 0; display: flex; align-items: center; gap: 6px; padding: 9px 15px; border-radius: 999px; font-size: 12.5px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); }
+  .switch-pill.current { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; }
+  .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; }
+  .stat-value.alert { color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+  .layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }
+
+  /* Tabla de lotes */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .t-head, .t-row { display: grid; grid-template-columns: 1.8fr 1.1fr 1fr 0.9fr 1.3fr 1fr; align-items: center; padding: 13px 18px; gap: 8px; }
+  .t-head { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+  .t-row { border-bottom: 1px solid var(--border); font-size: 13px; }
+  .t-row:last-child { border-bottom: none; }
+  .t-row.fefo { background: var(--orange-bg); }
+  .t-row.agotado { opacity: 0.55; }
+  .t-num { text-align: center; font-weight: 600; }
+  .t-lote { min-width: 0; }
+  .t-code { font-weight: 700; }
+  .t-code .fefo-tag { display: inline-block; margin-left: 6px; font-size: 9.5px; font-weight: 800; color: var(--orange-dark); background: #fff; border: 1px solid var(--orange); padding: 1px 6px; border-radius: 999px; vertical-align: middle; }
+  .t-sub { font-size: 11px; color: var(--ink-soft); }
+  .t-venc { text-align: center; }
+  .t-venc.soon { color: var(--red); font-weight: 700; }
+  .t-prov { font-size: 12.5px; color: var(--ink-soft); }
+  .status-chip { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .status-chip.ok { background: var(--green-bg); color: var(--green); }
+  .status-chip.alert { background: var(--red-bg); color: var(--red); }
+  .status-chip.done { background: var(--gray-bg); color: var(--ink-soft); }
+  .table-foot { padding: 12px 18px; font-size: 11.5px; color: var(--ink-soft); text-align: center; }
+
+  /* Registrar nuevo lote (sidebar) */
+  .sidebar-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .sidebar-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+  .sidebar-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 5px; }
+  .field-value { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; font-weight: 600; }
+  .field-value.muted { color: var(--ink-soft); font-weight: 500; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .stock-note { display: flex; gap: 10px; background: var(--surface-alt); border: 1px dashed var(--border); border-radius: 10px; padding: 11px 12px; font-size: 12px; color: var(--ink-soft); line-height: 1.4; margin: 4px 0 4px; }
+
+  .save-btn { margin-top: 14px; background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">Fast <span>&amp; Co.</span></div>
+    <nav class="side-nav">
+      <a class="side-link" href="mockup-admin-pedidos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+      <a class="side-link" href="mockup-admin-mesas.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Pedidos
+      </a>
+      <a class="side-link" href="mockup-admin-personal.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+        Menú
+      </a>
+      <a class="side-link active" href="mockup-admin-insumos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Inventario
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="9" width="18" height="4" rx="1.5"/><path d="M5 13v7M19 13v7"/></svg>
+        Mesas
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="9" r="2.3"/><path d="M15.5 14.2c2 .6 3.5 2.5 3.5 5.8"/></svg>
+        Personal
+      </a>
+      <a class="side-link" href="mockup-admin-reportes.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
+        Reportes
+      </a>
+      <a class="side-link" href="mockup-admin-configuracion.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        Configuración
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar-sm">D</div>
+      <div>
+        <div class="u-name">Daniela Roa</div>
+        <div class="u-role">Administradora</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <a class="back-link" href="mockup-admin-insumos.html">← Volver a insumos</a>
+
+    <div class="header">
+      <div class="item-info">
+        <div class="item-badge">PA</div>
+        <div>
+          <div class="label">Insumo</div>
+          <div class="name">Pan para hamburguesa</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <span>Panadería</span><span class="sep">·</span>
+        <span>$0.35 / ud</span><span class="sep">·</span>
+        <span>Panificadora Central</span>
+        <a class="edit-link" href="mockup-admin-insumos.html" style="margin-left:8px;">Editar insumo →</a>
+      </div>
+    </div>
+
+    <div class="switcher">
+      <div class="switch-pill current">Pan para hamburguesa</div>
+      <div class="switch-pill">Carne de res molida</div>
+      <div class="switch-pill">Queso cheddar</div>
+      <div class="switch-pill">Papas congeladas</div>
+      <div class="switch-pill">Cebolla</div>
+      <div class="switch-pill">Masa de pizza</div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value">15 uds</div><div class="stat-label">Stock total (lotes activos)</div></div>
+      <div class="stat"><div class="stat-value">2</div><div class="stat-label">Lotes activos</div></div>
+      <div class="stat"><div class="stat-value alert">1</div><div class="stat-label">Lote por vencer</div></div>
+    </div>
+
+    <div class="layout">
+      <div class="table-wrap">
+        <div class="t-head">
+          <span>Lote</span><span class="t-num">Vencimiento</span><span class="t-num">Cantidad</span><span class="t-num">Costo unit.</span><span>Proveedor</span><span>Estado</span>
+        </div>
+
+        <div class="t-row fefo">
+          <div class="t-lote"><div class="t-code">PAN-0912<span class="fefo-tag">Usar primero</span></div><div class="t-sub">Ingreso: 02 sep</div></div>
+          <span class="t-num t-venc soon">09 sep</span>
+          <span class="t-num">6 / 40 uds</span>
+          <span class="t-num">$0.34</span>
+          <span class="t-prov">Panificadora Central</span>
+          <span class="status-chip alert">Por vencer</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-lote"><div class="t-code">PAN-0918</div><div class="t-sub">Ingreso: 06 sep</div></div>
+          <span class="t-num t-venc">13 sep</span>
+          <span class="t-num">9 / 30 uds</span>
+          <span class="t-num">$0.36</span>
+          <span class="t-prov">Panificadora Central</span>
+          <span class="status-chip ok">Activo</span>
+        </div>
+
+        <div class="t-row agotado">
+          <div class="t-lote"><div class="t-code">PAN-0905</div><div class="t-sub">Ingreso: 26 ago</div></div>
+          <span class="t-num t-venc">02 sep</span>
+          <span class="t-num">0 / 35 uds</span>
+          <span class="t-num">$0.33</span>
+          <span class="t-prov">Panificadora Central</span>
+          <span class="status-chip done">Agotado</span>
+        </div>
+
+        <div class="table-foot">Ordenado por vencimiento (FEFO) · mostrando los últimos 3 lotes</div>
+      </div>
+
+      <div class="sidebar-panel">
+        <p class="sidebar-title">Registrar nuevo lote</p>
+        <p class="sidebar-sub">Entrada de inventario · Pan para hamburguesa</p>
+
+        <div class="field-row">
+          <div class="field"><label>Cantidad recibida</label><div class="field-value">30</div></div>
+          <div class="field"><label>Unidad</label><div class="field-value muted">Unidades</div></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Fecha de ingreso</label><div class="field-value">07/09/2026</div></div>
+          <div class="field"><label>Fecha de vencimiento</label><div class="field-value">14/09/2026</div></div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Costo unitario</label><div class="field-value">$0.35</div></div>
+          <div class="field"><label>Proveedor</label><div class="field-value">Panificadora Central</div></div>
+        </div>
+
+        <div class="field"><label>Nota (opcional)</label><div class="field-value muted">Ej: entrega parcial, empaque dañado...</div></div>
+
+        <div class="stock-note">
+          Al registrar el lote, el stock de este insumo se actualiza automáticamente y queda en cola según su fecha de vencimiento (FEFO).
+        </div>
+
+        <div class="save-btn">Registrar entrada de lote</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

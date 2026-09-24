@@ -1,4 +1,4 @@
-import { useUsuario } from '../../../controllers/useUsuario'
+import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { MenuAdmin } from './components/MenuAdmin'

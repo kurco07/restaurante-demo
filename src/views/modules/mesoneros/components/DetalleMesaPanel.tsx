@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import type { MesaMock } from './MapaMesas'
 
 interface DetalleMesaPanelProps {
@@ -20,7 +21,12 @@ const claseChip: Record<NonNullable<MesaMock['status']>, string> = {
 }
 
 export function DetalleMesaPanel({ mesas, seleccionada, onSeleccionar, onVolver }: DetalleMesaPanelProps) {
+  const navigate = useNavigate()
   const mesa = mesas.find((m) => m.numero === seleccionada)
+
+  const irATomaPedidos = (numero: number) => {
+    navigate(`/mesoneros/pedidos/${numero}`)
+  }
 
   if (!mesa) {
     const misPedidos = mesas.filter((m) => m.estado === 'mia')
@@ -73,9 +79,13 @@ export function DetalleMesaPanel({ mesas, seleccionada, onSeleccionar, onVolver 
           <div className="rounded-lg border border-dashed border-gray-200 bg-orange-50/40 p-3 text-xs text-gray-500">
             Esta mesa está libre — puedes abrirla y empezar a tomar el pedido.
           </div>
-          <div className="rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white">
+          <button
+            type="button"
+            onClick={() => irATomaPedidos(mesa.numero)}
+            className="rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors"
+          >
             Abrir mesa y tomar pedido
-          </div>
+          </button>
         </div>
       )}
 
@@ -133,7 +143,9 @@ export function DetalleMesaPanel({ mesas, seleccionada, onSeleccionar, onVolver 
             <strong className="text-gray-700">{etiquetaEstado[mesa.status ?? 'cocina']}</strong>
             {mesa.demorada ? ' — por encima del tiempo esperado.' : '.'}
           </div>
-          <div className="rounded-xl border border-gray-200 py-3 text-center text-sm font-bold text-gray-700">
+          <div className="rounded-xl border border-gray-200 py-3 text-center text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+            onClick={() => irATomaPedidos(mesa.numero)}
+          >
             Ver / editar pedido
           </div>
           <div className="rounded-xl bg-green-600 py-3 text-center text-sm font-bold text-white">

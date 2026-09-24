@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Proveedores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  a { text-decoration: none; color: inherit; cursor: pointer; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+
+  .app-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* Sidebar (idéntico al resto del panel) */
+  .sidebar { background: var(--ink); color: #fff; padding: 22px 16px; display: flex; flex-direction: column; }
+  .sidebar-brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; margin: 4px 0 28px; padding: 0 10px; }
+  .sidebar-brand span { color: var(--orange); }
+  .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .side-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #cfc6ba; }
+  .side-link svg { width: 17px; height: 17px; stroke: currentColor; flex-shrink: 0; }
+  .side-link.active { background: var(--orange); color: #fff; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid #423528; margin-top: 10px; }
+  .sidebar-user .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
+  .sidebar-user .u-name { font-size: 12.5px; font-weight: 700; color: #fff; }
+  .sidebar-user .u-role { font-size: 11px; color: #a89d8d; }
+
+  /* Content */
+  .content { padding: 28px 34px 40px; max-width: 1360px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px; }
+  .greeting-eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-dark); font-weight: 700; }
+  .greeting { font-family: 'Baloo 2', sans-serif; font-size: 27px; font-weight: 700; margin: 4px 0 0; }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .search { width: 220px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--ink-soft); font-size: 13.5px; }
+  .btn-primary { background: var(--orange); color: #fff; font-weight: 700; font-size: 13.5px; padding: 11px 20px; border-radius: 999px; white-space: nowrap; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; }
+  .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; }
+  .stat-value.alert { color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+  .pills { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .pill { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); color: var(--ink-soft); background: var(--surface); }
+  .pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+  .layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }
+
+  /* Tabla de proveedores */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .t-head, .t-row { display: grid; grid-template-columns: 1.8fr 1.2fr 1.4fr 1fr 0.9fr; align-items: center; padding: 13px 18px; gap: 8px; }
+  .t-head { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+  .t-row { border-bottom: 1px solid var(--border); font-size: 13px; }
+  .t-row:last-child { border-bottom: none; }
+  .t-row.selected { background: var(--orange-bg); }
+  .t-row.inactivo { opacity: 0.55; }
+  .t-prov { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .t-badge { width: 34px; height: 34px; border-radius: 9px; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11.5px; flex-shrink: 0; }
+  .t-name { font-weight: 700; }
+  .t-cat { font-size: 11px; color: var(--ink-soft); }
+  .t-contact { font-size: 12.5px; color: var(--ink-soft); }
+  .t-num { text-align: center; font-weight: 600; }
+  .status-chip { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .status-chip.ok { background: var(--green-bg); color: var(--green); }
+  .status-chip.off { background: var(--gray-bg); color: var(--ink-soft); }
+  .table-foot { padding: 12px 18px; font-size: 11.5px; color: var(--ink-soft); text-align: center; }
+
+  /* Editor de proveedor (sidebar) */
+  .sidebar-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .sidebar-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+  .sidebar-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 5px; }
+  .field-value { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; font-weight: 600; }
+  .field-value.muted { color: var(--ink-soft); font-weight: 500; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 14px; }
+  .toggle-row span { font-size: 13px; font-weight: 600; }
+  .switch { width: 38px; height: 22px; border-radius: 999px; background: var(--orange); position: relative; flex-shrink: 0; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 18px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+
+  .supplies { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
+  .supplies .section-label { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+  .supply-tag { display: inline-block; background: var(--gray-bg); color: var(--ink-soft); font-size: 11.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px; margin: 0 6px 6px 0; }
+
+  .po-link { display: block; text-align: center; margin-top: 14px; font-size: 12.5px; font-weight: 700; color: var(--orange-dark); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+
+  .save-btn { margin-top: 14px; background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; text-align: center; }
+  .delete-link { display: block; text-align: center; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--red); }
+
+  .inv-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--border); margin-bottom: 20px; }
+  .inv-tab { padding: 10px 18px; font-size: 13px; font-weight: 700; color: var(--ink-soft); border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .inv-tab.active { color: var(--orange-dark); border-bottom-color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">Fast <span>&amp; Co.</span></div>
+    <nav class="side-nav">
+      <a class="side-link" href="mockup-admin-pedidos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+      <a class="side-link" href="mockup-admin-mesas.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Pedidos
+      </a>
+      <a class="side-link" href="mockup-admin-personal.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+        Menú
+      </a>
+      <a class="side-link active" href="mockup-admin-insumos.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Inventario
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="9" width="18" height="4" rx="1.5"/><path d="M5 13v7M19 13v7"/></svg>
+        Mesas
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="9" r="2.3"/><path d="M15.5 14.2c2 .6 3.5 2.5 3.5 5.8"/></svg>
+        Personal
+      </a>
+      <a class="side-link" href="mockup-admin-reportes.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
+        Reportes
+      </a>
+      <a class="side-link" href="mockup-admin-configuracion.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        Configuración
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar-sm">D</div>
+      <div>
+        <div class="u-name">Daniela Roa</div>
+        <div class="u-role">Administradora</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <div class="header">
+      <div>
+        <div class="greeting-eyebrow">Administración · Inventario · Proveedores</div>
+        <h1 class="greeting">Proveedores</h1>
+      </div>
+      <div class="header-actions">
+        <input class="search" placeholder="Buscar proveedor..." />
+        <div class="btn-primary">+ Nuevo proveedor</div>
+      </div>
+    </div>
+
+        <div class="inv-tabs">
+      <a class="inv-tab" href="mockup-admin-insumos.html">Insumos</a>
+      <a class="inv-tab" href="mockup-admin-movimientos.html">Movimientos</a>
+      <a class="inv-tab active" href="mockup-admin-proveedores.html">Proveedores</a>
+      <a class="inv-tab" href="mockup-admin-compras.html">Compras</a>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value">7</div><div class="stat-label">Proveedores registrados</div></div>
+      <div class="stat"><div class="stat-value">11</div><div class="stat-label">Insumos cubiertos</div></div>
+      <div class="stat"><div class="stat-value alert">1</div><div class="stat-label">Proveedor inactivo</div></div>
+    </div>
+
+    <div class="pills">
+      <div class="pill active">Todas</div>
+      <div class="pill">Carnes</div>
+      <div class="pill">Lácteos</div>
+      <div class="pill">Panadería</div>
+      <div class="pill">Vegetales</div>
+      <div class="pill">Salsas y condimentos</div>
+      <div class="pill">Bebidas</div>
+    </div>
+
+    <div class="layout">
+      <div class="table-wrap">
+        <div class="t-head">
+          <span>Proveedor</span><span>Contacto</span><span>Entrega estimada</span><span class="t-num">Insumos</span><span>Estado</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-prov"><div class="t-badge">CE</div><div><div class="t-name">Carnes El Corral</div><div class="t-cat">Carnes</div></div></div>
+          <span class="t-contact">0412-555-0142</span>
+          <span class="t-contact">24 horas</span>
+          <span class="t-num">2</span>
+          <span class="status-chip ok">Activo</span>
+        </div>
+
+        <div class="t-row selected">
+          <div class="t-prov"><div class="t-badge">PA</div><div><div class="t-name">Panificadora Central</div><div class="t-cat">Panadería</div></div></div>
+          <span class="t-contact">0414-555-0198</span>
+          <span class="t-contact">48 horas</span>
+          <span class="t-num">3</span>
+          <span class="status-chip ok">Activo</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-prov"><div class="t-badge">LS</div><div><div class="t-name">Lácteos San José</div><div class="t-cat">Lácteos</div></div></div>
+          <span class="t-contact">0412-555-0233</span>
+          <span class="t-contact">24 horas</span>
+          <span class="t-num">1</span>
+          <span class="status-chip ok">Activo</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-prov"><div class="t-badge">MV</div><div><div class="t-name">Mercado Mayorista Vega</div><div class="t-cat">Vegetales</div></div></div>
+          <span class="t-contact">0416-555-0311</span>
+          <span class="t-contact">Mismo día</span>
+          <span class="t-num">2</span>
+          <span class="status-chip ok">Activo</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-prov"><div class="t-badge">AV</div><div><div class="t-name">Avícola del Valle</div><div class="t-cat">Carnes (aves)</div></div></div>
+          <span class="t-contact">0424-555-0087</span>
+          <span class="t-contact">24 horas</span>
+          <span class="t-num">1</span>
+          <span class="status-chip ok">Activo</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-prov"><div class="t-badge">DS</div><div><div class="t-name">Distribuidora Sabores</div><div class="t-cat">Salsas y condimentos</div></div></div>
+          <span class="t-contact">0412-555-0456</span>
+          <span class="t-contact">72 horas</span>
+          <span class="t-num">1</span>
+          <span class="status-chip ok">Activo</span>
+        </div>
+
+        <div class="t-row inactivo">
+          <div class="t-prov"><div class="t-badge">DB</div><div><div class="t-name">Distribuidora Beta</div><div class="t-cat">Bebidas</div></div></div>
+          <span class="t-contact">0414-555-0521</span>
+          <span class="t-contact">48 horas</span>
+          <span class="t-num">1</span>
+          <span class="status-chip off">Inactivo</span>
+        </div>
+
+        <div class="table-foot">7 proveedores registrados</div>
+      </div>
+
+      <div class="sidebar-panel">
+        <p class="sidebar-title">Editor de proveedor</p>
+        <p class="sidebar-sub">Panificadora Central</p>
+
+        <div class="field"><label>Nombre del proveedor</label><div class="field-value">Panificadora Central</div></div>
+        <div class="field"><label>Categoría principal</label><div class="field-value">Panadería</div></div>
+
+        <div class="field-row">
+          <div class="field"><label>Teléfono</label><div class="field-value">0414-555-0198</div></div>
+          <div class="field"><label>Entrega estimada</label><div class="field-value">48 horas</div></div>
+        </div>
+
+        <div class="field"><label>Correo electrónico</label><div class="field-value">pedidos@panificadoracentral.com</div></div>
+        <div class="field"><label>Forma de pago</label><div class="field-value">Crédito 15 días</div></div>
+        <div class="field"><label>Nota</label><div class="field-value muted">Requiere pedido mínimo de $50</div></div>
+
+        <div class="toggle-row"><span>Proveedor activo</span><div class="switch"></div></div>
+
+        <div class="supplies">
+          <p class="section-label">Insumos que suministra</p>
+          <span class="supply-tag">Pan para hamburguesa</span>
+          <span class="supply-tag">Masa de pizza</span>
+          <span class="supply-tag">Tortilla para wrap</span>
+        </div>
+
+        <a class="po-link" href="mockup-admin-compras.html">Ver órdenes de compra →</a>
+
+        <div class="save-btn">Guardar cambios</div>
+        <span class="delete-link">Eliminar proveedor</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

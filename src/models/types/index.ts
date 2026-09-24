@@ -1,5 +1,5 @@
 export type { Rol, Usuario } from './usuario'
 export type { CategoriaMenu, MenuItem, MenuItemSede } from './menu'
-export type { PedidoItem } from './pedido'
+export type { PedidoItem, PlatoConExtras, ItemCarrito } from './pedido'
 export type { Mesa, SesionMesa } from './mesa'
 export type { Insumo, InventarioSede, Receta } from './inventario'

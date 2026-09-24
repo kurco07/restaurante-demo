@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
-import { useUsuario } from './useUsuario'
-import type { Rol } from '../models/types/usuario'
+import { useUsuario } from '../usuario/useUsuario'
+import type { Rol } from '../../models/types/usuario'
 
 interface ProtectedRouteProps {
   allowedRoles: Rol[]
