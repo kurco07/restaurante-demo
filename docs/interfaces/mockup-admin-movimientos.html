@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Historial de movimientos de inventario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+
+  .app-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* Sidebar (idéntico al resto del panel) */
+  .sidebar { background: var(--ink); color: #fff; padding: 22px 16px; display: flex; flex-direction: column; }
+  .sidebar-brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; margin: 4px 0 28px; padding: 0 10px; }
+  .sidebar-brand span { color: var(--orange); }
+  .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .side-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #cfc6ba; }
+  .side-link svg { width: 17px; height: 17px; stroke: currentColor; flex-shrink: 0; }
+  .side-link.active { background: var(--orange); color: #fff; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid #423528; margin-top: 10px; }
+  .sidebar-user .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
+  .sidebar-user .u-name { font-size: 12.5px; font-weight: 700; color: #fff; }
+  .sidebar-user .u-role { font-size: 11px; color: #a89d8d; }
+
+  /* Content */
+  .content { padding: 28px 34px 40px; max-width: 1400px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 14px; }
+  .greeting-eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-dark); font-weight: 700; }
+  .greeting { font-family: 'Baloo 2', sans-serif; font-size: 27px; font-weight: 700; margin: 4px 0 0; }
+  .search { width: 220px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--ink-soft); font-size: 13.5px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; }
+  .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; }
+  .stat-value.alert { color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+  .pills { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .pill { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); color: var(--ink-soft); background: var(--surface); }
+  .pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .pill.sm { padding: 6px 12px; font-size: 12px; }
+
+  .layout { display: grid; grid-template-columns: 1.7fr 1fr; gap: 20px; align-items: start; }
+
+  /* Tabla de movimientos */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .t-head, .t-row { display: grid; grid-template-columns: 1fr 1.5fr 0.8fr 1.7fr 1.1fr 0.9fr; align-items: center; padding: 12px 18px; gap: 8px; }
+  .t-head { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+  .t-row { border-bottom: 1px solid var(--border); font-size: 12.5px; border-left: 3px solid transparent; }
+  .t-row:last-child { border-bottom: none; }
+  .t-row.entrada { border-left-color: var(--green); }
+  .t-row.salida { border-left-color: var(--orange); }
+  .t-row.merma { border-left-color: var(--red); }
+  .move-chip { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; display: inline-block; }
+  .move-chip.entrada { background: var(--green-bg); color: var(--green); }
+  .move-chip.salida { background: var(--orange-bg); color: var(--orange-dark); }
+  .move-chip.merma { background: var(--red-bg); color: var(--red); }
+  .t-insumo { font-weight: 700; }
+  .t-qty { text-align: center; font-weight: 700; }
+  .t-qty.pos { color: var(--green); }
+  .t-qty.neg { color: var(--red); }
+  .t-ref { font-size: 12px; color: var(--ink-soft); }
+  .t-resp { font-size: 12px; color: var(--ink-soft); }
+  .t-time { font-size: 11.5px; color: var(--ink-soft); text-align: right; }
+  .table-foot { padding: 12px 18px; font-size: 11.5px; color: var(--ink-soft); text-align: center; }
+
+  /* Registrar ajuste manual (sidebar) */
+  .sidebar-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .sidebar-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+  .sidebar-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 5px; }
+  .field-value { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; font-weight: 600; }
+  .field-value.muted { color: var(--ink-soft); font-weight: 500; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .stock-note { display: flex; gap: 10px; background: var(--surface-alt); border: 1px dashed var(--border); border-radius: 10px; padding: 11px 12px; font-size: 12px; color: var(--ink-soft); line-height: 1.4; margin: 4px 0 4px; }
+
+  .save-btn { margin-top: 14px; background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">Fast <span>&amp; Co.</span></div>
+    <nav class="side-nav">
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Pedidos
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+        Menú
+      </a>
+      <a class="side-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Inventario
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="9" width="18" height="4" rx="1.5"/><path d="M5 13v7M19 13v7"/></svg>
+        Mesas
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="9" r="2.3"/><path d="M15.5 14.2c2 .6 3.5 2.5 3.5 5.8"/></svg>
+        Personal
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
+        Reportes
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        Configuración
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar-sm">D</div>
+      <div>
+        <div class="u-name">Daniela Roa</div>
+        <div class="u-role">Administradora</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <div class="header">
+      <div>
+        <div class="greeting-eyebrow">Administración · Inventario · Historial</div>
+        <h1 class="greeting">Movimientos de inventario</h1>
+      </div>
+      <input class="search" placeholder="Buscar por insumo..." />
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value">24</div><div class="stat-label">Movimientos hoy</div></div>
+      <div class="stat"><div class="stat-value">18</div><div class="stat-label">Salidas por venta hoy</div></div>
+      <div class="stat"><div class="stat-value alert">2</div><div class="stat-label">Mermas registradas hoy</div></div>
+    </div>
+
+    <div class="pills">
+      <div class="pill active">Todos</div>
+      <div class="pill">Entradas</div>
+      <div class="pill">Salidas por venta</div>
+      <div class="pill">Mermas y ajustes</div>
+    </div>
+
+    <div class="layout">
+      <div class="table-wrap">
+        <div class="t-head">
+          <span>Tipo</span><span>Insumo</span><span style="text-align:center;">Cantidad</span><span>Referencia</span><span>Responsable</span><span style="text-align:right;">Fecha</span>
+        </div>
+
+        <div class="t-row entrada">
+          <span class="move-chip entrada">Entrada</span>
+          <span class="t-insumo">Pan para hamburguesa</span>
+          <span class="t-qty pos">+30 uds</span>
+          <span class="t-ref">Lote PAN-0925 · Panificadora Central</span>
+          <span class="t-resp">Daniela Roa</span>
+          <span class="t-time">hace 5 min</span>
+        </div>
+
+        <div class="t-row salida">
+          <span class="move-chip salida">Salida</span>
+          <span class="t-insumo">Carne de res molida</span>
+          <span class="t-qty neg">-0.45 kg</span>
+          <span class="t-ref">Pedido · Mesa 12</span>
+          <span class="t-resp">Sistema (automático)</span>
+          <span class="t-time">hace 12 min</span>
+        </div>
+
+        <div class="t-row salida">
+          <span class="move-chip salida">Salida</span>
+          <span class="t-insumo">Queso cheddar</span>
+          <span class="t-qty neg">-0.09 kg</span>
+          <span class="t-ref">Pedido · Mesa 7</span>
+          <span class="t-resp">Sistema (automático)</span>
+          <span class="t-time">hace 18 min</span>
+        </div>
+
+        <div class="t-row merma">
+          <span class="move-chip merma">Merma</span>
+          <span class="t-insumo">Papas congeladas</span>
+          <span class="t-qty neg">-2 kg</span>
+          <span class="t-ref">Motivo: Producto vencido</span>
+          <span class="t-resp">Daniela Roa</span>
+          <span class="t-time">hace 40 min</span>
+        </div>
+
+        <div class="t-row entrada">
+          <span class="move-chip entrada">Entrada</span>
+          <span class="t-insumo">Queso cheddar</span>
+          <span class="t-qty pos">+8 kg</span>
+          <span class="t-ref">Lote QUE-0630 · Lácteos San José</span>
+          <span class="t-resp">Carlos Méndez</span>
+          <span class="t-time">hoy 9:10 a.m.</span>
+        </div>
+
+        <div class="t-row salida">
+          <span class="move-chip salida">Salida</span>
+          <span class="t-insumo">Pan para hamburguesa</span>
+          <span class="t-qty neg">-3 uds</span>
+          <span class="t-ref">Pedido · Mesa 3</span>
+          <span class="t-resp">Sistema (automático)</span>
+          <span class="t-time">hace 1 h</span>
+        </div>
+
+        <div class="t-row merma">
+          <span class="move-chip merma">Ajuste</span>
+          <span class="t-insumo">Cebolla</span>
+          <span class="t-qty neg">-1.2 kg</span>
+          <span class="t-ref">Motivo: Descarte por manipulación</span>
+          <span class="t-resp">Daniela Roa</span>
+          <span class="t-time">hace 2 h</span>
+        </div>
+
+        <div class="t-row entrada">
+          <span class="move-chip entrada">Entrada</span>
+          <span class="t-insumo">Alitas de pollo</span>
+          <span class="t-qty pos">+25 kg</span>
+          <span class="t-ref">Lote ALI-0904 · Avícola del Valle</span>
+          <span class="t-resp">Carlos Méndez</span>
+          <span class="t-time">hoy 7:30 a.m.</span>
+        </div>
+
+        <div class="t-row salida">
+          <span class="move-chip salida">Salida</span>
+          <span class="t-insumo">Masa de pizza</span>
+          <span class="t-qty neg">-1 ud</span>
+          <span class="t-ref">Pedido · Mesa 9</span>
+          <span class="t-resp">Sistema (automático)</span>
+          <span class="t-time">hace 2 h</span>
+        </div>
+
+        <div class="t-row merma">
+          <span class="move-chip merma">Ajuste</span>
+          <span class="t-insumo">Salsa BBQ</span>
+          <span class="t-qty pos">+0.5 l</span>
+          <span class="t-ref">Motivo: Corrección de conteo físico</span>
+          <span class="t-resp">Daniela Roa</span>
+          <span class="t-time">ayer 6:45 p.m.</span>
+        </div>
+
+        <div class="table-foot">Mostrando 10 de 24 movimientos de hoy</div>
+      </div>
+
+      <div class="sidebar-panel">
+        <p class="sidebar-title">Registrar ajuste manual</p>
+        <p class="sidebar-sub">Para mermas, pérdidas o correcciones de conteo</p>
+
+        <div class="field"><label>Insumo</label><div class="field-value muted">Seleccionar insumo...</div></div>
+
+        <div class="field">
+          <label>Tipo de ajuste</label>
+          <div class="field-pills">
+            <div class="pill sm active">Merma (salida)</div>
+            <div class="pill sm">Corrección (entrada)</div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field"><label>Cantidad</label><div class="field-value muted">0</div></div>
+          <div class="field"><label>Unidad</label><div class="field-value muted">—</div></div>
+        </div>
+
+        <div class="field">
+          <label>Motivo</label>
+          <div class="field-pills">
+            <div class="pill sm active">Vencido</div>
+            <div class="pill sm">Dañado</div>
+            <div class="pill sm">Error de conteo</div>
+            <div class="pill sm">Otro</div>
+          </div>
+        </div>
+
+        <div class="field"><label>Nota adicional (opcional)</label><div class="field-value muted">Ej: detalle del incidente...</div></div>
+
+        <div class="stock-note">
+          Este ajuste queda registrado en el historial y actualiza el stock del insumo de inmediato. No se puede editar una vez guardado — solo revertir con otro ajuste.
+        </div>
+
+        <div class="save-btn">Registrar ajuste</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

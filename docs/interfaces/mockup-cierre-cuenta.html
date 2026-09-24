@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Cierre de cuenta (modal)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175; --orange: #ff7a1a; --orange-dark: #e0650a;
+    --green: #24a24a; --green-bg: #e9f8ee;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); }
+
+  /* Fondo simulando la pantalla de pedidos detrás del modal */
+  .backdrop-page {
+    position: fixed; inset: 0;
+    background: linear-gradient(180deg, #fdf6ec, #f7ead9);
+    filter: blur(2px);
+    opacity: 0.6;
+  }
+  .backdrop-page .fake-header { height: 70px; background: var(--surface); margin: 28px 28px 0; border-radius: 14px; }
+  .backdrop-page .fake-grid { display: grid; grid-template-columns: repeat(3,1fr) 320px; gap: 16px; margin: 20px 28px; }
+  .backdrop-page .fake-card { height: 220px; background: var(--surface); border-radius: 16px; }
+
+  .scrim { position: fixed; inset: 0; background: rgba(43,33,24,0.35); }
+
+  /* Toggle de comparación (solo para este mockup, no es parte de la interfaz real) */
+  .compare-toggle {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; border-radius: 999px; padding: 6px; display: flex; gap: 4px; z-index: 100;
+    font-size: 12.5px; font-weight: 700;
+  }
+  .compare-toggle .opt { padding: 8px 18px; border-radius: 999px; cursor: pointer; color: #cfc2b2; }
+  .compare-toggle .opt.active { background: var(--orange); color: #fff; }
+  .compare-note { position: fixed; top: 62px; left: 50%; transform: translateX(-50%); font-size: 11px; color: var(--ink-soft); background: #fff; padding: 4px 12px; border-radius: 999px; z-index: 100; border: 1px solid var(--border); }
+
+  /* Modal */
+  .modal-wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 50; }
+  .modal { background: var(--surface); border-radius: 22px; width: 440px; max-height: 88vh; overflow-y: auto; padding: 26px; box-shadow: 0 30px 70px rgba(43,33,24,0.35); }
+  .modal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; }
+  .modal-eyebrow { font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--orange-dark); font-weight: 800; }
+  .modal-title { font-family: 'Baloo 2', sans-serif; font-size: 24px; font-weight: 700; margin: 4px 0 0; }
+  .close-x { font-size: 18px; color: var(--ink-soft); cursor: pointer; }
+
+  .item-list { margin: 18px 0; border-top: 1px solid var(--border); }
+  .bill-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+  .bill-item .name { font-weight: 600; }
+  .bill-item .name .qty { color: var(--orange-dark); font-weight: 800; margin-right: 6px; }
+  .bill-item .sub-note { font-size: 11px; color: var(--ink-soft); font-style: italic; margin-top: 2px; }
+
+  .totals { margin-top: 4px; }
+  .total-row { display: flex; justify-content: space-between; font-size: 13.5px; color: var(--ink-soft); padding: 6px 0; }
+  .total-row.final { font-size: 19px; color: var(--ink); font-weight: 800; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+  .total-row.final .amount { color: var(--orange-dark); }
+
+  .section-label { font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); margin: 20px 0 10px; }
+
+  .tip-row { display: flex; gap: 8px; }
+  .tip-pill { flex: 1; text-align: center; padding: 10px 0; border-radius: 10px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .tip-pill.selected { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+  .pay-options { display: flex; flex-direction: column; gap: 10px; }
+  .pay-option { display: flex; align-items: center; gap: 12px; border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 13.5px; font-weight: 700; }
+  .pay-option.selected { border-color: var(--orange); background: var(--surface-alt); color: var(--orange-dark); }
+  .pay-option svg { width: 20px; height: 20px; }
+  .pay-chip { display: flex; align-items: center; gap: 8px; background: var(--surface-alt); border-radius: 999px; padding: 8px 14px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+  .pay-chip svg { width: 15px; height: 15px; }
+  .pay-chips-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .info-note { background: var(--surface-alt); border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: var(--ink); margin-top: 20px; line-height: 1.4; }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+  .btn-outline { flex: 1; text-align: center; padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 700; border: 1.5px solid var(--border); color: var(--ink-soft); }
+  .btn-primary { flex: 1.4; text-align: center; padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 700; background: var(--orange); color: #fff; }
+  .btn-green { flex: 1.4; text-align: center; padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 700; background: var(--green); color: #fff; }
+
+  #cliente-modal { display: none; }
+</style>
+</head>
+<body>
+
+<div class="backdrop-page">
+  <div class="fake-header"></div>
+  <div class="fake-grid"><div class="fake-card"></div><div class="fake-card"></div><div class="fake-card"></div><div class="fake-card"></div></div>
+</div>
+<div class="scrim"></div>
+
+<div class="compare-toggle">
+  <div class="opt active" onclick="showView('mesonero')">Vista mesonero</div>
+  <div class="opt" onclick="showView('cliente')">Vista cliente</div>
+</div>
+<div class="compare-note">Este selector es solo para comparar las dos vistas — no es parte de la interfaz real</div>
+
+<div class="modal-wrap">
+
+  <div class="modal" id="mesonero-modal">
+    <div class="modal-top">
+      <div><div class="modal-eyebrow">Mesa 12 · Terraza</div><h2 class="modal-title">Cerrar cuenta</h2></div>
+      <span class="close-x">✕</span>
+    </div>
+
+    <div class="item-list">
+      <div class="bill-item"><span class="name"><span class="qty">2×</span>Hamburguesa doble clásica</span><span>$17.00</span></div>
+      <div class="bill-item"><span class="name"><span class="qty">1×</span>Papas cheddar bacon</span><span>$6.00</span></div>
+      <div class="bill-item"><span class="name"><span class="qty">1×</span>Pizza pepperoni familiar</span><span>$12.00</span></div>
+      <div class="bill-item"><span class="name"><span class="qty">2×</span>Gaseosa</span><span>$5.00</span></div>
+    </div>
+
+    <p class="section-label">Propina</p>
+    <div class="tip-row">
+      <div class="tip-pill">10% · $4.00</div>
+      <div class="tip-pill selected">15% · $6.00</div>
+      <div class="tip-pill">20% · $8.00</div>
+      <div class="tip-pill">Otro</div>
+    </div>
+
+    <p class="section-label">Método de pago</p>
+    <div class="pay-options">
+      <div class="pay-option"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>Efectivo</div>
+      <div class="pay-option selected"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>Tarjeta de crédito/débito</div>
+      <div class="pay-option"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Pago móvil / transferencia</div>
+    </div>
+
+    <div class="totals">
+      <div class="total-row"><span>Subtotal</span><span>$40.00</span></div>
+      <div class="total-row"><span>Propina (15%)</span><span>$6.00</span></div>
+      <div class="total-row final"><span>Total a cobrar</span><span class="amount">$46.00</span></div>
+    </div>
+
+    <div class="modal-actions">
+      <div class="btn-outline">Cancelar</div>
+      <div class="btn-primary">Confirmar y cerrar mesa</div>
+    </div>
+  </div>
+
+  <div class="modal" id="cliente-modal">
+    <div class="modal-top">
+      <div><div class="modal-eyebrow">Mesa 12</div><h2 class="modal-title">Tu cuenta</h2></div>
+      <span class="close-x">✕</span>
+    </div>
+
+    <div class="item-list">
+      <div class="bill-item"><span class="name"><span class="qty">2×</span>Hamburguesa doble clásica</span><span>$17.00</span></div>
+      <div class="bill-item"><span class="name"><span class="qty">1×</span>Papas cheddar bacon</span><span>$6.00</span></div>
+      <div class="bill-item"><span class="name"><span class="qty">1×</span>Pizza pepperoni familiar</span><span>$12.00</span></div>
+      <div class="bill-item"><span class="name"><span class="qty">2×</span>Gaseosa</span><span>$5.00</span></div>
+    </div>
+
+    <div class="totals">
+      <div class="total-row final"><span>Total</span><span class="amount">$40.00</span></div>
+    </div>
+
+    <p class="section-label">Formas de pago que aceptamos</p>
+    <div class="pay-chips-row">
+      <div class="pay-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/></svg>Efectivo</div>
+      <div class="pay-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M2 10h20"/></svg>Tarjeta</div>
+      <div class="pay-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>Pago móvil</div>
+    </div>
+
+    <div class="info-note">La propina y el pago se coordinan directamente con tu mesonero — desde aquí solo puedes ver el detalle de tu cuenta.</div>
+
+    <div class="modal-actions">
+      <div class="btn-green" style="flex:1;">🔔 Llamar a mi mesonero</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function showView(view) {
+    document.getElementById('mesonero-modal').style.display = view === 'mesonero' ? 'block' : 'none';
+    document.getElementById('cliente-modal').style.display = view === 'cliente' ? 'block' : 'none';
+    document.querySelectorAll('.compare-toggle .opt').forEach(o => o.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

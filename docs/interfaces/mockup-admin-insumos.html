@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Gestión de insumos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+
+  .app-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* Sidebar (idéntico al resto del panel) */
+  .sidebar { background: var(--ink); color: #fff; padding: 22px 16px; display: flex; flex-direction: column; }
+  .sidebar-brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; margin: 4px 0 28px; padding: 0 10px; }
+  .sidebar-brand span { color: var(--orange); }
+  .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .side-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #cfc6ba; }
+  .side-link svg { width: 17px; height: 17px; stroke: currentColor; flex-shrink: 0; }
+  .side-link.active { background: var(--orange); color: #fff; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid #423528; margin-top: 10px; }
+  .sidebar-user .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
+  .sidebar-user .u-name { font-size: 12.5px; font-weight: 700; color: #fff; }
+  .sidebar-user .u-role { font-size: 11px; color: #a89d8d; }
+
+  /* Content */
+  .content { padding: 28px 34px 40px; max-width: 1360px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px; }
+  .greeting-eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-dark); font-weight: 700; }
+  .greeting { font-family: 'Baloo 2', sans-serif; font-size: 27px; font-weight: 700; margin: 4px 0 0; }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .search { width: 220px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--ink-soft); font-size: 13.5px; }
+  .btn-primary { background: var(--orange); color: #fff; font-weight: 700; font-size: 13.5px; padding: 11px 20px; border-radius: 999px; white-space: nowrap; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; }
+  .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; }
+  .stat-value.alert { color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+  .pills { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .pill { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); color: var(--ink-soft); background: var(--surface); }
+  .pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+  .layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; align-items: start; }
+
+  /* Tabla de insumos */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  .t-head, .t-row { display: grid; grid-template-columns: 2.1fr 0.9fr 0.9fr 0.9fr 1.2fr 1fr; align-items: center; padding: 13px 18px; gap: 8px; }
+  .t-head { font-size: 10.5px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; background: var(--surface-alt); border-bottom: 1px solid var(--border); }
+  .t-row { border-bottom: 1px solid var(--border); font-size: 13px; }
+  .t-row:last-child { border-bottom: none; }
+  .t-row.selected { background: var(--orange-bg); }
+  .t-num { text-align: center; font-weight: 600; }
+  .t-insumo { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .t-badge { width: 34px; height: 34px; border-radius: 9px; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11.5px; flex-shrink: 0; }
+  .t-name { font-weight: 700; }
+  .t-cat { font-size: 11px; color: var(--ink-soft); }
+  .t-prov { font-size: 12.5px; color: var(--ink-soft); }
+  .status-chip { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .status-chip.ok { background: var(--green-bg); color: var(--green); }
+  .status-chip.alert { background: var(--red-bg); color: var(--red); }
+  .table-foot { padding: 12px 18px; font-size: 11.5px; color: var(--ink-soft); text-align: center; }
+
+  /* Editor de insumo (sidebar) */
+  .sidebar-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .sidebar-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+  .sidebar-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 5px; }
+  .field-value { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; font-weight: 600; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 14px; }
+  .toggle-row span { font-size: 13px; font-weight: 600; }
+  .switch { width: 38px; height: 22px; border-radius: 999px; background: var(--orange); position: relative; flex-shrink: 0; }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 18px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+
+  .stock-note { display: flex; gap: 10px; background: var(--surface-alt); border: 1px dashed var(--border); border-radius: 10px; padding: 11px 12px; font-size: 12px; color: var(--ink-soft); line-height: 1.4; margin: 4px 0 16px; }
+
+  .used-in { border-top: 1px solid var(--border); padding-top: 12px; margin-top: 4px; }
+  .used-in .section-label { font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+  .used-tag { display: inline-block; background: var(--gray-bg); color: var(--ink-soft); font-size: 11.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px; margin: 0 6px 6px 0; }
+
+  .history-link { display: block; text-align: center; margin-top: 14px; font-size: 12.5px; font-weight: 700; color: var(--orange-dark); border: 1px solid var(--border); border-radius: 10px; padding: 10px; }
+
+  .save-btn { margin-top: 14px; background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; text-align: center; }
+  .delete-link { display: block; text-align: center; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">Fast <span>&amp; Co.</span></div>
+    <nav class="side-nav">
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Pedidos
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+        Menú
+      </a>
+      <a class="side-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Inventario
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="9" width="18" height="4" rx="1.5"/><path d="M5 13v7M19 13v7"/></svg>
+        Mesas
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="9" r="2.3"/><path d="M15.5 14.2c2 .6 3.5 2.5 3.5 5.8"/></svg>
+        Personal
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
+        Reportes
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        Configuración
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar-sm">D</div>
+      <div>
+        <div class="u-name">Daniela Roa</div>
+        <div class="u-role">Administradora</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <div class="header">
+      <div>
+        <div class="greeting-eyebrow">Administración · Inventario</div>
+        <h1 class="greeting">Gestión de insumos</h1>
+      </div>
+      <div class="header-actions">
+        <input class="search" placeholder="Buscar insumo..." />
+        <div class="btn-primary">+ Nuevo insumo</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value">38</div><div class="stat-label">Insumos registrados</div></div>
+      <div class="stat"><div class="stat-value">6</div><div class="stat-label">Categorías</div></div>
+      <div class="stat"><div class="stat-value alert">6</div><div class="stat-label">Insumos con stock bajo</div></div>
+    </div>
+
+    <div class="pills">
+      <div class="pill active">Todas</div>
+      <div class="pill">Carnes</div>
+      <div class="pill">Lácteos</div>
+      <div class="pill">Panadería</div>
+      <div class="pill">Vegetales</div>
+      <div class="pill">Salsas y condimentos</div>
+      <div class="pill">Bebidas</div>
+    </div>
+
+    <div class="layout">
+      <div class="table-wrap">
+        <div class="t-head">
+          <span>Insumo</span><span class="t-num">Stock actual</span><span class="t-num">Stock mín.</span><span class="t-num">Costo unit.</span><span>Proveedor</span><span>Estado</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">CA</div><div><div class="t-name">Carne de res molida</div><div class="t-cat">Carnes</div></div></div>
+          <span class="t-num">18 kg</span><span class="t-num">10 kg</span><span class="t-num">$4.20</span>
+          <span class="t-prov">Carnes El Corral</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row selected">
+          <div class="t-insumo"><div class="t-badge">PA</div><div><div class="t-name">Pan para hamburguesa</div><div class="t-cat">Panadería</div></div></div>
+          <span class="t-num">15 uds</span><span class="t-num">30 uds</span><span class="t-num">$0.35</span>
+          <span class="t-prov">Panificadora Central</span><span class="status-chip alert">Bajo stock</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">QU</div><div><div class="t-name">Queso cheddar</div><div class="t-cat">Lácteos</div></div></div>
+          <span class="t-num">6 kg</span><span class="t-num">8 kg</span><span class="t-num">$6.80</span>
+          <span class="t-prov">Lácteos San José</span><span class="status-chip alert">Bajo stock</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">CE</div><div><div class="t-name">Cebolla</div><div class="t-cat">Vegetales</div></div></div>
+          <span class="t-num">22 kg</span><span class="t-num">5 kg</span><span class="t-num">$0.90</span>
+          <span class="t-prov">Mercado Mayorista Vega</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">MA</div><div><div class="t-name">Masa de pizza</div><div class="t-cat">Panadería</div></div></div>
+          <span class="t-num">40 uds</span><span class="t-num">20 uds</span><span class="t-num">$1.10</span>
+          <span class="t-prov">Panificadora Central</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">PE</div><div><div class="t-name">Pepperoni</div><div class="t-cat">Carnes</div></div></div>
+          <span class="t-num">9 kg</span><span class="t-num">5 kg</span><span class="t-num">$8.50</span>
+          <span class="t-prov">Carnes El Corral</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">AL</div><div><div class="t-name">Alitas de pollo</div><div class="t-cat">Carnes</div></div></div>
+          <span class="t-num">25 kg</span><span class="t-num">15 kg</span><span class="t-num">$3.60</span>
+          <span class="t-prov">Avícola del Valle</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">PC</div><div><div class="t-name">Papas congeladas</div><div class="t-cat">Vegetales</div></div></div>
+          <span class="t-num">4 kg</span><span class="t-num">15 kg</span><span class="t-num">$1.40</span>
+          <span class="t-prov">Mercado Mayorista Vega</span><span class="status-chip alert">Bajo stock</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">SB</div><div><div class="t-name">Salsa BBQ</div><div class="t-cat">Salsas y condimentos</div></div></div>
+          <span class="t-num">12 l</span><span class="t-num">5 l</span><span class="t-num">$3.20</span>
+          <span class="t-prov">Distribuidora Sabores</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">SE</div><div><div class="t-name">Salsa especial de la casa</div><div class="t-cat">Salsas y condimentos</div></div></div>
+          <span class="t-num">8 l</span><span class="t-num">4 l</span><span class="t-num">$2.80</span>
+          <span class="t-prov">Preparación interna</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">GA</div><div><div class="t-name">Gaseosa (lata)</div><div class="t-cat">Bebidas</div></div></div>
+          <span class="t-num">120 uds</span><span class="t-num">60 uds</span><span class="t-num">$0.55</span>
+          <span class="t-prov">Distribuidora Beta</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="t-row">
+          <div class="t-insumo"><div class="t-badge">TO</div><div><div class="t-name">Tortilla para wrap</div><div class="t-cat">Panadería</div></div></div>
+          <span class="t-num">30 uds</span><span class="t-num">25 uds</span><span class="t-num">$0.45</span>
+          <span class="t-prov">Panificadora Central</span><span class="status-chip ok">OK</span>
+        </div>
+
+        <div class="table-foot">Mostrando 12 de 38 insumos</div>
+      </div>
+
+      <div class="sidebar-panel">
+        <p class="sidebar-title">Editor de insumo</p>
+        <p class="sidebar-sub">Pan para hamburguesa</p>
+
+        <div class="field"><label>Nombre del insumo</label><div class="field-value">Pan para hamburguesa</div></div>
+        <div class="field"><label>Categoría</label><div class="field-value">Panadería</div></div>
+        <div class="field-row">
+          <div class="field"><label>Unidad de medida</label><div class="field-value">Unidades</div></div>
+          <div class="field"><label>Costo unitario</label><div class="field-value">$0.35</div></div>
+        </div>
+        <div class="field"><label>Proveedor principal</label><div class="field-value">Panificadora Central</div></div>
+        <div class="field"><label>Stock mínimo (alerta)</label><div class="field-value">30 uds</div></div>
+
+        <div class="toggle-row"><span>Insumo activo</span><div class="switch"></div></div>
+
+        <div class="stock-note">
+          Stock actual: <strong>15 uds</strong>. Se actualiza automáticamente desde los lotes y movimientos de inventario — no se edita aquí directamente.
+        </div>
+
+        <div class="used-in">
+          <p class="section-label">Usado en 3 recetas</p>
+          <span class="used-tag">Hamburguesa doble clásica</span>
+          <span class="used-tag">Combo pollo frito x3</span>
+          <span class="used-tag">Hamburguesa BBQ</span>
+        </div>
+
+        <div class="history-link">Ver historial de movimientos →</div>
+
+        <div class="save-btn">Guardar cambios</div>
+        <span class="delete-link">Eliminar insumo</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

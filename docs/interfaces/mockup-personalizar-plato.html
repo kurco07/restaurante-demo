@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Ventana de personalización de plato</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175; --orange: #ff7a1a; --orange-dark: #e0650a; --red: #e14434;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Inter', sans-serif; }
+
+  .backdrop { position: fixed; inset: 0; background: linear-gradient(180deg, #fdf6ec, #f7ead9); filter: blur(2px); opacity: 0.6; }
+  .backdrop .fake-header { height: 70px; background: var(--surface); margin: 28px 28px 0; border-radius: 14px; }
+  .backdrop .fake-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin: 20px 28px; }
+  .backdrop .fake-card { height: 220px; background: var(--surface); border-radius: 16px; }
+  .scrim { position: fixed; inset: 0; background: rgba(43,33,24,0.4); }
+
+  .note-banner {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: #fff; font-size: 12px; font-weight: 700;
+    padding: 9px 18px; border-radius: 999px; z-index: 60;
+  }
+
+  .modal-wrap { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 50; }
+  .cust-modal { background: var(--surface); border-radius: 22px; width: 480px; max-height: 88vh; overflow-y: auto; box-shadow: 0 30px 70px rgba(43,33,24,0.35); }
+  .cust-photo { height: 150px; border-radius: 22px 22px 0 0; display: flex; align-items: center; justify-content: center; }
+  .cust-photo svg { width: 46px; height: 46px; stroke: #fff; }
+  .cust-body { padding: 22px 24px; }
+  .cust-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cust-name { font-family: 'Baloo 2', sans-serif; font-size: 23px; font-weight: 700; margin: 0; }
+  .cust-desc { font-size: 13px; color: var(--ink-soft); margin: 4px 0 0; }
+  .cust-close { font-size: 18px; color: var(--ink-soft); cursor: pointer; }
+
+  .group-label { font-size: 12.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 20px 0 4px; }
+  .group-req { font-size: 10.5px; color: var(--red); font-weight: 700; text-transform: none; }
+  .group-hint { font-size: 11px; color: var(--ink-soft); font-weight: 500; text-transform: none; letter-spacing: 0; margin-left: 4px; }
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 9px; }
+  .chip { padding: 10px 16px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.12s ease; }
+  .chip.protein-selected { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .chip.included { background: var(--surface-alt); color: var(--ink); }
+  .chip.removed { background: var(--surface); border-color: var(--red); color: var(--red); text-decoration: line-through; }
+  .chip.extra-off { color: var(--ink-soft); }
+  .chip.extra-on { background: var(--surface-alt); border-color: var(--orange); color: var(--orange-dark); }
+
+  .qty-row { display: flex; align-items: center; justify-content: space-between; margin-top: 22px; }
+  .qty-stepper { display: flex; align-items: center; gap: 16px; }
+  .qty-btn { width: 32px; height: 32px; border-radius: 9px; background: var(--surface-alt); border: 1px solid var(--border); font-size: 17px; font-weight: 700; color: var(--orange-dark); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .qty-val { font-size: 17px; font-weight: 800; min-width: 16px; text-align: center; }
+
+  .note-box { width: 100%; margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; padding: 11px 13px; font-size: 13px; font-family: 'Inter', sans-serif; resize: none; }
+
+  .cust-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-outline { flex: 1; text-align: center; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; border: 1.5px solid var(--border); color: var(--ink-soft); cursor: pointer; }
+  .btn-primary { flex: 1.6; text-align: center; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 700; background: var(--orange); color: #fff; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="backdrop">
+  <div class="fake-header"></div>
+  <div class="fake-grid"><div class="fake-card"></div><div class="fake-card"></div><div class="fake-card"></div></div>
+</div>
+<div class="scrim"></div>
+<div class="note-banner">Así se ve al presionar "Personalizar" en cualquier plato — este ejemplo usa la hamburguesa porque tiene los tres tipos de modificador a la vez</div>
+
+<div class="modal-wrap">
+  <div class="cust-modal">
+    <div class="cust-photo" style="background: linear-gradient(135deg, #ffb877, #ff7a1a);">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+    </div>
+    <div class="cust-body">
+      <div class="cust-top">
+        <div><p class="cust-name">Hamburguesa doble clásica</p><p class="cust-desc">Doble carne · queso cheddar · salsa especial</p></div>
+        <span class="cust-close">✕</span>
+      </div>
+
+      <div class="group-label">Elige tu proteína <span class="group-req">· obligatorio</span></div>
+      <div class="chip-row" id="protein-row">
+        <div class="chip protein-selected" data-val="Carne de res" onclick="selectProtein(this)">Carne de res</div>
+        <div class="chip included" data-val="Pollo" onclick="selectProtein(this)">Pollo</div>
+      </div>
+
+      <div class="group-label">Quitar ingredientes <span class="group-hint">toca para quitar</span></div>
+      <div class="chip-row" id="quitar-row">
+        <div class="chip included" onclick="toggleRemove(this)">✓ Cebolla</div>
+        <div class="chip included" onclick="toggleRemove(this)">✓ Tomate</div>
+        <div class="chip included" onclick="toggleRemove(this)">✓ Queso cheddar</div>
+        <div class="chip included" onclick="toggleRemove(this)">✓ Lechuga</div>
+        <div class="chip included" onclick="toggleRemove(this)">✓ Pepinillos</div>
+      </div>
+
+      <div class="group-label">Extras <span class="group-hint">toca para agregar</span></div>
+      <div class="chip-row" id="extras-row">
+        <div class="chip extra-off" data-price="1.00" onclick="toggleExtra(this)">+ Tocineta extra ($1.00)</div>
+        <div class="chip extra-off" data-price="0.50" onclick="toggleExtra(this)">+ Queso extra ($0.50)</div>
+        <div class="chip extra-off" data-price="1.00" onclick="toggleExtra(this)">+ Aguacate ($1.00)</div>
+      </div>
+
+      <div class="qty-row">
+        <span class="group-label" style="margin:0;">Cantidad</span>
+        <div class="qty-stepper"><div class="qty-btn" onclick="changeQty(-1)">−</div><span class="qty-val" id="qty-val">1</span><div class="qty-btn" onclick="changeQty(1)">+</div></div>
+      </div>
+
+      <textarea class="note-box" rows="2" placeholder="Nota para este plato (opcional)..."></textarea>
+
+      <div class="cust-actions">
+        <div class="btn-outline">Cancelar</div>
+        <div class="btn-primary">Agregar al pedido — <span id="total">$8.50</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const basePrice = 8.50;
+  let qty = 1;
+
+  function selectProtein(el) {
+    document.querySelectorAll('#protein-row .chip').forEach(c => c.classList.remove('protein-selected'));
+    document.querySelectorAll('#protein-row .chip').forEach(c => c.classList.add('included'));
+    el.classList.add('protein-selected');
+    el.classList.remove('included');
+  }
+  function toggleRemove(el) {
+    const removed = el.classList.toggle('removed');
+    el.classList.toggle('included', !removed);
+    el.textContent = (removed ? '✕ ' : '✓ ') + el.textContent.slice(2);
+  }
+  function toggleExtra(el) {
+    const on = el.classList.toggle('extra-on');
+    el.classList.toggle('extra-off', !on);
+    el.textContent = (on ? '✓ ' : '+ ') + el.textContent.slice(2);
+    updateTotal();
+  }
+  function changeQty(d) { qty = Math.max(1, qty + d); document.getElementById('qty-val').textContent = qty; updateTotal(); }
+  function updateTotal() {
+    let extra = 0;
+    document.querySelectorAll('#extras-row .chip.extra-on').forEach(c => extra += parseFloat(c.dataset.price));
+    document.getElementById('total').textContent = '$' + ((basePrice + extra) * qty).toFixed(2);
+  }
+</script>
+
+</body>
+</html>

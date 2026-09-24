@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Mapa de mesas realista y arrastrable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+    --floor: #f4efe6; --wall: #d8ccb8;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; padding: 28px; }
+  .screen { max-width: 1220px; margin: 0 auto; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+  .greeting-eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-dark); font-weight: 700; }
+  .greeting { font-family: 'Baloo 2', sans-serif; font-size: 28px; font-weight: 700; margin: 4px 0 0; }
+  .avatar-lg { width: 46px; height: 46px; border-radius: 50%; background: var(--orange-bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--orange-dark); }
+
+  .layout { display: grid; grid-template-columns: 1.65fr 1fr; gap: 20px; align-items: start; }
+  .panel-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 4px; }
+  .panel-sub { font-size: 12.5px; color: var(--ink-soft); margin: 0 0 14px; }
+
+  .map-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px; }
+  .filters { display: flex; gap: 6px; }
+  .filter-pill { padding: 6px 13px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); }
+  .filter-pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .tools { display: flex; gap: 8px; }
+  .tool-btn { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--ink); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  .tool-btn.primary { background: var(--orange); color: #fff; border: none; }
+  .tool-btn.lock-on { background: var(--orange-bg); color: var(--orange-dark); border-color: var(--orange); }
+
+  .legend { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-soft); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 4px; }
+
+  .edit-hint { font-size: 12px; color: var(--orange-dark); font-weight: 700; margin-bottom: 10px; display: none; }
+  body.edit-mode .edit-hint { display: block; }
+
+  /* Floor plan canvas */
+  .floor-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; }
+  .floor {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    background: var(--floor);
+    border-radius: 12px;
+    border: 2px solid var(--wall);
+    overflow: hidden;
+  }
+  .room-zone {
+    position: absolute;
+    background: var(--surface-alt);
+    border: 2px solid var(--wall);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .entrance-strip {
+    position: absolute; left: 0; top: 40%; width: 26px; height: 26%;
+    background: var(--wall); opacity: 0.5;
+    writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 800; color: var(--ink-soft); letter-spacing: 0.05em;
+  }
+  .point-icon {
+    position: absolute; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--wall);
+    display: flex; align-items: center; justify-content: center; font-size: 15px;
+  }
+  .bar-zone {
+    position: absolute; background: var(--orange-bg); border: 2px solid var(--orange);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .bar-seat { width: 26px; height: 26px; border-radius: 7px; background: var(--surface); border: 1.5px dashed var(--border); font-size: 9.5px; font-weight: 800; color: var(--ink-soft); display: flex; align-items: center; justify-content: center; }
+  .bar-seat.occ { background: var(--orange); color: #fff; border: none; }
+
+  .table {
+    position: absolute;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border: 2px solid transparent;
+    font-family: 'Inter', sans-serif;
+    user-select: none;
+    box-shadow: 0 2px 6px rgba(43,33,24,0.08);
+    transition: box-shadow 0.15s ease;
+  }
+  body.edit-mode .table { cursor: grab; }
+  body.edit-mode .table:active { cursor: grabbing; box-shadow: 0 8px 18px rgba(43,33,24,0.22); z-index: 50; }
+  .table.round { border-radius: 50%; }
+  .table.square { border-radius: 12px; }
+  .t-num { font-size: 14px; font-weight: 800; }
+  .t-meta { font-size: 8px; font-weight: 700; line-height: 1.1; }
+  .t-free { background: var(--surface); border-color: var(--border) !important; border-style: dashed !important; color: var(--ink-soft); }
+  .t-mine { background: var(--orange-bg); border-color: var(--orange) !important; color: var(--orange-dark); }
+  .t-mine.late { background: var(--red-bg); border-color: var(--red) !important; color: var(--red); }
+  .t-other { background: var(--gray-bg); border-color: var(--border) !important; color: var(--ink-soft); }
+  .t-clean { background: var(--surface-alt); border-color: var(--border) !important; color: var(--ink-soft); }
+
+  /* Order list sidebar */
+  .order-list { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
+  .order-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-top: 1px solid var(--border); }
+  .order-row:first-of-type { border-top: none; padding-top: 0; }
+  .order-left { display: flex; align-items: center; gap: 12px; }
+  .order-badge { width: 34px; height: 34px; border-radius: 10px; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+  .order-info .mesa-name { font-size: 13.5px; font-weight: 700; }
+  .order-info .items-count { font-size: 11.5px; color: var(--ink-soft); }
+  .status-chip { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .status-chip.cocina { background: var(--orange-bg); color: var(--orange-dark); }
+  .status-chip.listo { background: var(--green-bg); color: var(--green); }
+  .status-chip.cuenta { background: var(--red-bg); color: var(--red); }
+  .order-time { font-size: 11px; color: var(--ink-soft); margin-top: 3px; text-align: right; }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="header">
+    <div>
+      <div class="greeting-eyebrow">Turno noche</div>
+      <h1 class="greeting">Hola, Valentina</h1>
+    </div>
+    <div class="avatar-lg">V</div>
+  </div>
+
+  <div class="layout">
+    <div>
+      <p class="panel-title">Mapa de mesas</p>
+      <p class="panel-sub">Toca una mesa para ver o tomar su pedido</p>
+
+      <div class="map-toolbar">
+        <div class="filters">
+          <div class="filter-pill active">Todas · 12</div>
+          <div class="filter-pill">Libres · 4</div>
+          <div class="filter-pill">Ocupadas · 6</div>
+        </div>
+        <div class="tools">
+          <button class="tool-btn" id="add-table">+ Agregar mesa</button>
+          <button class="tool-btn lock-on" id="toggle-edit">🔒 Bloqueado — toca para editar</button>
+        </div>
+      </div>
+
+      <div class="edit-hint">Modo edición activo: arrastra cualquier mesa para reacomodar el plano a como es tu local de verdad.</div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background: var(--orange-bg); border: 1.5px solid var(--orange);"></div>Tuya</div>
+        <div class="legend-item"><div class="legend-dot" style="background: var(--red-bg); border: 1.5px solid var(--red);"></div>Demorada</div>
+        <div class="legend-item"><div class="legend-dot" style="background: var(--gray-bg);"></div>Otro mesonero</div>
+        <div class="legend-item"><div class="legend-dot" style="background: var(--surface); border: 1.5px dashed var(--border);"></div>Libre</div>
+        <div class="legend-item"><div class="legend-dot" style="background: var(--surface-alt);"></div>Por limpiar</div>
+      </div>
+
+      <div class="floor-card">
+        <div class="floor" id="floor">
+
+          <div class="room-zone" style="right:0; top:0; width:26%; height:34%;">Cocina</div>
+          <div class="room-zone" style="right:0; top:34%; width:16%; height:16%; font-size:9px;">Baños</div>
+          <div class="entrance-strip">Entrada</div>
+          <div class="point-icon" style="left:38px; top:44%;">🧍</div>
+
+          <div class="bar-zone" style="right:2%; bottom:4%; width:26%; height:16%;">
+            <div class="bar-seat">B1</div>
+            <div class="bar-seat occ">B2</div>
+            <div class="bar-seat">B3</div>
+            <div class="bar-seat">B4</div>
+          </div>
+
+          <div class="table square t-free" data-num="1" style="left:90px; top:36px; width:56px; height:56px;"><span class="t-num">1</span><span class="t-meta">Libre</span></div>
+          <div class="table square t-mine" data-num="2" style="left:190px; top:28px; width:56px; height:56px;"><span class="t-num">2</span><span class="t-meta">12 min</span></div>
+          <div class="table round t-mine" data-num="3" style="left:300px; top:50px; width:58px; height:58px;"><span class="t-num">3</span><span class="t-meta">4 min</span></div>
+          <div class="table square t-other" data-num="4" style="left:400px; top:34px; width:56px; height:56px;"><span class="t-num">4</span><span class="t-meta">Carlos</span></div>
+
+          <div class="table square t-free" data-num="5" style="left:100px; top:140px; width:56px; height:56px;"><span class="t-num">5</span><span class="t-meta">Libre</span></div>
+          <div class="table square t-clean" data-num="6" style="left:220px; top:150px; width:56px; height:56px;"><span class="t-num">6</span><span class="t-meta">Limpiar</span></div>
+          <div class="table round t-mine late" data-num="7" style="left:340px; top:165px; width:60px; height:60px;"><span class="t-num">7</span><span class="t-meta">18 min</span></div>
+
+          <div class="table square t-free" data-num="8" style="left:110px; top:250px; width:56px; height:56px;"><span class="t-num">8</span><span class="t-meta">Libre</span></div>
+          <div class="table round t-mine" data-num="9" style="left:230px; top:265px; width:58px; height:58px;"><span class="t-num">9</span><span class="t-meta">Cuenta</span></div>
+          <div class="table square t-other" data-num="10" style="left:355px; top:255px; width:56px; height:56px;"><span class="t-num">10</span><span class="t-meta">Carlos</span></div>
+
+          <div class="table square t-free" data-num="11" style="left:95px; top:360px; width:56px; height:56px;"><span class="t-num">11</span><span class="t-meta">Libre</span></div>
+          <div class="table round t-mine" data-num="12" style="left:255px; top:370px; width:58px; height:58px;"><span class="t-num">12</span><span class="t-meta">2 min</span></div>
+
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="panel-title">Tus pedidos activos</p>
+      <p class="panel-sub">5 mesas — ordenadas por lo más urgente</p>
+      <div class="order-list">
+        <div class="order-row">
+          <div class="order-left"><div class="order-badge">7</div><div class="order-info"><div class="mesa-name">Mesa 7</div><div class="items-count">3 ítems</div></div></div>
+          <div><span class="status-chip cocina">En cocina</span><div class="order-time">18 min</div></div>
+        </div>
+        <div class="order-row">
+          <div class="order-left"><div class="order-badge">3</div><div class="order-info"><div class="mesa-name">Mesa 3</div><div class="items-count">2 ítems</div></div></div>
+          <div><span class="status-chip listo">Listo para servir</span><div class="order-time">4 min</div></div>
+        </div>
+        <div class="order-row">
+          <div class="order-left"><div class="order-badge">9</div><div class="order-info"><div class="mesa-name">Mesa 9</div><div class="items-count">1 ítem</div></div></div>
+          <div><span class="status-chip cuenta">Cuenta pedida</span><div class="order-time">6 min</div></div>
+        </div>
+        <div class="order-row">
+          <div class="order-left"><div class="order-badge">12</div><div class="order-info"><div class="mesa-name">Mesa 12</div><div class="items-count">5 ítems</div></div></div>
+          <div><span class="status-chip cocina">En cocina</span><div class="order-time">2 min</div></div>
+        </div>
+        <div class="order-row">
+          <div class="order-left"><div class="order-badge">2</div><div class="order-info"><div class="mesa-name">Mesa 2</div><div class="items-count">4 ítems</div></div></div>
+          <div><span class="status-chip cocina">En cocina</span><div class="order-time">12 min</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let editMode = false;
+  let tableCounter = 12;
+  const toggleBtn = document.getElementById('toggle-edit');
+  const floor = document.getElementById('floor');
+
+  toggleBtn.addEventListener('click', () => {
+    editMode = !editMode;
+    document.body.classList.toggle('edit-mode', editMode);
+    toggleBtn.textContent = editMode ? '🔓 Editando — toca para bloquear' : '🔒 Bloqueado — toca para editar';
+    toggleBtn.classList.toggle('lock-on', !editMode);
+  });
+
+  function makeDraggable(table) {
+    table.addEventListener('mousedown', (e) => {
+      if (!editMode) return;
+      e.preventDefault();
+      const floorRect = floor.getBoundingClientRect();
+      const startLeft = table.offsetLeft;
+      const startTop = table.offsetTop;
+      const startX = e.clientX;
+      const startY = e.clientY;
+
+      function onMove(ev) {
+        let newLeft = startLeft + (ev.clientX - startX);
+        let newTop = startTop + (ev.clientY - startY);
+        newLeft = Math.max(0, Math.min(newLeft, floorRect.width - table.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, floorRect.height - table.offsetHeight));
+        table.style.left = newLeft + 'px';
+        table.style.top = newTop + 'px';
+      }
+      function onUp() {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      }
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  }
+
+  document.querySelectorAll('.table').forEach(makeDraggable);
+
+  document.getElementById('add-table').addEventListener('click', () => {
+    tableCounter++;
+    const t = document.createElement('div');
+    t.className = 'table square t-free';
+    t.style.left = '320px';
+    t.style.top = '420px';
+    t.style.width = '56px';
+    t.style.height = '56px';
+    t.innerHTML = '<span class="t-num">' + tableCounter + '</span><span class="t-meta">Libre</span>';
+    floor.appendChild(t);
+    makeDraggable(t);
+    if (!editMode) toggleBtn.click();
+  });
+</script>
+
+</body>
+</html>

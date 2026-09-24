@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Autopedido con personalización</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175; --orange: #ff7a1a; --orange-dark: #e0650a;
+    --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f3ede4; font-family: 'Inter', sans-serif; padding: 30px 0; display: flex; justify-content: center; }
+  .phone { width: 400px; background: var(--bg); color: var(--ink); border-radius: 28px; border: 1px solid var(--border); overflow: hidden; position: relative; height: 830px; display: flex; flex-direction: column; }
+
+  .hero { padding: 20px 20px 12px; }
+  .rest-name { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--orange-dark); font-weight: 800; }
+  .welcome { font-family: 'Baloo 2', sans-serif; font-size: 22px; font-weight: 700; margin: 4px 0 2px; }
+  .shared-note { display: flex; align-items: center; gap: 8px; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; font-size: 11px; color: var(--ink-soft); margin: 0 20px 12px; }
+
+  .tabs-main { display: flex; gap: 6px; margin: 0 20px 12px; background: var(--surface-alt); border-radius: 12px; padding: 4px; }
+  .tab-main { flex: 1; text-align: center; padding: 8px; border-radius: 9px; font-size: 12.5px; font-weight: 700; color: var(--ink-soft); }
+  .tab-main.active { background: var(--surface); color: var(--orange-dark); box-shadow: 0 1px 4px rgba(43,33,24,0.08); }
+
+  .scroll-area { flex: 1; overflow-y: auto; padding-bottom: 90px; }
+
+  .pills { display: flex; gap: 8px; padding: 0 20px 12px; overflow-x: auto; }
+  .pill { flex-shrink: 0; padding: 7px 15px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); color: var(--ink-soft); background: var(--surface); font-weight: 600; }
+  .pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+  .list { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+  .card { display: flex; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 12px; align-items: center; }
+  .thumb { width: 62px; height: 62px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .thumb svg { width: 26px; height: 26px; stroke: #fff; }
+  .p1 { background: linear-gradient(135deg, #ffb877, #ff7a1a); } .p2 { background: linear-gradient(135deg, #ffcf6b, #f5a623); }
+  .p3 { background: linear-gradient(135deg, #ff9d6b, #e0650a); } .p4 { background: linear-gradient(135deg, #ffdca0, #ffb04a); }
+  .p5 { background: linear-gradient(135deg, #ff8f6b, #e14434); }
+  .card-body { flex: 1; }
+  .card-name { font-size: 14px; font-weight: 700; margin: 0 0 2px; }
+  .card-desc { font-size: 11px; color: var(--ink-soft); margin: 0 0 6px; line-height: 1.3; }
+  .card-row { display: flex; justify-content: space-between; align-items: center; }
+  .card-price { font-size: 13.5px; font-weight: 700; color: var(--orange-dark); }
+  .add-pill { font-size: 11.5px; font-weight: 700; background: var(--orange); color: #fff; border-radius: 999px; padding: 6px 13px; }
+
+  /* Cart view */
+  .cart-section-title { font-family: 'Baloo 2', sans-serif; font-size: 17px; font-weight: 700; margin: 4px 20px 12px; }
+  .cart-item { margin: 0 20px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+  .cart-item-top { display: flex; justify-content: space-between; font-size: 13.5px; font-weight: 700; }
+  .cart-item-mods { font-size: 11px; color: var(--orange-dark); font-weight: 600; margin-top: 4px; }
+  .cart-item-who { font-size: 10.5px; color: var(--ink-soft); margin-top: 4px; }
+  .general-note { margin: 4px 20px 14px; border: 1px dashed var(--border); border-radius: 12px; padding: 12px 14px; font-size: 12px; color: var(--ink-soft); }
+  .cart-totals { margin: 0 20px 14px; background: var(--surface-alt); border-radius: 14px; padding: 14px; }
+  .cart-total-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: 800; }
+  .view-bill-btn { margin: 0 20px; background: var(--ink); color: #fff; border-radius: 12px; padding: 13px; text-align: center; font-size: 13.5px; font-weight: 700; }
+
+  .cart-bar { position: absolute; left: 15px; right: 15px; bottom: 15px; background: var(--orange); color: #fff; border-radius: 16px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 13.5px; z-index: 5; }
+
+  /* Customize sheet */
+  .sheet-scrim { display: none; position: absolute; inset: 0; background: rgba(43,33,24,0.4); z-index: 20; }
+  .sheet-scrim.open { display: block; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface); border-radius: 24px 24px 0 0; max-height: 88%; overflow-y: auto; padding-bottom: 90px; }
+  .sheet-photo { height: 130px; display: flex; align-items: center; justify-content: center; border-radius: 24px 24px 0 0; }
+  .sheet-photo svg { width: 40px; height: 40px; stroke: #fff; }
+  .sheet-body { padding: 18px 20px; }
+  .sheet-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .sheet-name { font-family: 'Baloo 2', sans-serif; font-size: 20px; font-weight: 700; margin: 0; }
+  .sheet-desc { font-size: 12px; color: var(--ink-soft); margin: 4px 0 0; }
+  .sheet-close { font-size: 18px; color: var(--ink-soft); }
+
+  .group-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); margin: 20px 0 4px; }
+  .group-req { font-size: 10.5px; color: var(--red); font-weight: 700; text-transform: none; letter-spacing: 0; }
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { padding: 9px 15px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 12.5px; font-weight: 700; color: var(--ink); background: var(--surface); }
+  .chip.protein-selected { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .chip.included { background: var(--surface-alt); border-color: var(--border); color: var(--ink); }
+  .chip.removed { background: var(--surface); border-color: var(--red); color: var(--red); text-decoration: line-through; }
+  .chip.extra-off { background: var(--surface); border-color: var(--border); color: var(--ink-soft); }
+  .chip.extra-on { background: var(--orange-bg, var(--surface-alt)); border-color: var(--orange); color: var(--orange-dark); }
+
+  .qty-row { display: flex; align-items: center; justify-content: space-between; margin-top: 22px; }
+  .qty-stepper { display: flex; align-items: center; gap: 14px; }
+  .qty-btn { width: 30px; height: 30px; border-radius: 9px; background: var(--surface-alt); border: 1px solid var(--border); font-size: 16px; font-weight: 700; color: var(--orange-dark); display: flex; align-items: center; justify-content: center; }
+  .qty-val { font-size: 16px; font-weight: 800; min-width: 16px; text-align: center; }
+
+  .note-box { width: 100%; margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; font-family: 'Inter', sans-serif; color: var(--ink); resize: none; }
+
+  .sheet-footer { position: absolute; left: 0; right: 0; bottom: 0; background: var(--surface); padding: 14px 20px; border-top: 1px solid var(--border); }
+  .add-order-btn { background: var(--orange); color: #fff; text-align: center; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 800; }
+</style>
+</head>
+<body>
+
+<div class="phone">
+  <div class="hero">
+    <div class="rest-name">Fast &amp; Co.</div>
+    <h1 class="welcome">Mesa 9 · ¡Bienvenido!</h1>
+  </div>
+  <div class="shared-note">🔗 Esta mesa es compartida — tu mesonero ve lo mismo que tú, en tiempo real.</div>
+
+  <div class="tabs-main">
+    <div class="tab-main active" onclick="showTab('menu')">Menú</div>
+    <div class="tab-main" onclick="showTab('cart')">Tu pedido <span id="cart-count-tab">· 2</span></div>
+  </div>
+
+  <div class="scroll-area">
+    <div id="view-menu">
+      <div class="pills">
+        <div class="pill active">Populares</div><div class="pill">Hamburguesas</div><div class="pill">Pizzas</div><div class="pill">Pollo</div>
+      </div>
+      <div class="list" id="menu-list"></div>
+    </div>
+
+    <div id="view-cart" style="display:none;">
+      <p class="cart-section-title">Tu pedido en Mesa 9</p>
+      <div id="cart-list"></div>
+      <div class="general-note">+ Agregar nota general para cocina (ej. alergias, ocasión especial)</div>
+      <div class="cart-totals">
+        <div class="cart-total-row"><span>Total</span><span id="cart-total-amount">$26.50</span></div>
+      </div>
+      <div class="view-bill-btn" style="margin-top: 12px;">Ver mi cuenta</div>
+    </div>
+  </div>
+
+  <div class="cart-bar" id="cart-bar" onclick="showTab('cart')"><span id="cart-bar-count">2 ítems en tu pedido</span><span id="cart-bar-total">Ver carrito · $26.50</span></div>
+
+  <!-- Customize sheet -->
+  <div class="sheet-scrim" id="sheet-scrim" onclick="closeSheet(event)">
+    <div class="sheet" id="sheet">
+      <div class="sheet-photo" id="sheet-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="8"/></svg></div>
+      <div class="sheet-body">
+        <div class="sheet-top">
+          <div><p class="sheet-name" id="sheet-name">—</p><p class="sheet-desc" id="sheet-desc">—</p></div>
+          <span class="sheet-close" onclick="closeSheet()">✕</span>
+        </div>
+        <div id="sheet-groups"></div>
+        <div class="qty-row">
+          <span class="group-label" style="margin:0;">Cantidad</span>
+          <div class="qty-stepper"><div class="qty-btn" onclick="changeQty(-1)">−</div><span class="qty-val" id="qty-val">1</span><div class="qty-btn" onclick="changeQty(1)">+</div></div>
+        </div>
+        <textarea class="note-box" id="item-note" rows="2" placeholder="Nota para este plato (opcional)..."></textarea>
+      </div>
+      <div class="sheet-footer">
+        <div class="add-order-btn" onclick="addToCart()">Agregar al pedido — <span id="sheet-total">$8.50</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const menu = [
+    { id: 'burger', nombre: 'Hamburguesa doble clásica', precio: 8.50, photo: 'p1',
+      desc: 'Doble carne · queso cheddar · salsa especial',
+      proteina: { opciones: ['Carne de res', 'Pollo'] },
+      quitar: ['Cebolla', 'Tomate', 'Queso cheddar', 'Lechuga', 'Pepinillos'],
+      extras: [ { nombre: 'Tocineta extra', precio: 1.00 }, { nombre: 'Queso extra', precio: 0.50 }, { nombre: 'Aguacate', precio: 1.00 } ] },
+    { id: 'pizza', nombre: 'Pizza pepperoni familiar', precio: 12.00, photo: 'p2',
+      desc: 'Masa artesanal · doble pepperoni · orégano',
+      extras: [ { nombre: 'Queso extra', precio: 1.50 }, { nombre: 'Champiñones', precio: 1.00 } ] },
+    { id: 'papas', nombre: 'Papas cheddar bacon', precio: 6.00, photo: 'p4',
+      desc: 'Papas fritas · queso cheddar · bacon crocante',
+      quitar: ['Tocineta', 'Queso cheddar'],
+      extras: [ { nombre: 'Tocineta extra', precio: 1.00 } ] },
+    { id: 'wrap', nombre: 'Wrap de pollo crispy', precio: 7.50, photo: 'p5',
+      desc: 'Pollo crocante · lechuga · salsa de la casa',
+      quitar: ['Lechuga', 'Salsa de la casa', 'Tomate'],
+      extras: [ { nombre: 'Queso extra', precio: 0.50 } ] }
+  ];
+  const photoGrad = { p1:'linear-gradient(135deg,#ffb877,#ff7a1a)', p2:'linear-gradient(135deg,#ffcf6b,#f5a623)', p3:'linear-gradient(135deg,#ff9d6b,#e0650a)', p4:'linear-gradient(135deg,#ffdca0,#ffb04a)', p5:'linear-gradient(135deg,#ff8f6b,#e14434)' };
+
+  const menuListEl = document.getElementById('menu-list');
+  menu.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.innerHTML = `<div class="thumb" style="background:${photoGrad[item.photo]}"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="8"/></svg></div>
+      <div class="card-body"><p class="card-name">${item.nombre}</p><p class="card-desc">${item.desc}</p>
+      <div class="card-row"><span class="card-price">$${item.precio.toFixed(2)}</span><span class="add-pill" onclick="openSheet('${item.id}')">Personalizar</span></div></div>`;
+    menuListEl.appendChild(el);
+  });
+
+  let cart = [
+    { nombre: 'Hamburguesa doble clásica', mods: 'Sin cebolla · +Tocineta extra', quien: 'Agregado por Valentina', precio: 9.50 },
+    { nombre: 'Papas cheddar bacon', mods: null, quien: 'Autopedido · tú', precio: 6.00 }
+  ];
+
+  let current = null, selectedProtein = null, removed = new Set(), extrasOn = new Set(), qty = 1;
+
+  function openSheet(id) {
+    current = menu.find(m => m.id === id);
+    selectedProtein = current.proteina ? current.proteina.opciones[0] : null;
+    removed = new Set(); extrasOn = new Set(); qty = 1;
+    document.getElementById('sheet-photo').style.background = photoGrad[current.photo];
+    document.getElementById('sheet-name').textContent = current.nombre;
+    document.getElementById('sheet-desc').textContent = current.desc;
+    document.getElementById('item-note').value = '';
+    renderGroups();
+    document.getElementById('sheet-scrim').classList.add('open');
+  }
+  function closeSheet(e) { if (!e || e.target.id === 'sheet-scrim' || e.target.textContent === '✕') document.getElementById('sheet-scrim').classList.remove('open'); }
+
+  function renderGroups() {
+    let html = '';
+    if (current.proteina) {
+      html += `<div class="group-label">Elige tu proteína <span class="group-req">· obligatorio</span></div><div class="chip-row">`;
+      current.proteina.opciones.forEach(op => {
+        html += `<div class="chip ${selectedProtein === op ? 'protein-selected' : ''}" onclick="setProtein('${op}')">${op}</div>`;
+      });
+      html += `</div>`;
+    }
+    if (current.quitar) {
+      html += `<div class="group-label">Quitar ingredientes</div><div class="chip-row">`;
+      current.quitar.forEach(ing => {
+        const isRemoved = removed.has(ing);
+        html += `<div class="chip ${isRemoved ? 'removed' : 'included'}" onclick="toggleRemove('${ing}')">${isRemoved ? '✕ ' : '✓ '}${ing}</div>`;
+      });
+      html += `</div>`;
+    }
+    if (current.extras) {
+      html += `<div class="group-label">Extras</div><div class="chip-row">`;
+      current.extras.forEach(ex => {
+        const isOn = extrasOn.has(ex.nombre);
+        html += `<div class="chip ${isOn ? 'extra-on' : 'extra-off'}" onclick="toggleExtra('${ex.nombre}')">${isOn ? '✓ ' : '+ '}${ex.nombre} ($${ex.precio.toFixed(2)})</div>`;
+      });
+      html += `</div>`;
+    }
+    document.getElementById('sheet-groups').innerHTML = html;
+    updatePrice();
+  }
+  function setProtein(op) { selectedProtein = op; renderGroups(); }
+  function toggleRemove(ing) { removed.has(ing) ? removed.delete(ing) : removed.add(ing); renderGroups(); }
+  function toggleExtra(name) { extrasOn.has(name) ? extrasOn.delete(name) : extrasOn.add(name); renderGroups(); }
+  function changeQty(d) { qty = Math.max(1, qty + d); document.getElementById('qty-val').textContent = qty; updatePrice(); }
+
+  function updatePrice() {
+    let extraCost = 0;
+    if (current.extras) current.extras.forEach(ex => { if (extrasOn.has(ex.nombre)) extraCost += ex.precio; });
+    const total = (current.precio + extraCost) * qty;
+    document.getElementById('sheet-total').textContent = '$' + total.toFixed(2);
+  }
+
+  function addToCart() {
+    let extraCost = 0;
+    const modParts = [];
+    if (selectedProtein && current.proteina.opciones[0] !== selectedProtein) modParts.push(selectedProtein);
+    removed.forEach(r => modParts.push('Sin ' + r.toLowerCase()));
+    if (current.extras) current.extras.forEach(ex => { if (extrasOn.has(ex.nombre)) { modParts.push('+' + ex.nombre); extraCost += ex.precio; } });
+    const note = document.getElementById('item-note').value.trim();
+    if (note) modParts.push('Nota: ' + note);
+
+    cart.push({
+      nombre: (qty > 1 ? qty + '× ' : '') + current.nombre,
+      mods: modParts.length ? modParts.join(' · ') : null,
+      quien: 'Autopedido · tú',
+      precio: (current.precio + extraCost) * qty
+    });
+    renderCart();
+    document.getElementById('sheet-scrim').classList.remove('open');
+  }
+
+  function renderCart() {
+    const listEl = document.getElementById('cart-list');
+    listEl.innerHTML = '';
+    let total = 0;
+    cart.forEach(it => {
+      total += it.precio;
+      const el = document.createElement('div');
+      el.className = 'cart-item';
+      el.innerHTML = `<div class="cart-item-top"><span>${it.nombre}</span><span>$${it.precio.toFixed(2)}</span></div>
+        ${it.mods ? `<div class="cart-item-mods">${it.mods}</div>` : ''}
+        <div class="cart-item-who">${it.quien}</div>`;
+      listEl.appendChild(el);
+    });
+    document.getElementById('cart-total-amount').textContent = '$' + total.toFixed(2);
+    document.getElementById('cart-bar-total').textContent = 'Ver carrito · $' + total.toFixed(2);
+    document.getElementById('cart-bar-count').textContent = cart.length + ' ítems en tu pedido';
+    document.getElementById('cart-count-tab').textContent = '· ' + cart.length;
+  }
+
+  function showTab(tab) {
+    document.getElementById('view-menu').style.display = tab === 'menu' ? 'block' : 'none';
+    document.getElementById('view-cart').style.display = tab === 'cart' ? 'block' : 'none';
+    document.querySelectorAll('.tab-main').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-main')[tab === 'menu' ? 0 : 1].classList.add('active');
+    document.getElementById('cart-bar').style.display = tab === 'cart' ? 'none' : 'flex';
+  }
+
+  renderCart();
+</script>
+
+</body>
+</html>

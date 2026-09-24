@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Gestión de menú y recetas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a; --orange-bg: #fff2e2;
+    --gray-bg: #f2efe9; --green: #24a24a; --green-bg: #e9f8ee; --red: #e14434; --red-bg: #fdeceb;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; }
+
+  .app-shell { display: grid; grid-template-columns: 232px 1fr; min-height: 100vh; }
+
+  /* Sidebar (idéntico al panel principal) */
+  .sidebar { background: var(--ink); color: #fff; padding: 22px 16px; display: flex; flex-direction: column; }
+  .sidebar-brand { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 18px; margin: 4px 0 28px; padding: 0 10px; }
+  .sidebar-brand span { color: var(--orange); }
+  .side-nav { display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .side-link { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #cfc6ba; }
+  .side-link svg { width: 17px; height: 17px; stroke: currentColor; flex-shrink: 0; }
+  .side-link.active { background: var(--orange); color: #fff; }
+  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid #423528; margin-top: 10px; }
+  .sidebar-user .avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: var(--orange-bg); color: var(--orange-dark); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12.5px; flex-shrink: 0; }
+  .sidebar-user .u-name { font-size: 12.5px; font-weight: 700; color: #fff; }
+  .sidebar-user .u-role { font-size: 11px; color: #a89d8d; }
+
+  /* Content */
+  .content { padding: 28px 34px 40px; max-width: 1320px; }
+  .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px; }
+  .greeting-eyebrow { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--orange-dark); font-weight: 700; }
+  .greeting { font-family: 'Baloo 2', sans-serif; font-size: 27px; font-weight: 700; margin: 4px 0 0; }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .search { width: 220px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; color: var(--ink-soft); font-size: 13.5px; }
+  .btn-primary { background: var(--orange); color: #fff; font-weight: 700; font-size: 13.5px; padding: 11px 20px; border-radius: 999px; white-space: nowrap; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px 18px; }
+  .stat-value { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; }
+  .stat-value.alert { color: var(--red); }
+  .stat-label { font-size: 12px; color: var(--ink-soft); margin-top: 3px; }
+
+  .pills { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .pill { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); color: var(--ink-soft); background: var(--surface); }
+  .pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+  .layout { display: grid; grid-template-columns: 1.4fr 1fr; gap: 20px; align-items: start; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .dish-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; overflow: hidden; position: relative; }
+  .dish-card.selected { border-color: var(--orange); }
+  .editing-tag { position: absolute; top: 10px; left: 10px; background: var(--orange); color: #fff; font-size: 10px; font-weight: 800; padding: 4px 9px; border-radius: 999px; z-index: 2; }
+  .dish-photo { height: 100px; display: flex; align-items: center; justify-content: center; }
+  .dish-photo svg { width: 34px; height: 34px; stroke: #fff; }
+  .p1 { background: linear-gradient(135deg, #ffb877, #ff7a1a); }
+  .p2 { background: linear-gradient(135deg, #ffcf6b, #f5a623); }
+  .p3 { background: linear-gradient(135deg, #ff9d6b, #e0650a); }
+  .p4 { background: linear-gradient(135deg, #ffdca0, #ffb04a); }
+  .p5 { background: linear-gradient(135deg, #ff8f6b, #e14434); }
+  .p6 { background: linear-gradient(135deg, #ffcf9c, #ff8f3d); }
+  .dish-body { padding: 12px 14px 14px; }
+  .dish-name { font-size: 14px; font-weight: 700; margin: 0 0 2px; }
+  .dish-cat { font-size: 11.5px; color: var(--ink-soft); margin: 0 0 10px; }
+  .dish-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .dish-price { font-size: 14px; font-weight: 700; color: var(--orange-dark); }
+  .status-chip { font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; white-space: nowrap; }
+  .status-chip.ok { background: var(--green-bg); color: var(--green); }
+  .status-chip.alert { background: var(--red-bg); color: var(--red); }
+  .dish-card.new { display: flex; align-items: center; justify-content: center; border-style: dashed; min-height: 190px; color: var(--ink-soft); font-size: 13px; font-weight: 600; }
+
+  /* Editor de receta (sidebar) */
+  .sidebar-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; }
+  .sidebar-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0 0 2px; }
+  .sidebar-sub { font-size: 12px; color: var(--ink-soft); margin: 0 0 16px; }
+
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; color: var(--ink-soft); font-weight: 600; margin-bottom: 5px; }
+  .field-value { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13.5px; font-weight: 600; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0 14px; }
+  .toggle-row span { font-size: 13px; font-weight: 600; }
+  .switch { width: 38px; height: 22px; border-radius: 999px; background: var(--border); position: relative; flex-shrink: 0; }
+  .switch.on { background: var(--orange); }
+  .switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+  .switch.on::after { left: 18px; }
+
+  .section-label { font-size: 13px; font-weight: 700; margin: 4px 0 2px; }
+  .section-sub { font-size: 11.5px; color: var(--ink-soft); margin: 0 0 4px; }
+
+  .recipe-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-top: 1px solid var(--border); gap: 8px; }
+  .recipe-item:first-of-type { border-top: none; }
+  .recipe-name { font-size: 13px; font-weight: 600; flex: 1; }
+  .stepper { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+  .step-btn { width: 20px; height: 20px; border-radius: 6px; background: var(--surface-alt); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--orange-dark); }
+  .step-qty { font-size: 12.5px; font-weight: 700; min-width: 46px; text-align: center; }
+  .add-insumo { display: flex; align-items: center; gap: 8px; padding: 12px 0 4px; font-size: 12.5px; font-weight: 700; color: var(--orange-dark); border-top: 1px dashed var(--border); margin-top: 4px; }
+
+  .totals { margin-top: 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .total-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .total-row.margin span:last-child { color: var(--green); font-weight: 700; }
+  .total-row.final { font-size: 16px; color: var(--ink); font-weight: 700; margin-top: 4px; }
+  .total-row.final .amount { color: var(--orange-dark); }
+
+  .save-btn { margin-top: 16px; background: var(--orange); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 14px; font-weight: 700; text-align: center; }
+  .delete-link { display: block; text-align: center; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--red); }
+</style>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">Fast <span>&amp; Co.</span></div>
+    <nav class="side-nav">
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+        Panel
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6"/></svg>
+        Pedidos
+      </a>
+      <a class="side-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg>
+        Menú
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 8l9-5 9 5-9 5-9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        Inventario
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="9" width="18" height="4" rx="1.5"/><path d="M5 13v7M19 13v7"/></svg>
+        Mesas
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="18" cy="9" r="2.3"/><path d="M15.5 14.2c2 .6 3.5 2.5 3.5 5.8"/></svg>
+        Personal
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M4 20V11M10 20V5M16 20v-6M22 20H2"/></svg>
+        Reportes
+      </a>
+      <a class="side-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+        Configuración
+      </a>
+    </nav>
+    <div class="sidebar-user">
+      <div class="avatar-sm">D</div>
+      <div>
+        <div class="u-name">Daniela Roa</div>
+        <div class="u-role">Administradora</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <div class="header">
+      <div>
+        <div class="greeting-eyebrow">Administración · Menú y recetas</div>
+        <h1 class="greeting">Gestión de menú</h1>
+      </div>
+      <div class="header-actions">
+        <input class="search" placeholder="Buscar plato..." />
+        <div class="btn-primary">+ Nuevo plato</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-value">24</div><div class="stat-label">Platos activos</div></div>
+      <div class="stat"><div class="stat-value">6</div><div class="stat-label">Categorías</div></div>
+      <div class="stat"><div class="stat-value alert">2</div><div class="stat-label">Platos sin receta asignada</div></div>
+    </div>
+
+    <div class="pills">
+      <div class="pill active">Todas</div>
+      <div class="pill">Hamburguesas</div>
+      <div class="pill">Pizzas</div>
+      <div class="pill">Pollo frito</div>
+      <div class="pill">Papas fritas</div>
+      <div class="pill">Wraps</div>
+      <div class="pill">Bebidas</div>
+    </div>
+
+    <div class="layout">
+      <div class="grid">
+
+        <div class="dish-card selected">
+          <span class="editing-tag">✎ Editando</span>
+          <div class="dish-photo p1"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Hamburguesa doble clásica</p>
+            <p class="dish-cat">Hamburguesas</p>
+            <div class="dish-row"><span class="dish-price">$8.50</span><span class="status-chip ok">5 insumos</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card">
+          <div class="dish-photo p2"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Pizza pepperoni familiar</p>
+            <p class="dish-cat">Pizzas</p>
+            <div class="dish-row"><span class="dish-price">$12.00</span><span class="status-chip ok">4 insumos</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card">
+          <div class="dish-photo p3"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M6 10c0-2.2 2.7-4 6-4s6 1.8 6 4-2.7 4-6 4-6-1.8-6-4z"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Alitas picantes BBQ</p>
+            <p class="dish-cat">Pollo frito</p>
+            <div class="dish-row"><span class="dish-price">$9.50</span><span class="status-chip ok">3 insumos</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card">
+          <div class="dish-photo p4"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M6 8l1 12h10l1-12M5 8h14M9 8V5a3 3 0 016 0v3"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Papas cheddar bacon</p>
+            <p class="dish-cat">Papas fritas</p>
+            <div class="dish-row"><span class="dish-price">$6.00</span><span class="status-chip alert">Sin receta</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card">
+          <div class="dish-photo p5"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><rect x="4" y="6" width="16" height="12" rx="6"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Wrap de pollo crispy</p>
+            <p class="dish-cat">Wraps</p>
+            <div class="dish-row"><span class="dish-price">$7.50</span><span class="status-chip ok">4 insumos</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card">
+          <div class="dish-photo p6"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M7 3l1 14a2 2 0 002 2h4a2 2 0 002-2l1-14M7 8h10"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Combo pollo frito x3</p>
+            <p class="dish-cat">Pollo frito</p>
+            <div class="dish-row"><span class="dish-price">$10.00</span><span class="status-chip alert">Sin receta</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card">
+          <div class="dish-photo p1"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M12 3v18M6 8h12M6 16h12"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Gaseosa</p>
+            <p class="dish-cat">Bebidas</p>
+            <div class="dish-row"><span class="dish-price">$2.50</span><span class="status-chip ok">1 insumo</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card">
+          <div class="dish-photo p2"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M6 8l1 12h10l1-12M5 8h14"/></svg></div>
+          <div class="dish-body">
+            <p class="dish-name">Papas fritas clásicas</p>
+            <p class="dish-cat">Papas fritas</p>
+            <div class="dish-row"><span class="dish-price">$4.00</span><span class="status-chip ok">2 insumos</span></div>
+          </div>
+        </div>
+
+        <div class="dish-card new">+ Nuevo plato</div>
+
+      </div>
+
+      <div class="sidebar-panel">
+        <p class="sidebar-title">Editor de receta</p>
+        <p class="sidebar-sub">Hamburguesa doble clásica</p>
+
+        <div class="field"><label>Nombre del plato</label><div class="field-value">Hamburguesa doble clásica</div></div>
+        <div class="field"><label>Categoría</label><div class="field-value">Hamburguesas</div></div>
+        <div class="field"><label>Precio de venta</label><div class="field-value">$8.50</div></div>
+
+        <div class="toggle-row"><span>Plato activo en el menú</span><div class="switch on"></div></div>
+
+        <p class="section-label">Insumos de la receta</p>
+        <p class="section-sub">5 insumos definidos</p>
+
+        <div class="recipe-item">
+          <span class="recipe-name">Pan para hamburguesa</span>
+          <div class="stepper"><div class="step-btn">−</div><span class="step-qty">1 ud</span><div class="step-btn">+</div></div>
+        </div>
+        <div class="recipe-item">
+          <span class="recipe-name">Carne de res</span>
+          <div class="stepper"><div class="step-btn">−</div><span class="step-qty">150 g</span><div class="step-btn">+</div></div>
+        </div>
+        <div class="recipe-item">
+          <span class="recipe-name">Queso cheddar</span>
+          <div class="stepper"><div class="step-btn">−</div><span class="step-qty">30 g</span><div class="step-btn">+</div></div>
+        </div>
+        <div class="recipe-item">
+          <span class="recipe-name">Cebolla</span>
+          <div class="stepper"><div class="step-btn">−</div><span class="step-qty">20 g</span><div class="step-btn">+</div></div>
+        </div>
+        <div class="recipe-item">
+          <span class="recipe-name">Salsa especial de la casa</span>
+          <div class="stepper"><div class="step-btn">−</div><span class="step-qty">15 ml</span><div class="step-btn">+</div></div>
+        </div>
+        <div class="add-insumo">+ Agregar insumo</div>
+
+        <div class="totals">
+          <div class="total-row"><span>Costo de insumos</span><span>$3.20</span></div>
+          <div class="total-row margin"><span>Margen</span><span>62.4%</span></div>
+          <div class="total-row final"><span>Precio de venta</span><span class="amount">$8.50</span></div>
+        </div>
+
+        <div class="save-btn">Guardar cambios</div>
+        <span class="delete-link">Eliminar plato</span>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>

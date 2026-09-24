@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Toma de pedidos (mesonero) con personalización</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #f1e3d1;
+    --ink: #2b2118; --ink-soft: #8c8175; --orange: #ff7a1a; --orange-dark: #e0650a; --red: #e14434;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; padding: 28px; }
+  .screen { max-width: 1220px; margin: 0 auto; }
+  .back-link { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ink-soft); margin-bottom: 14px; }
+  .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .table-info { display: flex; align-items: center; gap: 14px; }
+  .table-badge { background: var(--orange); color: #fff; font-weight: 700; font-size: 20px; width: 46px; height: 46px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+  .table-info .label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
+  .table-info .name { font-size: 16px; font-weight: 700; }
+  .header-right { display: flex; align-items: center; gap: 18px; font-size: 13px; color: var(--ink-soft); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); display: inline-block; margin-right: 6px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--surface-alt); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--orange-dark); }
+  .switcher { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; }
+  .switch-pill { flex-shrink: 0; padding: 7px 13px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--border); background: var(--surface); color: var(--ink-soft); }
+  .switch-pill.current { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .grid-layout { display: grid; grid-template-columns: 1fr 340px; gap: 20px; }
+  .toolbar-row { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; }
+  .search { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 16px; color: var(--ink-soft); font-size: 14px; }
+  .pills { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .pill { padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; border: 1px solid var(--border); color: var(--ink-soft); background: var(--surface); }
+  .pill.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .item { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; position: relative; }
+  .best-tag { position: absolute; top: 10px; left: 10px; background: #fff; color: var(--orange-dark); font-size: 10px; font-weight: 800; padding: 4px 9px; border-radius: 999px; z-index: 2; box-shadow: 0 2px 5px rgba(43,33,24,0.1); }
+  .item-photo { height: 148px; display: flex; align-items: center; justify-content: center; }
+  .item-photo svg { width: 46px; height: 46px; stroke: #fff; }
+  .p1 { background: linear-gradient(135deg, #ffb877, #ff7a1a); } .p2 { background: linear-gradient(135deg, #ffcf6b, #f5a623); }
+  .p3 { background: linear-gradient(135deg, #ff9d6b, #e0650a); } .p4 { background: linear-gradient(135deg, #ffdca0, #ffb04a); }
+  .p5 { background: linear-gradient(135deg, #ff8f6b, #e14434); } .p6 { background: linear-gradient(135deg, #ffcf9c, #ff8f3d); }
+  .item-body { padding: 12px 14px 14px; }
+  .item-name { font-size: 14.5px; font-weight: 700; margin: 0 0 4px; }
+  .item-desc { font-size: 12px; color: var(--ink-soft); margin: 0 0 10px; line-height: 1.4; }
+  .item-row { display: flex; align-items: center; justify-content: space-between; }
+  .item-price { font-size: 14px; font-weight: 700; color: var(--orange-dark); }
+  .add-btn { padding: 7px 14px; border-radius: 999px; background: var(--orange); color: #fff; font-size: 12px; font-weight: 700; }
+  .sidebar { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; height: fit-content; display: flex; flex-direction: column; }
+  .sidebar-head { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+  .order-icon { width: 32px; height: 32px; border-radius: 9px; background: var(--surface-alt); display: flex; align-items: center; justify-content: center; }
+  .order-icon svg { width: 16px; height: 16px; stroke: var(--orange-dark); }
+  .sidebar-title { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; margin: 0; }
+  .sidebar-sub { font-size: 12px; color: var(--ink-soft); margin: 4px 0 16px 42px; }
+  .order-item { padding: 12px 0; border-top: 1px solid var(--border); }
+  .order-item:first-of-type { border-top: none; }
+  .order-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .order-name { font-size: 13.5px; font-weight: 700; }
+  .remove-btn { font-size: 14px; color: var(--ink-soft); opacity: 0.6; }
+  .order-price { font-size: 13.5px; font-weight: 700; }
+  .order-mods { font-size: 11px; color: var(--orange-dark); font-weight: 600; margin-top: 5px; }
+  .order-tag { font-size: 10px; color: var(--ink-soft); margin-top: 5px; display: block; }
+  .general-note { margin-top: 14px; border: 1px dashed var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12px; color: var(--ink-soft); }
+  .general-note textarea { width: 100%; border: none; background: transparent; font-family: 'Inter', sans-serif; font-size: 12px; resize: none; margin-top: 4px; color: var(--ink); }
+  .totals { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .total-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--ink-soft); margin-bottom: 6px; }
+  .total-row.final { font-size: 18px; color: var(--ink); font-weight: 700; margin-top: 4px; }
+  .total-row.final .amount { color: var(--orange-dark); }
+  .footer-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .btn-outline { flex: 1; text-align: center; padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 700; border: 1.5px solid var(--border); color: var(--ink-soft); }
+  .btn-primary { flex: 1.4; text-align: center; padding: 13px; border-radius: 12px; font-size: 13.5px; font-weight: 700; background: var(--orange); color: #fff; }
+
+  /* Customize modal (centrado) */
+  .modal-scrim { display: none; position: fixed; inset: 0; background: rgba(43,33,24,0.4); align-items: center; justify-content: center; z-index: 100; }
+  .modal-scrim.open { display: flex; }
+  .cust-modal { background: var(--surface); border-radius: 22px; width: 460px; max-height: 86vh; overflow-y: auto; box-shadow: 0 30px 70px rgba(43,33,24,0.35); }
+  .cust-photo { height: 130px; border-radius: 22px 22px 0 0; display: flex; align-items: center; justify-content: center; }
+  .cust-photo svg { width: 38px; height: 38px; stroke: #fff; }
+  .cust-body { padding: 20px 22px; }
+  .cust-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .cust-name { font-family: 'Baloo 2', sans-serif; font-size: 21px; font-weight: 700; margin: 0; }
+  .cust-desc { font-size: 12.5px; color: var(--ink-soft); margin: 4px 0 0; }
+  .group-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin: 18px 0 4px; }
+  .group-req { font-size: 10.5px; color: var(--red); font-weight: 700; text-transform: none; }
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .chip { padding: 9px 15px; border-radius: 999px; border: 1.5px solid var(--border); font-size: 12.5px; font-weight: 700; }
+  .chip.protein-selected { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .chip.included { background: var(--surface-alt); color: var(--ink); }
+  .chip.removed { background: var(--surface); border-color: var(--red); color: var(--red); text-decoration: line-through; }
+  .chip.extra-off { color: var(--ink-soft); }
+  .chip.extra-on { background: var(--surface-alt); border-color: var(--orange); color: var(--orange-dark); }
+  .qty-row { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+  .qty-stepper { display: flex; align-items: center; gap: 14px; }
+  .qty-btn { width: 30px; height: 30px; border-radius: 9px; background: var(--surface-alt); border: 1px solid var(--border); font-size: 16px; font-weight: 700; color: var(--orange-dark); display: flex; align-items: center; justify-content: center; }
+  .qty-val { font-size: 16px; font-weight: 800; min-width: 16px; text-align: center; }
+  .note-box { width: 100%; margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; font-family: 'Inter', sans-serif; resize: none; }
+  .cust-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .cust-actions .btn-outline, .cust-actions .btn-primary { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="back-link">← Volver al mapa de mesas</div>
+  <div class="header">
+    <div class="table-info"><div class="table-badge">12</div><div><div class="label">Mesa actual</div><div class="name">Terraza · Exterior</div></div></div>
+    <div class="header-right"><span><span class="dot"></span>Cocina 6 min</span><div style="display:flex; align-items:center; gap:8px;"><div class="avatar">V</div>Valentina</div></div>
+  </div>
+  <div class="switcher">
+    <div class="switch-pill current">Mesa 12 · actual</div><div class="switch-pill">Mesa 7 · 18 min</div>
+    <div class="switch-pill">Mesa 9 · cuenta pedida</div><div class="switch-pill">Mesa 3 · listo</div><div class="switch-pill">Mesa 2 · 12 min</div>
+  </div>
+
+  <div class="grid-layout">
+    <div>
+      <div class="toolbar-row"><input class="search" placeholder="Buscar plato..." /></div>
+      <div class="pills">
+        <div class="pill active">Favoritos</div><div class="pill">Combos</div><div class="pill">Hamburguesas</div>
+        <div class="pill">Pizzas</div><div class="pill">Pollo</div><div class="pill">Acompañantes</div><div class="pill">Bebidas</div>
+      </div>
+      <div class="grid" id="menu-grid"></div>
+    </div>
+
+    <div class="sidebar">
+      <div class="sidebar-head"><div class="order-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 2l1.5 20h9L18 2M4 7h16"/></svg></div><p class="sidebar-title">Pedido #048</p></div>
+      <p class="sidebar-sub" id="cart-sub">2 ítems · Mesa 12</p>
+      <div id="cart-list"></div>
+      <div class="general-note">
+        <div>📝 Nota general para cocina</div>
+        <textarea rows="2" placeholder="Ej. cliente con prisa, celebrando cumpleaños..."></textarea>
+      </div>
+      <div class="totals"><div class="total-row"><span>Subtotal</span><span id="subtotal">$40.00</span></div><div class="total-row final"><span>Total</span><span class="amount" id="total">$40.00</span></div></div>
+      <div class="footer-actions"><div class="btn-outline">Guardar borrador</div><div class="btn-primary">Enviar a cocina →</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-scrim" id="modal-scrim" onclick="closeCust(event)">
+  <div class="cust-modal">
+    <div class="cust-photo" id="cust-photo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="8"/></svg></div>
+    <div class="cust-body">
+      <div class="cust-top"><div><p class="cust-name" id="cust-name">—</p><p class="cust-desc" id="cust-desc">—</p></div><span onclick="closeCust()" style="cursor:pointer; color:var(--ink-soft);">✕</span></div>
+      <div id="cust-groups"></div>
+      <div class="qty-row"><span class="group-label" style="margin:0;">Cantidad</span><div class="qty-stepper"><div class="qty-btn" onclick="changeQty(-1)">−</div><span class="qty-val" id="qty-val">1</span><div class="qty-btn" onclick="changeQty(1)">+</div></div></div>
+      <textarea class="note-box" id="item-note" rows="2" placeholder="Nota para este plato (opcional)..."></textarea>
+      <div class="cust-actions"><div class="btn-outline" onclick="closeCust()">Cancelar</div><div class="btn-primary" onclick="addToCart()">Agregar — <span id="cust-total">$8.50</span></div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const menu = [
+    { id:'burger', nombre:'Hamburguesa doble clásica', precio:8.50, photo:'p1', best:true, desc:'Doble carne · queso cheddar · salsa especial',
+      proteina:{opciones:['Carne de res','Pollo']}, quitar:['Cebolla','Tomate','Queso cheddar','Lechuga','Pepinillos'],
+      extras:[{nombre:'Tocineta extra',precio:1.00},{nombre:'Queso extra',precio:0.50},{nombre:'Aguacate',precio:1.00}] },
+    { id:'pizza', nombre:'Pizza pepperoni familiar', precio:12.00, photo:'p2', desc:'Masa artesanal · doble pepperoni · orégano',
+      extras:[{nombre:'Queso extra',precio:1.50},{nombre:'Champiñones',precio:1.00}] },
+    { id:'alitas', nombre:'Alitas picantes BBQ', precio:9.50, photo:'p3', desc:'8 unidades · salsa BBQ · ranch al lado',
+      extras:[{nombre:'Salsa BBQ extra',precio:0.50},{nombre:'Ranch extra',precio:0.50}] },
+    { id:'papas', nombre:'Papas cheddar bacon', precio:6.00, photo:'p4', best:true, desc:'Papas fritas · queso cheddar · bacon crocante',
+      quitar:['Tocineta','Queso cheddar'], extras:[{nombre:'Tocineta extra',precio:1.00}] },
+    { id:'wrap', nombre:'Wrap de pollo crispy', precio:7.50, photo:'p5', desc:'Pollo crocante · lechuga · salsa de la casa',
+      quitar:['Lechuga','Salsa de la casa','Tomate'], extras:[{nombre:'Queso extra',precio:0.50}] },
+    { id:'combo', nombre:'Combo pollo frito x3', precio:10.00, photo:'p6', desc:'3 piezas · papas medianas · gaseosa',
+      extras:[{nombre:'Papas grandes',precio:1.50}] }
+  ];
+  const photoGrad = { p1:'linear-gradient(135deg,#ffb877,#ff7a1a)', p2:'linear-gradient(135deg,#ffcf6b,#f5a623)', p3:'linear-gradient(135deg,#ff9d6b,#e0650a)', p4:'linear-gradient(135deg,#ffdca0,#ffb04a)', p5:'linear-gradient(135deg,#ff8f6b,#e14434)', p6:'linear-gradient(135deg,#ffcf9c,#ff8f3d)' };
+
+  const grid = document.getElementById('menu-grid');
+  menu.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = `${item.best ? '<span class="best-tag">★ Más pedido</span>' : ''}
+      <div class="item-photo" style="background:${photoGrad[item.photo]}"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.3"><circle cx="12" cy="12" r="8"/></svg></div>
+      <div class="item-body"><p class="item-name">${item.nombre}</p><p class="item-desc">${item.desc}</p>
+      <div class="item-row"><span class="item-price">$${item.precio.toFixed(2)}</span><div class="add-btn" onclick="openCust('${item.id}')">Personalizar</div></div></div>`;
+    grid.appendChild(el);
+  });
+
+  let cart = [
+    { nombre:'Hamburguesa doble clásica', qtyLabel:'2×', mods:'Sin cebolla en una', quien:'Agregado por Valentina', precio:17.00 },
+    { nombre:'Papas cheddar bacon', qtyLabel:'1×', mods:null, quien:'Autopedido · cliente', precio:6.00 },
+    { nombre:'Pizza pepperoni familiar', qtyLabel:'1×', mods:null, quien:'Agregado por Valentina', precio:12.00 },
+    { nombre:'Gaseosa', qtyLabel:'2×', mods:null, quien:'Autopedido · cliente', precio:5.00 }
+  ];
+
+  let current=null, selectedProtein=null, removed=new Set(), extrasOn=new Set(), qty=1;
+
+  function openCust(id) {
+    current = menu.find(m => m.id === id);
+    selectedProtein = current.proteina ? current.proteina.opciones[0] : null;
+    removed = new Set(); extrasOn = new Set(); qty = 1;
+    document.getElementById('cust-photo').style.background = photoGrad[current.photo];
+    document.getElementById('cust-name').textContent = current.nombre;
+    document.getElementById('cust-desc').textContent = current.desc;
+    document.getElementById('item-note').value = '';
+    renderGroups();
+    document.getElementById('modal-scrim').classList.add('open');
+  }
+  function closeCust(e) { if (!e || e.target.id === 'modal-scrim' || e.target.textContent === '✕' || e.target.textContent === 'Cancelar') document.getElementById('modal-scrim').classList.remove('open'); }
+
+  function renderGroups() {
+    let html = '';
+    if (current.proteina) {
+      html += `<div class="group-label">Elige tu proteína <span class="group-req">· obligatorio</span></div><div class="chip-row">`;
+      current.proteina.opciones.forEach(op => html += `<div class="chip ${selectedProtein===op?'protein-selected':'included'}" onclick="setProtein('${op}')">${op}</div>`);
+      html += `</div>`;
+    }
+    if (current.quitar) {
+      html += `<div class="group-label">Quitar ingredientes</div><div class="chip-row">`;
+      current.quitar.forEach(ing => { const r = removed.has(ing); html += `<div class="chip ${r?'removed':'included'}" onclick="toggleRemove('${ing}')">${r?'✕ ':'✓ '}${ing}</div>`; });
+      html += `</div>`;
+    }
+    if (current.extras) {
+      html += `<div class="group-label">Extras</div><div class="chip-row">`;
+      current.extras.forEach(ex => { const on = extrasOn.has(ex.nombre); html += `<div class="chip ${on?'extra-on':'extra-off'}" onclick="toggleExtra('${ex.nombre}')">${on?'✓ ':'+ '}${ex.nombre} ($${ex.precio.toFixed(2)})</div>`; });
+      html += `</div>`;
+    }
+    document.getElementById('cust-groups').innerHTML = html;
+    updatePrice();
+  }
+  function setProtein(op){ selectedProtein=op; renderGroups(); }
+  function toggleRemove(i){ removed.has(i)?removed.delete(i):removed.add(i); renderGroups(); }
+  function toggleExtra(n){ extrasOn.has(n)?extrasOn.delete(n):extrasOn.add(n); renderGroups(); }
+  function changeQty(d){ qty=Math.max(1,qty+d); document.getElementById('qty-val').textContent=qty; updatePrice(); }
+  function updatePrice(){ let e=0; if(current.extras) current.extras.forEach(ex=>{if(extrasOn.has(ex.nombre)) e+=ex.precio;}); document.getElementById('cust-total').textContent='$'+((current.precio+e)*qty).toFixed(2); }
+
+  function addToCart() {
+    let extraCost=0; const modParts=[];
+    if (selectedProtein && current.proteina.opciones[0]!==selectedProtein) modParts.push(selectedProtein);
+    removed.forEach(r=>modParts.push('Sin '+r.toLowerCase()));
+    if(current.extras) current.extras.forEach(ex=>{if(extrasOn.has(ex.nombre)){modParts.push('+'+ex.nombre); extraCost+=ex.precio;}});
+    const note = document.getElementById('item-note').value.trim();
+    if(note) modParts.push('Nota: '+note);
+    cart.push({ nombre:current.nombre, qtyLabel:qty+'×', mods: modParts.length?modParts.join(' · '):null, quien:'Agregado por Valentina', precio:(current.precio+extraCost)*qty });
+    renderCart();
+    closeCust();
+  }
+
+  function renderCart() {
+    const el = document.getElementById('cart-list');
+    el.innerHTML = '';
+    let total = 0;
+    cart.forEach(it => {
+      total += it.precio;
+      const row = document.createElement('div');
+      row.className = 'order-item';
+      row.innerHTML = `<div class="order-top"><span class="order-name">${it.qtyLabel} ${it.nombre}</span><span class="order-price">$${it.precio.toFixed(2)}</span></div>
+        ${it.mods ? `<div class="order-mods">${it.mods}</div>` : ''}<span class="order-tag">${it.quien}</span>`;
+      el.appendChild(row);
+    });
+    document.getElementById('subtotal').textContent = '$'+total.toFixed(2);
+    document.getElementById('total').textContent = '$'+total.toFixed(2);
+    document.getElementById('cart-sub').textContent = cart.length + ' ítems · Mesa 12';
+  }
+  renderCart();
+</script>
+
+</body>
+</html>

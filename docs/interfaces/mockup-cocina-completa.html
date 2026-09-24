@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mockup — Cocina, vista completa con detalle de pedido</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fffbf6; --surface: #ffffff; --surface-alt: #fff2e2; --border: #ecdcc6;
+    --ink: #2b2118; --ink-soft: #8c8175;
+    --orange: #ff7a1a; --orange-dark: #e0650a;
+    --green: #24a24a; --green-bg: #e9f8ee;
+    --red: #e14434; --red-bg: #fdeceb;
+    --gray-bg: #f2efe9;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; padding: 24px; }
+  .screen { max-width: 1320px; margin: 0 auto; }
+  .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  .title { font-family: 'Baloo 2', sans-serif; font-size: 26px; font-weight: 700; margin: 0; }
+  .clock { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+
+  .tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 22px; flex-wrap: wrap; }
+  .tab { display: flex; align-items: center; gap: 8px; padding: 11px 18px; font-size: 13.5px; font-weight: 700; color: var(--ink-soft); border-bottom: 3px solid transparent; margin-bottom: -2px; cursor: pointer; }
+  .tab-count { background: var(--surface-alt); border-radius: 999px; font-size: 11.5px; padding: 1px 8px; }
+  .tab.active { color: var(--orange-dark); border-bottom-color: var(--orange); }
+  .tab.active .tab-count { background: var(--orange); color: #fff; }
+
+  .main-layout { display: grid; grid-template-columns: 1fr 250px; gap: 20px; }
+
+  .section { margin-bottom: 26px; }
+  .section-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .section-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .section-dot.espera { background: var(--ink-soft); }
+  .section-dot.prep { background: var(--orange); }
+  .section-dot.listo { background: var(--green); }
+  .section-dot.tarde { background: var(--red); }
+  .section-title { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+  .section-count { color: var(--ink-soft); font-weight: 600; }
+
+  .cards-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+  .ticket { background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: box-shadow 0.15s ease; }
+  .ticket:hover { box-shadow: 0 6px 16px rgba(43,33,24,0.1); }
+  .ticket.tarde { border-color: var(--red); background: var(--red-bg); }
+  .ticket-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .mesa { font-size: 15.5px; font-weight: 800; }
+  .time { font-size: 13px; font-weight: 700; color: var(--ink-soft); }
+  .time.tarde { color: var(--red); }
+  .time.listo { color: var(--green); }
+  .meta-line { font-size: 11px; color: var(--ink-soft); margin-bottom: 10px; }
+  .items-mini { list-style: none; margin: 0 0 12px; padding: 0; font-size: 13px; }
+  .items-mini li { padding: 3px 0; }
+  .items-mini .qty { color: var(--orange-dark); font-weight: 800; margin-right: 6px; }
+  .items-mini .mod { font-size: 10.5px; color: var(--ink-soft); font-style: italic; }
+  .action { width: 100%; text-align: center; padding: 10px; border-radius: 9px; font-size: 13px; font-weight: 700; border: none; }
+  .action.to-prep { background: var(--orange); color: #fff; }
+  .action.to-listo { background: var(--green); color: #fff; }
+  .action.archivar { background: var(--surface-alt); color: var(--ink-soft); border: 1px solid var(--border); }
+  .action.ver-tarde { background: var(--red); color: #fff; }
+
+  /* Resumen global */
+  .summary { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 18px; height: fit-content; }
+  .summary-title { font-family: 'Baloo 2', sans-serif; font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+  .summary-sub { font-size: 11.5px; color: var(--ink-soft); margin: 0 0 14px; }
+  .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-top: 1px solid var(--border); font-size: 13px; }
+  .summary-row:first-of-type { border-top: none; }
+  .summary-row .qty { color: var(--orange-dark); font-weight: 800; }
+
+  /* Modal de detalle */
+  .modal-scrim { display: none; position: fixed; inset: 0; background: rgba(43,33,24,0.4); align-items: center; justify-content: center; z-index: 100; }
+  .modal-scrim.open { display: flex; }
+  .detail-modal { background: var(--surface); border-radius: 22px; width: 520px; max-height: 88vh; overflow-y: auto; box-shadow: 0 30px 70px rgba(43,33,24,0.35); }
+  .photo-strip { display: flex; gap: 4px; padding: 4px; }
+  .photo-thumb { flex: 1; height: 120px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+  .photo-thumb svg { width: 34px; height: 34px; stroke: #fff; }
+  .modal-body { padding: 20px 24px 24px; }
+  .modal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .modal-eyebrow { font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--orange-dark); font-weight: 800; }
+  .modal-title { font-family: 'Baloo 2', sans-serif; font-size: 24px; font-weight: 700; margin: 4px 0 0; }
+  .close-x { font-size: 18px; color: var(--ink-soft); cursor: pointer; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 16px 0; }
+  .info-cell { background: var(--surface-alt); border-radius: 10px; padding: 10px 12px; }
+  .info-label { font-size: 10.5px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+  .info-value { font-size: 14px; font-weight: 700; margin-top: 2px; }
+  .detail-items { border-top: 1px solid var(--border); margin-top: 4px; }
+  .detail-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .detail-item-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; }
+  .detail-item-mod { font-size: 12px; color: var(--ink-soft); font-style: italic; margin-top: 3px; }
+  .detail-recipe-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; color: var(--orange-dark); background: var(--surface-alt); padding: 4px 10px; border-radius: 999px; margin-top: 6px; }
+  .detail-actions { display: flex; gap: 10px; margin-top: 18px; }
+  .detail-actions .action { flex: 1; }
+</style>
+</head>
+<body>
+
+<div class="screen">
+  <div class="top">
+    <h1 class="title">Cocina</h1>
+    <span class="clock">⏱ 19:15</span>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-filter="todos">Todos <span class="tab-count">7</span></div>
+    <div class="tab" data-filter="espera">En espera <span class="tab-count">2</span></div>
+    <div class="tab" data-filter="prep">En preparación <span class="tab-count">2</span></div>
+    <div class="tab" data-filter="listo">Listos <span class="tab-count">1</span></div>
+    <div class="tab" data-filter="tarde">Tardes <span class="tab-count">2</span></div>
+  </div>
+
+  <div class="main-layout">
+    <div>
+
+      <div class="section" data-section="espera">
+        <div class="section-head"><span class="section-dot espera"></span><span class="section-title">En espera</span><span class="section-count">· 2</span></div>
+        <div class="cards-row">
+          <div class="ticket" onclick="openDetail('108')">
+            <div class="ticket-top"><span class="mesa">Mesa 5</span><span class="time">03:28</span></div>
+            <div class="meta-line">Mesonero: Carlos R. · Pedido #108</div>
+            <ul class="items-mini">
+              <li><span class="qty">1×</span>Combo pollo frito x3<br><span class="mod">Extra papas</span></li>
+              <li><span class="qty">2×</span>Papas cheddar bacon</li>
+            </ul>
+            <button class="action to-prep">Iniciar preparación</button>
+          </div>
+          <div class="ticket" onclick="openDetail('109')">
+            <div class="ticket-top"><span class="mesa">Mesa 11</span><span class="time">01:10</span></div>
+            <div class="meta-line">Mesonero: Sofía L. · Pedido #109</div>
+            <ul class="items-mini"><li><span class="qty">2×</span>Pizza pepperoni familiar</li></ul>
+            <button class="action to-prep">Iniciar preparación</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" data-section="prep">
+        <div class="section-head"><span class="section-dot prep"></span><span class="section-title">En preparación</span><span class="section-count">· 2</span></div>
+        <div class="cards-row">
+          <div class="ticket" onclick="openDetail('106')">
+            <div class="ticket-top"><span class="mesa">Mesa 8</span><span class="time">08:42</span></div>
+            <div class="meta-line">Mesonero: Carlos R. · Pedido #106</div>
+            <ul class="items-mini">
+              <li><span class="qty">1×</span>Wrap de pollo crispy<br><span class="mod">Salsa picante aparte</span></li>
+              <li><span class="qty">1×</span>Alitas picantes BBQ</li>
+            </ul>
+            <button class="action to-listo">Marcar listo</button>
+          </div>
+          <div class="ticket" onclick="openDetail('107')">
+            <div class="ticket-top"><span class="mesa">Mesa 3</span><span class="time">06:15</span></div>
+            <div class="meta-line">Mesonero: Sofía L. · Pedido #107</div>
+            <ul class="items-mini"><li><span class="qty">1×</span>Wrap de pollo crispy<br><span class="mod">Sin cebolla</span></li></ul>
+            <button class="action to-listo">Marcar listo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" data-section="listo">
+        <div class="section-head"><span class="section-dot listo"></span><span class="section-title">Listos</span><span class="section-count">· 1</span></div>
+        <div class="cards-row">
+          <div class="ticket" onclick="openDetail('105')">
+            <div class="ticket-top"><span class="mesa">Mesa 2</span><span class="time listo">14:00</span></div>
+            <div class="meta-line">Mesonero: Carlos R. · Pedido #105</div>
+            <ul class="items-mini"><li><span class="qty">1×</span>Alitas picantes BBQ ✓</li></ul>
+            <button class="action archivar">Archivar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section" data-section="tarde">
+        <div class="section-head"><span class="section-dot tarde"></span><span class="section-title">Tardes</span><span class="section-count">· 2</span></div>
+        <div class="cards-row">
+          <div class="ticket tarde" onclick="openDetail('102')">
+            <div class="ticket-top"><span class="mesa">Mesa 7</span><span class="time tarde">18:32</span></div>
+            <div class="meta-line">Mesonero: Valentina · Pedido #102</div>
+            <ul class="items-mini">
+              <li><span class="qty">2×</span>Hamburguesa doble clásica<br><span class="mod">Sin cebolla en una</span></li>
+              <li><span class="qty">1×</span>Papas cheddar bacon</li>
+            </ul>
+            <button class="action ver-tarde">Ver detalle</button>
+          </div>
+          <div class="ticket tarde" onclick="openDetail('204')">
+            <div class="ticket-top"><span class="mesa">Para llevar</span><span class="time tarde">20:10</span></div>
+            <div class="meta-line">Pedido #204 · Sin mesonero asignado</div>
+            <ul class="items-mini"><li><span class="qty">3×</span>Wrap de pollo crispy</li></ul>
+            <button class="action ver-tarde">Ver detalle</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="summary">
+      <p class="summary-title">Resumen global</p>
+      <p class="summary-sub">Pendientes en toda la cocina</p>
+      <div class="summary-row"><span>Wrap de pollo crispy</span><span class="qty">5×</span></div>
+      <div class="summary-row"><span>Papas cheddar bacon</span><span class="qty">3×</span></div>
+      <div class="summary-row"><span>Pizza pepperoni familiar</span><span class="qty">2×</span></div>
+      <div class="summary-row"><span>Hamburguesa doble clásica</span><span class="qty">2×</span></div>
+      <div class="summary-row"><span>Combo pollo frito x3</span><span class="qty">1×</span></div>
+      <div class="summary-row"><span>Alitas picantes BBQ</span><span class="qty">1×</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-scrim" id="modal-scrim">
+  <div class="detail-modal" id="detail-modal"></div>
+</div>
+
+<script>
+  const orders = {
+    '108': { mesa: 'Mesa 5', tipo: 'En espera', mesonero: 'Carlos R.', creado: '19:11', tiempo: '03:28',
+      items: [
+        { n: '1× Combo pollo frito x3', mod: 'Extra papas', photo: 'p6' },
+        { n: '2× Papas cheddar bacon', mod: null, photo: 'p4' }
+      ] },
+    '109': { mesa: 'Mesa 11', tipo: 'En espera', mesonero: 'Sofía L.', creado: '19:14', tiempo: '01:10',
+      items: [ { n: '2× Pizza pepperoni familiar', mod: null, photo: 'p2' } ] },
+    '106': { mesa: 'Mesa 8', tipo: 'En preparación', mesonero: 'Carlos R.', creado: '19:06', tiempo: '08:42',
+      items: [
+        { n: '1× Wrap de pollo crispy', mod: 'Salsa picante aparte', photo: 'p5' },
+        { n: '1× Alitas picantes BBQ', mod: null, photo: 'p3' }
+      ] },
+    '107': { mesa: 'Mesa 3', tipo: 'En preparación', mesonero: 'Sofía L.', creado: '19:09', tiempo: '06:15',
+      items: [ { n: '1× Wrap de pollo crispy', mod: 'Sin cebolla', photo: 'p5' } ] },
+    '105': { mesa: 'Mesa 2', tipo: 'Listo', mesonero: 'Carlos R.', creado: '19:01', tiempo: '14:00',
+      items: [ { n: '1× Alitas picantes BBQ', mod: 'Listo ✓', photo: 'p3' } ] },
+    '102': { mesa: 'Mesa 7', tipo: 'Tarde', mesonero: 'Valentina', creado: '18:57', tiempo: '18:32',
+      items: [
+        { n: '2× Hamburguesa doble clásica', mod: 'Sin cebolla en una', photo: 'p1' },
+        { n: '1× Papas cheddar bacon', mod: null, photo: 'p4' }
+      ] },
+    '204': { mesa: 'Para llevar', mesonero: null, tipo: 'Tarde', creado: '18:55', tiempo: '20:10',
+      items: [ { n: '3× Wrap de pollo crispy', mod: null, photo: 'p5' } ] }
+  };
+
+  const photoGrad = {
+    p1: 'linear-gradient(135deg,#ffb877,#ff7a1a)', p2: 'linear-gradient(135deg,#ffcf6b,#f5a623)',
+    p3: 'linear-gradient(135deg,#ff9d6b,#e0650a)', p4: 'linear-gradient(135deg,#ffdca0,#ffb04a)',
+    p5: 'linear-gradient(135deg,#ff8f6b,#e14434)', p6: 'linear-gradient(135deg,#ffcf9c,#ff8f3d)'
+  };
+
+  function openDetail(id) {
+    const o = orders[id];
+    const photos = o.items.map(it => `<div class="photo-thumb" style="background:${photoGrad[it.photo]}"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="8"/></svg></div>`).join('');
+    const items = o.items.map(it => `
+      <div class="detail-item">
+        <div class="detail-item-top"><span>${it.n}</span></div>
+        ${it.mod ? `<div class="detail-item-mod">${it.mod}</div>` : ''}
+        <div class="detail-recipe-link">📖 Ver receta</div>
+      </div>`).join('');
+    const actionLabel = o.tipo === 'En espera' ? 'Iniciar preparación' : o.tipo === 'En preparación' ? 'Marcar listo' : o.tipo === 'Listo' ? 'Archivar' : 'Marcar listo (urgente)';
+
+    document.getElementById('detail-modal').innerHTML = `
+      <div class="photo-strip">${photos}</div>
+      <div class="modal-body">
+        <div class="modal-top">
+          <div><div class="modal-eyebrow">${o.tipo}</div><h2 class="modal-title">${o.mesa}</h2></div>
+          <span class="close-x" onclick="closeDetail()">✕</span>
+        </div>
+        <div class="info-grid">
+          <div class="info-cell"><div class="info-label">Pedido</div><div class="info-value">#${id}</div></div>
+          <div class="info-cell"><div class="info-label">Mesonero</div><div class="info-value">${o.mesonero || 'Sin asignar'}</div></div>
+          <div class="info-cell"><div class="info-label">Hora de pedido</div><div class="info-value">${o.creado}</div></div>
+          <div class="info-cell"><div class="info-label">Tiempo transcurrido</div><div class="info-value">${o.tiempo}</div></div>
+        </div>
+        <div class="detail-items">${items}</div>
+        <div class="detail-actions">
+          <button class="action archivar" onclick="closeDetail()">Cerrar</button>
+          <button class="action to-listo">${actionLabel}</button>
+        </div>
+      </div>`;
+    document.getElementById('modal-scrim').classList.add('open');
+  }
+  function closeDetail() { document.getElementById('modal-scrim').classList.remove('open'); }
+  document.getElementById('modal-scrim').addEventListener('click', (e) => { if (e.target.id === 'modal-scrim') closeDetail(); });
+
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const filter = tab.dataset.filter;
+      document.querySelectorAll('.section').forEach(sec => {
+        sec.style.display = (filter === 'todos' || sec.dataset.section === filter) ? 'block' : 'none';
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
