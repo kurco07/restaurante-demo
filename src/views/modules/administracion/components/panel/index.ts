@@ -1,0 +1,7 @@
+export { PanelHeader } from './PanelHeader'
+export { IndicadoresGrid } from './IndicadoresGrid'
+export { VentasSemanaChart } from './VentasSemanaChart'
+export { PedidosRecientes } from './PedidosRecientes'
+export { MasVendidos } from './MasVendidos'
+export { AlertasInventario } from './AlertasInventario'
+export { EstadoMesasMini } from './EstadoMesasMini'

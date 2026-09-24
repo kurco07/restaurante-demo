@@ -11,6 +11,7 @@ import PedidosPage from './views/modules/pedidos/PedidosPage'
 import CocinaPage from './views/modules/cocina/CocinaPage'
 import AutopedidoPage from './views/modules/autopedido/AutopedidoPage'
 import AdministracionPage from './views/modules/administracion/AdministracionPage'
+import MenuAdminPage from './views/modules/administracion/MenuAdminPage'
 import GerenciaPage from './views/modules/gerencia/GerenciaPage'
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
@@ -124,6 +125,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
                   <AdministracionPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/administracion/menu"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                  <MenuAdminPage />
                 </ProtectedRoute>
               }
             />
