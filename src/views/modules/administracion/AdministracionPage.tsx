@@ -11,8 +11,14 @@ export default function AdministracionPage() {
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <h1 className="mx-auto mt-6 text-3xl font-semibold">Administración — Menú y recetas</h1>
+    <div>
+      <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-7 pt-7">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900">Administración</h1>
+          <p className="text-sm text-gray-500">Menú y recetas</p>
+        </div>
+        <span className="text-2xl">🍔</span>
+      </div>
       <MenuAdmin tenantId={usuario.tenant_id} />
     </div>
   )

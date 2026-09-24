@@ -63,29 +63,37 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
   }
 
   return (
-    <div className="flex flex-col gap-2 border-t border-gray-100 pt-3">
-      <ul className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1 rounded-xl bg-orange-50/50 p-3.5">
+      <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-orange-600">
+        Ingredientes de la receta
+      </p>
+
+      <div className="flex flex-col">
         {receta.map((linea) => (
-          <li key={linea.id} className="flex items-center justify-between text-sm text-gray-700">
-            <span>
-              {insumoNombre(linea.insumo_id)} — {linea.cantidad_requerida} {linea.unidad}
+          <div
+            key={linea.id}
+            className="flex items-center gap-3 border-b border-orange-100 py-2.5 text-sm last:border-none"
+          >
+            <span className="flex-1 font-semibold text-gray-800">{insumoNombre(linea.insumo_id)}</span>
+            <span className="text-xs text-gray-500">
+              {linea.cantidad_requerida} {linea.unidad}
             </span>
             <button
               type="button"
               onClick={() => onEliminarLinea(linea.id)}
-              className="text-xs text-red-600 hover:underline"
+              className="rounded-full px-2 py-0.5 text-xs font-bold text-gray-400 hover:bg-red-100 hover:text-red-600"
             >
               Quitar
             </button>
-          </li>
+          </div>
         ))}
         {receta.length === 0 && (
-          <li className="text-sm text-gray-500">Este plato todavía no tiene receta.</li>
+          <p className="py-2 text-sm text-gray-500">Este plato todavía no tiene receta.</p>
         )}
-      </ul>
+      </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-col gap-1 text-xs text-gray-600">
+      <form onSubmit={handleSubmit} className="mt-2 flex flex-wrap items-end gap-2 border-t border-orange-100 pt-3">
+        <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
           Insumo
           <select
             value={insumoId}
@@ -95,7 +103,7 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
               const insumo = insumos.find((i) => i.id === value)
               if (insumo) setUnidad(insumo.unidad_de_medida)
             }}
-            className="rounded border border-gray-300 px-2 py-1.5 text-sm"
+            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
           >
             <option value="">Selecciona…</option>
             {insumos.map((insumo) => (
@@ -109,17 +117,17 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
 
         {esInsumoNuevo && (
           <>
-            <label className="flex flex-col gap-1 text-xs text-gray-600">
+            <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
               Nombre del insumo
               <input
                 type="text"
                 required
                 value={nuevoNombre}
                 onChange={(event) => setNuevoNombre(event.target.value)}
-                className="w-32 rounded border border-gray-300 px-2 py-1.5 text-sm"
+                className="w-32 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs text-gray-600">
+            <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
               Unidad de medida
               <input
                 type="text"
@@ -127,15 +135,15 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
                 required
                 value={nuevaUnidadMedida}
                 onChange={(event) => setNuevaUnidadMedida(event.target.value)}
-                className="w-24 rounded border border-gray-300 px-2 py-1.5 text-sm"
+                className="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs text-gray-600">
+            <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
               Tipo
               <select
                 value={nuevoTipo}
                 onChange={(event) => setNuevoTipo(event.target.value as Insumo['tipo'])}
-                className="rounded border border-gray-300 px-2 py-1.5 text-sm"
+                className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
               >
                 <option value="exacto">Exacto</option>
                 <option value="por_lote">Por lote</option>
@@ -145,7 +153,7 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
           </>
         )}
 
-        <label className="flex flex-col gap-1 text-xs text-gray-600">
+        <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
           Cantidad
           <input
             type="number"
@@ -154,11 +162,11 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
             required
             value={cantidad}
             onChange={(event) => setCantidad(event.target.value)}
-            className="w-24 rounded border border-gray-300 px-2 py-1.5 text-sm"
+            className="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs text-gray-600">
+        <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
           Unidad en la receta
           <input
             type="text"
@@ -166,14 +174,14 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
             required
             value={unidad}
             onChange={(event) => setUnidad(event.target.value)}
-            className="w-28 rounded border border-gray-300 px-2 py-1.5 text-sm"
+            className="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
           />
         </label>
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-blue-600 px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="rounded-lg bg-orange-500 px-3.5 py-1.5 text-sm font-bold text-white disabled:opacity-50"
         >
           {submitting ? 'Agregando…' : 'Agregar'}
         </button>

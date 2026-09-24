@@ -12,6 +12,8 @@ import AutopedidoPage from './views/modules/autopedido/AutopedidoPage'
 import AdministracionPage from './views/modules/administracion/AdministracionPage'
 import GerenciaPage from './views/modules/gerencia/GerenciaPage'
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
+import InicioPage from './views/modules/inicio/InicioPage'
+import ProximamentePage from './views/modules/proximamente/ProximamentePage'
 
 const modulos = [
   { path: '/mesoneros', label: 'Mesoneros' },
@@ -88,6 +90,10 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             {/* /autopedido queda pública a propósito: es la vista del cliente por QR */}
             <Route path="/autopedido" element={<AutopedidoPage />} />
+            {/* /inicio y /proximamente también son públicas: prototipo navegable
+                de interfaces (Pedro + Cesar), sin funcionalidad todavía */}
+            <Route path="/inicio" element={<InicioPage />} />
+            <Route path="/proximamente" element={<ProximamentePage />} />
             <Route
               path="/mesoneros"
               element={

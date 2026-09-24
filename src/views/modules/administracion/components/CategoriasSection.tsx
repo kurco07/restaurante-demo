@@ -65,13 +65,13 @@ export function CategoriasSection({
   }
 
   return (
-    <section className="flex flex-col gap-3 rounded-lg border border-gray-200 p-4">
-      <h2 className="text-lg font-semibold">Categorías</h2>
+    <section className="flex flex-col gap-3.5 rounded-2xl border border-gray-200 bg-white p-5">
+      <h2 className="text-base font-extrabold text-gray-900">Categorías</h2>
 
       <ul className="flex flex-wrap gap-2">
         {categorias.map((categoria) =>
           editandoId === categoria.id ? (
-            <li key={categoria.id} className="flex items-center gap-1">
+            <li key={categoria.id} className="flex items-center gap-1.5">
               <input
                 type="text"
                 autoFocus
@@ -81,19 +81,19 @@ export function CategoriasSection({
                   if (event.key === 'Enter') guardarEdicion(categoria.id)
                   if (event.key === 'Escape') setEditandoId(null)
                 }}
-                className="rounded border border-gray-300 px-2 py-1 text-sm"
+                className="rounded-lg border border-orange-300 px-2.5 py-1.5 text-sm"
               />
               <button
                 type="button"
                 onClick={() => guardarEdicion(categoria.id)}
-                className="text-xs text-blue-600 hover:underline"
+                className="rounded-lg bg-orange-500 px-2.5 py-1.5 text-xs font-bold text-white"
               >
                 Guardar
               </button>
               <button
                 type="button"
                 onClick={() => setEditandoId(null)}
-                className="text-xs text-gray-500 hover:underline"
+                className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-bold text-gray-500"
               >
                 Cancelar
               </button>
@@ -101,13 +101,13 @@ export function CategoriasSection({
           ) : (
             <li
               key={categoria.id}
-              className="group flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-700"
+              className="group flex items-center gap-1.5 rounded-full bg-orange-50 py-1.5 pl-3.5 pr-2 text-sm font-semibold text-orange-700"
             >
               {categoria.nombre}
               <button
                 type="button"
                 onClick={() => empezarEdicion(categoria)}
-                className="text-xs text-gray-400 hover:text-blue-600"
+                className="flex h-5 w-5 items-center justify-center rounded-full text-xs text-orange-400 hover:bg-orange-100 hover:text-orange-600"
                 title="Editar"
               >
                 ✎
@@ -115,7 +115,7 @@ export function CategoriasSection({
               <button
                 type="button"
                 onClick={() => handleEliminar(categoria.id)}
-                className="text-xs text-gray-400 hover:text-red-600"
+                className="flex h-5 w-5 items-center justify-center rounded-full text-xs text-orange-400 hover:bg-red-100 hover:text-red-600"
                 title="Eliminar"
               >
                 ×
@@ -128,19 +128,19 @@ export function CategoriasSection({
         )}
       </ul>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-gray-100 pt-3.5">
         <input
           type="text"
           placeholder="Nombre de la categoría (ej. Entradas)"
           required
           value={nombre}
           onChange={(event) => setNombre(event.target.value)}
-          className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
+          className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm"
         />
         <button
           type="submit"
           disabled={submitting}
-          className="rounded bg-blue-600 px-4 py-2 text-sm text-white disabled:opacity-50"
+          className="rounded-lg bg-orange-500 px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
         >
           {submitting ? 'Agregando…' : 'Agregar'}
         </button>

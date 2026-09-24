@@ -150,7 +150,7 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
   if (error) return <ErrorMessage message={error} />
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 p-7">
       <CategoriasSection
         categorias={categorias}
         onCrear={handleCrearCategoria}

@@ -1,5 +1,5 @@
-import { PageLayout } from '../../components/layout/PageLayout'
+import { TableroCocina } from './components/TableroCocina'
 
 export default function CocinaPage() {
-  return <PageLayout title="Cocina" />
+  return <TableroCocina />
 }
