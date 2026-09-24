@@ -93,9 +93,6 @@ export default function MesasAdminPage() {
             <div className="absolute right-0 top-[30%] flex h-[14%] w-[14%] items-center justify-center border-2 border-[var(--border)] bg-[var(--surface-alt)] text-[9px] font-extrabold uppercase text-[var(--ink-soft)]">
               Baños
             </div>
-            <div className="absolute left-0 top-0 flex h-[10%] w-full items-center justify-center gap-1.5 border-b-2 border-[var(--border)] bg-[var(--surface-alt)] text-[10px] font-bold text-[var(--ink-soft)]">
-              🚪 Entrada
-            </div>
             <div className="absolute right-[2%] bottom-[4%] flex h-[14%] w-[24%] items-center justify-center gap-2 rounded-lg border-2 border-[var(--orange)] bg-[var(--orange-bg)]">
               {['B1', 'B2', 'B3', 'B4'].map((b, i) => (
                 <div

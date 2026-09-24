@@ -5,12 +5,12 @@ import type { MesaEditable } from '../../../models/types'
 // allá solo se consulta el estado. Cuando se conecte `mesas` real en
 // Supabase, ambas pantallas leen la misma tabla.
 export const mesasAdminMock: MesaEditable[] = [
-  { numero: 1, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'libre', activa: true, left: '14%', top: '10%' },
-  { numero: 2, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'ocupada', activa: true, left: '32%', top: '8%', tiempo: '12 min' },
-  { numero: 3, zona: 'Salón principal', capacidad: 2, forma: 'round', estado: 'ocupada', activa: true, left: '50%', top: '12%', tiempo: '4 min' },
-  { numero: 4, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'ocupada', activa: true, left: '68%', top: '9%', tiempo: '8 min' },
-  { numero: 5, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'libre', activa: true, left: '16%', top: '33%' },
-  { numero: 6, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'limpiar', activa: true, left: '36%', top: '35%' },
+  { numero: 1, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'libre', activa: true, left: '14%', top: '16%' },
+  { numero: 2, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'ocupada', activa: true, left: '32%', top: '14%', tiempo: '12 min' },
+  { numero: 3, zona: 'Salón principal', capacidad: 2, forma: 'round', estado: 'ocupada', activa: true, left: '50%', top: '18%', tiempo: '4 min' },
+  { numero: 4, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'ocupada', activa: true, left: '68%', top: '15%', tiempo: '8 min' },
+  { numero: 5, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'libre', activa: true, left: '16%', top: '38%' },
+  { numero: 6, zona: 'Salón principal', capacidad: 4, forma: 'square', estado: 'limpiar', activa: true, left: '36%', top: '40%' },
   {
     numero: 7,
     zona: 'Salón principal',

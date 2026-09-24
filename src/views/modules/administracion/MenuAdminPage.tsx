@@ -13,13 +13,10 @@ export default function MenuAdminPage() {
 
   return (
     <AdminLayout usuario={usuario}>
-      <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-7 pt-7">
-        <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">Administración</h1>
-          <p className="text-sm text-gray-500">Menú y recetas</p>
-        </div>
-        <span className="text-2xl">🍔</span>
-      </div>
+      <header className="mb-6">
+        <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Administración</div>
+        <h1 className="mt-1 text-[27px] font-extrabold">Menú y recetas</h1>
+      </header>
       <MenuAdmin tenantId={usuario.tenant_id} />
     </AdminLayout>
   )

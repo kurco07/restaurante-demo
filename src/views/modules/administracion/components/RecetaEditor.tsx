@@ -63,37 +63,37 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
   }
 
   return (
-    <div className="flex flex-col gap-1 rounded-xl bg-orange-50/50 p-3.5">
-      <p className="mb-1 text-[11px] font-extrabold uppercase tracking-wide text-orange-600">
-        Ingredientes de la receta
+    <div>
+      <p className="mb-2.5 text-[11px] font-extrabold uppercase tracking-wide text-[var(--ink-soft)]">
+        Receta · ingredientes
       </p>
 
-      <div className="flex flex-col">
+      <div className="mb-3 flex flex-col">
         {receta.map((linea) => (
           <div
             key={linea.id}
-            className="flex items-center gap-3 border-b border-orange-100 py-2.5 text-sm last:border-none"
+            className="flex items-center gap-3 border-b border-[var(--border)] py-2.5 text-[13px] last:border-none"
           >
-            <span className="flex-1 font-semibold text-gray-800">{insumoNombre(linea.insumo_id)}</span>
-            <span className="text-xs text-gray-500">
+            <span className="flex-1 font-semibold">{insumoNombre(linea.insumo_id)}</span>
+            <span className="text-[var(--ink-soft)]">
               {linea.cantidad_requerida} {linea.unidad}
             </span>
             <button
               type="button"
               onClick={() => onEliminarLinea(linea.id)}
-              className="rounded-full px-2 py-0.5 text-xs font-bold text-gray-400 hover:bg-red-100 hover:text-red-600"
+              className="rounded-full px-2 py-0.5 text-xs font-bold text-[var(--ink-soft)] hover:bg-[var(--red-bg)] hover:text-[var(--red)]"
             >
               Quitar
             </button>
           </div>
         ))}
         {receta.length === 0 && (
-          <p className="py-2 text-sm text-gray-500">Este plato todavía no tiene receta.</p>
+          <p className="py-1.5 text-[13px] text-[var(--ink-soft)]">Este plato todavía no tiene receta.</p>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-2 flex flex-wrap items-end gap-2 border-t border-orange-100 pt-3">
-        <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
+      <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-2 rounded-xl bg-[var(--surface-alt)] p-3">
+        <label className="flex flex-col gap-1 text-[11px] font-semibold text-[var(--ink-soft)]">
           Insumo
           <select
             value={insumoId}
@@ -103,7 +103,7 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
               const insumo = insumos.find((i) => i.id === value)
               if (insumo) setUnidad(insumo.unidad_de_medida)
             }}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+            className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-[13px]"
           >
             <option value="">Selecciona…</option>
             {insumos.map((insumo) => (
@@ -117,33 +117,33 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
 
         {esInsumoNuevo && (
           <>
-            <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
-              Nombre del insumo
+            <label className="flex flex-col gap-1 text-[11px] font-semibold text-[var(--ink-soft)]">
+              Nombre
               <input
                 type="text"
                 required
                 value={nuevoNombre}
                 onChange={(event) => setNuevoNombre(event.target.value)}
-                className="w-32 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                className="w-28 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-[13px]"
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
-              Unidad de medida
+            <label className="flex flex-col gap-1 text-[11px] font-semibold text-[var(--ink-soft)]">
+              Unidad medida
               <input
                 type="text"
                 placeholder="kg, g, l…"
                 required
                 value={nuevaUnidadMedida}
                 onChange={(event) => setNuevaUnidadMedida(event.target.value)}
-                className="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                className="w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-[13px]"
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
+            <label className="flex flex-col gap-1 text-[11px] font-semibold text-[var(--ink-soft)]">
               Tipo
               <select
                 value={nuevoTipo}
                 onChange={(event) => setNuevoTipo(event.target.value as Insumo['tipo'])}
-                className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-[13px]"
               >
                 <option value="exacto">Exacto</option>
                 <option value="por_lote">Por lote</option>
@@ -153,7 +153,7 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
           </>
         )}
 
-        <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
+        <label className="flex flex-col gap-1 text-[11px] font-semibold text-[var(--ink-soft)]">
           Cantidad
           <input
             type="number"
@@ -162,32 +162,32 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
             required
             value={cantidad}
             onChange={(event) => setCantidad(event.target.value)}
-            className="w-24 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+            className="w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-[13px]"
           />
         </label>
 
-        <label className="flex flex-col gap-1 text-xs font-semibold text-gray-600">
-          Unidad en la receta
+        <label className="flex flex-col gap-1 text-[11px] font-semibold text-[var(--ink-soft)]">
+          Unidad
           <input
             type="text"
-            placeholder="g, ml, unidad…"
+            placeholder="g, ml…"
             required
             value={unidad}
             onChange={(event) => setUnidad(event.target.value)}
-            className="w-28 rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+            className="w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2 py-1.5 text-[13px]"
           />
         </label>
 
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-orange-500 px-3.5 py-1.5 text-sm font-bold text-white disabled:opacity-50"
+          className="rounded-lg bg-[var(--orange)] px-3.5 py-1.5 text-[13px] font-bold text-white disabled:opacity-50"
         >
           {submitting ? 'Agregando…' : 'Agregar'}
         </button>
       </form>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-[13px] text-[var(--red)]">{error}</p>}
     </div>
   )
 }

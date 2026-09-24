@@ -16,8 +16,9 @@ import {
 import { crearInsumo, fetchInsumos } from '../../../../models/services/inventarioService'
 import { LoadingSpinner } from '../../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../../components/ui/ErrorMessage'
-import { CategoriasSection } from './CategoriasSection'
-import { MenuItemsSection } from './MenuItemsSection'
+import { CategoriaFiltros } from './CategoriaFiltros'
+import { PlatosLista } from './PlatosLista'
+import { PlatoDetallePanel } from './PlatoDetallePanel'
 
 interface MenuAdminProps {
   tenantId: string
@@ -28,9 +29,13 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
   const [recetaPorItem, setRecetaPorItem] = useState<Record<string, Receta[]>>({})
-  const [itemExpandido, setItemExpandido] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const [categoriaFiltro, setCategoriaFiltro] = useState('todas')
+  const [busqueda, setBusqueda] = useState('')
+  const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null)
+  const [creando, setCreando] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -55,6 +60,22 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
     }
   }, [tenantId])
 
+  // Carga la receta del plato apenas se selecciona, no antes.
+  useEffect(() => {
+    if (!seleccionadoId || recetaPorItem[seleccionadoId]) return
+    fetchRecetaPorMenuItem(seleccionadoId).then((receta) => {
+      setRecetaPorItem((prev) => ({ ...prev, [seleccionadoId]: receta }))
+    })
+  }, [seleccionadoId, recetaPorItem])
+
+  const platosFiltrados = menuItems.filter((item) => {
+    const coincideCategoria = categoriaFiltro === 'todas' || item.categoria_id === categoriaFiltro
+    const coincideBusqueda = item.nombre.toLowerCase().includes(busqueda.toLowerCase())
+    return coincideCategoria && coincideBusqueda
+  })
+
+  const seleccionado = menuItems.find((i) => i.id === seleccionadoId) ?? null
+
   async function handleCrearCategoria(nombre: string, orden: number) {
     const nueva = await crearCategoria(tenantId, nombre, orden)
     setCategorias((prev) => [...prev, nueva])
@@ -68,53 +89,49 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
   async function handleEliminarCategoria(id: string) {
     await eliminarCategoria(id)
     setCategorias((prev) => prev.filter((c) => c.id !== id))
+    if (categoriaFiltro === id) setCategoriaFiltro('todas')
   }
 
-  async function handleCrearItem(item: {
+  function handleSeleccionar(id: string) {
+    setSeleccionadoId(id)
+    setCreando(false)
+  }
+
+  function handleNuevo() {
+    setCreando(true)
+    setSeleccionadoId(null)
+  }
+
+  async function handleGuardarPlato(datos: {
     categoria_id: string
     nombre: string
     descripcion?: string
     precio_base: number
   }) {
-    const nuevo = await crearMenuItem({ tenant_id: tenantId, ...item })
-    setMenuItems((prev) => [...prev, nuevo])
+    if (creando) {
+      const nuevo = await crearMenuItem({ tenant_id: tenantId, ...datos })
+      setMenuItems((prev) => [...prev, nuevo])
+      setCreando(false)
+      setSeleccionadoId(nuevo.id)
+    } else if (seleccionadoId) {
+      const actualizado = await actualizarMenuItem(seleccionadoId, datos)
+      setMenuItems((prev) => prev.map((item) => (item.id === seleccionadoId ? actualizado : item)))
+    }
   }
 
-  async function handleActualizarItem(
-    id: string,
-    cambios: { categoria_id: string; nombre: string; descripcion?: string; precio_base: number },
-  ) {
-    const actualizado = await actualizarMenuItem(id, cambios)
-    setMenuItems((prev) => prev.map((item) => (item.id === id ? actualizado : item)))
-  }
-
-  async function handleEliminarItem(id: string) {
+  async function handleEliminarPlato(id: string) {
     await eliminarMenuItem(id)
     setMenuItems((prev) => prev.filter((item) => item.id !== id))
-    if (itemExpandido === id) setItemExpandido(null)
+    if (seleccionadoId === id) setSeleccionadoId(null)
   }
 
-  async function handleToggleReceta(menuItemId: string) {
-    if (itemExpandido === menuItemId) {
-      setItemExpandido(null)
-      return
-    }
-    setItemExpandido(menuItemId)
-    if (!recetaPorItem[menuItemId]) {
-      const receta = await fetchRecetaPorMenuItem(menuItemId)
-      setRecetaPorItem((prev) => ({ ...prev, [menuItemId]: receta }))
-    }
-  }
-
-  async function handleAgregarRecetaLinea(
-    menuItemId: string,
-    linea: {
-      insumoId?: string
-      insumoNuevo?: { nombre: string; unidad_de_medida: string; tipo: Insumo['tipo'] }
-      cantidadRequerida: number
-      unidad: string
-    },
-  ) {
+  async function handleAgregarRecetaLinea(linea: {
+    insumoId?: string
+    insumoNuevo?: { nombre: string; unidad_de_medida: string; tipo: Insumo['tipo'] }
+    cantidadRequerida: number
+    unidad: string
+  }) {
+    if (!seleccionadoId) return
     let insumoId = linea.insumoId
 
     if (!insumoId && linea.insumoNuevo) {
@@ -127,22 +144,23 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
 
     const nuevaLinea = await agregarRecetaItem({
       tenant_id: tenantId,
-      menu_item_id: menuItemId,
+      menu_item_id: seleccionadoId,
       insumo_id: insumoId,
       cantidad_requerida: linea.cantidadRequerida,
       unidad: linea.unidad,
     })
     setRecetaPorItem((prev) => ({
       ...prev,
-      [menuItemId]: [...(prev[menuItemId] ?? []), nuevaLinea],
+      [seleccionadoId]: [...(prev[seleccionadoId] ?? []), nuevaLinea],
     }))
   }
 
-  async function handleEliminarRecetaLinea(menuItemId: string, recetaId: string) {
+  async function handleEliminarRecetaLinea(recetaId: string) {
+    if (!seleccionadoId) return
     await eliminarRecetaItem(recetaId)
     setRecetaPorItem((prev) => ({
       ...prev,
-      [menuItemId]: (prev[menuItemId] ?? []).filter((linea) => linea.id !== recetaId),
+      [seleccionadoId]: (prev[seleccionadoId] ?? []).filter((linea) => linea.id !== recetaId),
     }))
   }
 
@@ -150,26 +168,40 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
   if (error) return <ErrorMessage message={error} />
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 p-7">
-      <CategoriasSection
+    <div className="flex flex-col gap-4">
+      <CategoriaFiltros
         categorias={categorias}
+        activa={categoriaFiltro}
+        onSeleccionar={setCategoriaFiltro}
         onCrear={handleCrearCategoria}
         onActualizar={handleActualizarCategoria}
         onEliminar={handleEliminarCategoria}
       />
-      <MenuItemsSection
-        categorias={categorias}
-        menuItems={menuItems}
-        insumos={insumos}
-        recetaPorItem={recetaPorItem}
-        itemExpandido={itemExpandido}
-        onCrearItem={handleCrearItem}
-        onActualizarItem={handleActualizarItem}
-        onEliminarItem={handleEliminarItem}
-        onToggleReceta={handleToggleReceta}
-        onAgregarRecetaLinea={handleAgregarRecetaLinea}
-        onEliminarRecetaLinea={handleEliminarRecetaLinea}
-      />
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.5fr_1fr]">
+        <PlatosLista
+          platos={platosFiltrados}
+          categorias={categorias}
+          busqueda={busqueda}
+          onBuscar={setBusqueda}
+          seleccionadoId={seleccionadoId}
+          onSeleccionar={handleSeleccionar}
+          onNuevo={handleNuevo}
+        />
+        <PlatoDetallePanel
+          key={seleccionadoId ?? (creando ? 'nuevo' : 'vacio')}
+          categorias={categorias}
+          plato={seleccionado}
+          creando={creando}
+          onGuardar={handleGuardarPlato}
+          onCancelar={() => setCreando(false)}
+          onEliminar={handleEliminarPlato}
+          receta={seleccionadoId ? (recetaPorItem[seleccionadoId] ?? []) : []}
+          insumos={insumos}
+          onAgregarRecetaLinea={handleAgregarRecetaLinea}
+          onEliminarRecetaLinea={handleEliminarRecetaLinea}
+        />
+      </div>
     </div>
   )
 }
