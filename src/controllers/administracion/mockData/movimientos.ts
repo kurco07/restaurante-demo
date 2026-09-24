@@ -1,0 +1,98 @@
+import type { MovimientoInventario } from '../../../models/types'
+
+export const movimientosMock: MovimientoInventario[] = [
+  {
+    id: '1',
+    tipo: 'entrada',
+    insumo: 'Pan para hamburguesa',
+    cantidadLabel: '+30 uds',
+    referencia: 'Lote PAN-0925 · Panificadora Central',
+    responsable: 'Daniela Roa',
+    horaLabel: 'hace 5 min',
+  },
+  {
+    id: '2',
+    tipo: 'salida',
+    insumo: 'Carne de res molida',
+    cantidadLabel: '-0.45 kg',
+    referencia: 'Pedido · Mesa 12',
+    responsable: 'Sistema (automático)',
+    horaLabel: 'hace 12 min',
+  },
+  {
+    id: '3',
+    tipo: 'salida',
+    insumo: 'Queso cheddar',
+    cantidadLabel: '-0.09 kg',
+    referencia: 'Pedido · Mesa 7',
+    responsable: 'Sistema (automático)',
+    horaLabel: 'hace 18 min',
+  },
+  {
+    id: '4',
+    tipo: 'merma',
+    insumo: 'Papas congeladas',
+    cantidadLabel: '-2 kg',
+    referencia: 'Motivo: Producto vencido',
+    responsable: 'Daniela Roa',
+    horaLabel: 'hace 40 min',
+  },
+  {
+    id: '5',
+    tipo: 'entrada',
+    insumo: 'Queso cheddar',
+    cantidadLabel: '+8 kg',
+    referencia: 'Lote QUE-0630 · Lácteos San José',
+    responsable: 'Carlos Méndez',
+    horaLabel: 'hoy 9:10 a.m.',
+  },
+  {
+    id: '6',
+    tipo: 'salida',
+    insumo: 'Pan para hamburguesa',
+    cantidadLabel: '-3 uds',
+    referencia: 'Pedido · Mesa 3',
+    responsable: 'Sistema (automático)',
+    horaLabel: 'hace 1 h',
+  },
+  {
+    id: '7',
+    tipo: 'merma',
+    insumo: 'Cebolla',
+    cantidadLabel: '-1.2 kg',
+    referencia: 'Motivo: Descarte por manipulación',
+    responsable: 'Daniela Roa',
+    horaLabel: 'hace 2 h',
+  },
+  {
+    id: '8',
+    tipo: 'entrada',
+    insumo: 'Alitas de pollo',
+    cantidadLabel: '+25 kg',
+    referencia: 'Lote ALI-0904 · Avícola del Valle',
+    responsable: 'Carlos Méndez',
+    horaLabel: 'hoy 7:30 a.m.',
+  },
+  {
+    id: '9',
+    tipo: 'salida',
+    insumo: 'Masa de pizza',
+    cantidadLabel: '-1 ud',
+    referencia: 'Pedido · Mesa 9',
+    responsable: 'Sistema (automático)',
+    horaLabel: 'hace 2 h',
+  },
+  {
+    id: '10',
+    tipo: 'merma',
+    insumo: 'Salsa BBQ',
+    cantidadLabel: '+0.5 l (corrección)',
+    referencia: 'Motivo: Corrección de conteo físico',
+    responsable: 'Daniela Roa',
+    horaLabel: 'ayer 6:45 p.m.',
+  },
+]
+
+export const totalesMovimientosHoy = { total: 24, salidasPorVenta: 18, mermas: 2 }
+
+export const motivosAjuste = ['Vencido', 'Dañado', 'Error de conteo', 'Otro']

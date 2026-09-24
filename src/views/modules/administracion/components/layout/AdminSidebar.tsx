@@ -30,7 +30,7 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Pedidos',
-    to: '/proximamente',
+    to: '/administracion/pedidos',
     icono: (
       <>
         <path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3z" />
@@ -45,7 +45,9 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Inventario',
-    to: '/proximamente',
+    // Aterriza en Movimientos (ya construida) — desde ahí se navega a las
+    // otras 3 pestañas del inventario vía <InventarioTabs>.
+    to: '/administracion/movimientos',
     icono: (
       <>
         <path d="M3 8l9-5 9 5-9 5-9-5z" />
@@ -56,7 +58,7 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Mesas',
-    to: '/proximamente',
+    to: '/administracion/mesas',
     icono: (
       <>
         <rect x="3" y="9" width="18" height="4" rx="1.5" />
@@ -66,7 +68,7 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Personal',
-    to: '/proximamente',
+    to: '/administracion/personal',
     icono: (
       <>
         <circle cx="9" cy="8" r="3" />
@@ -78,7 +80,7 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Reportes',
-    to: '/proximamente',
+    to: '/administracion/reportes',
     icono: <path d="M4 20V11M10 20V5M16 20v-6M22 20H2" />,
   },
   {

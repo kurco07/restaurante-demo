@@ -49,3 +49,112 @@ export interface MesaResumen {
   numero: number
   estado: Mesa['estado']
 }
+
+// ---- Reportes ----
+
+export interface IndicadoresReporte {
+  ventasMes: number
+  pedidosMes: number
+  ticketPromedioMes: number
+}
+
+export interface VentaSemanalReporte {
+  semana: string
+  total: number
+  actual: boolean
+}
+
+export interface HoraPico {
+  rango: string
+  intensidad: number
+  etiqueta: string
+}
+
+export interface VentaCategoria {
+  categoria: string
+  porcentaje: number
+  monto: number
+}
+
+// ---- Proveedores ----
+
+export interface Proveedor {
+  id: string
+  nombre: string
+  categoria: string
+  telefono: string
+  correo: string
+  entregaEstimada: string
+  formaPago: string
+  nota: string
+  insumos: string[]
+  activo: boolean
+}
+
+// ---- Personal ----
+
+export type PuestoEmpleado = 'mesonero' | 'cocinero' | 'administracion'
+
+export interface Empleado {
+  id: string
+  nombre: string
+  puesto: PuestoEmpleado
+  puestoLabel: string
+  turno: string
+  telefono: string
+  correo: string
+  fechaIngreso: string
+  activo: boolean
+}
+
+// ---- Pedidos (vista de administración) ----
+
+export type EstadoPedidoAdmin = 'cocina' | 'listo' | 'cuenta' | 'entregado' | 'cancelado'
+
+export interface ItemPedidoAdmin {
+  nombre: string
+  cantidad: number
+  precioUnitario: number
+}
+
+export interface PedidoAdmin {
+  id: string
+  mesaNumero: number | null
+  codigoParaLlevar: string | null
+  mesonero: string
+  items: ItemPedidoAdmin[]
+  total: number
+  estado: EstadoPedidoAdmin
+  horaLabel: string
+}
+
+// ---- Movimientos de inventario ----
+
+export type TipoMovimiento = 'entrada' | 'salida' | 'merma'
+
+export interface MovimientoInventario {
+  id: string
+  tipo: TipoMovimiento
+  insumo: string
+  cantidadLabel: string
+  referencia: string
+  responsable: string
+  horaLabel: string
+}
+
+// ---- Mesas (editor de administración) ----
+
+export interface MesaEditable {
+  numero: number
+  zona: string
+  capacidad: number
+  forma: 'square' | 'round'
+  estado: 'libre' | 'ocupada' | 'limpiar'
+  activa: boolean
+  left: string
+  top: string
+  tiempo?: string
+  mesero?: string
+  demorada?: boolean
+  status?: 'cocina' | 'listo' | 'cuenta'
+}
