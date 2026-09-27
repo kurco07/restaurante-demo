@@ -25,4 +25,15 @@ export type {
   TipoMovimiento,
   MovimientoInventario,
   MesaEditable,
+  InsumoAdmin,
+  EstadoLote,
+  LoteInsumo,
+  DatosRestaurante,
+  Facturacion,
+  ColorMarca,
+  PreferenciaNotificacion,
+  EstadoOrdenCompra,
+  ItemOrdenCompra,
+  OrdenCompra,
 } from './administracion'
+export type { ExtraPlato, PlatoAutopedido, ItemPedidoMesa } from './autopedido'

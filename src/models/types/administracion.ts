@@ -158,3 +158,87 @@ export interface MesaEditable {
   demorada?: boolean
   status?: 'cocina' | 'listo' | 'cuenta'
 }
+
+// ---- Inventario: insumos ----
+
+export interface InsumoAdmin {
+  id: string
+  nombre: string
+  iniciales: string
+  categoria: string
+  unidad: string
+  unidadCorta: string
+  stockActual: number
+  stockMinimo: number
+  costoUnitario: number
+  proveedor: string
+  activo: boolean
+  usadoEn: string[]
+}
+
+// ---- Configuración ----
+
+export interface DatosRestaurante {
+  nombre: string
+  direccion: string
+  telefono: string
+  horario: string
+}
+
+export interface Facturacion {
+  moneda: string
+  impuesto: number
+  propinaSugerida: number
+}
+
+export interface ColorMarca {
+  nombre: string
+  hex: string
+}
+
+export interface PreferenciaNotificacion {
+  id: string
+  label: string
+}
+
+// ---- Inventario: órdenes de compra ----
+
+// Estados del mockup. Ojo: `ordenes_compra.estado` en 0002 solo admite
+// borrador / aprobada / recibida — "pendiente" y "rechazada" aún no existen en la BD.
+export type EstadoOrdenCompra = 'borrador' | 'pendiente' | 'aprobada' | 'rechazada' | 'recibida'
+
+export interface ItemOrdenCompra {
+  insumo: string
+  cantidad: number
+  unidad: string
+  costoUnitario: number
+}
+
+export interface OrdenCompra {
+  id: string
+  codigo: string
+  proveedor: string
+  solicitadaPor: string
+  estado: EstadoOrdenCompra
+  fecha: string
+  fechaSolicitud: string
+  entregaEstimada: string
+  items: ItemOrdenCompra[]
+}
+
+// ---- Inventario: lotes ----
+
+export type EstadoLote = 'por_vencer' | 'activo' | 'agotado'
+
+export interface LoteInsumo {
+  id: string
+  codigo: string
+  fechaIngreso: string
+  fechaVencimiento: string
+  cantidadRestante: number
+  cantidadInicial: number
+  costoUnitario: number
+  proveedor: string
+  estado: EstadoLote
+  usarPrimero: boolean
+}

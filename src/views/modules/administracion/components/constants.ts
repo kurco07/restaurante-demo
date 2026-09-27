@@ -11,6 +11,7 @@ export const ESTILOS_ADMIN = {
   '--orange': '#ff7a1a',
   '--orange-dark': '#e0650a',
   '--orange-bg': '#fff2e2',
+  '--gray-bg': '#f2efe9',
   '--green': '#24a24a',
   '--green-bg': '#e9f8ee',
   '--red': '#e14434',

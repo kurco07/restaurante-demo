@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import type { Rol } from '../../../../../models/types'
 
 interface AdminSidebarProps {
@@ -11,6 +11,8 @@ interface EnlaceSidebar {
   label: string
   to: string
   icono: ReactNode
+  // Otras rutas en las que el enlace también debe verse activo
+  activoEn?: string[]
 }
 
 // Las secciones que todavía no existen llevan a /proximamente,
@@ -45,9 +47,10 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Inventario',
-    // Aterriza en Movimientos (ya construida) — desde ahí se navega a las
-    // otras 3 pestañas del inventario vía <InventarioTabs>.
-    to: '/administracion/movimientos',
+    // Aterriza en Insumos (primera pestaña) — desde ahí se navega a las
+    // otras pestañas del inventario vía <InventarioTabs>.
+    to: '/administracion/insumos',
+    activoEn: ['/administracion/insumos', '/administracion/movimientos', '/administracion/proveedores', '/administracion/compras'],
     icono: (
       <>
         <path d="M3 8l9-5 9 5-9 5-9-5z" />
@@ -85,7 +88,7 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Configuración',
-    to: '/proximamente',
+    to: '/administracion/configuracion',
     icono: (
       <>
         <circle cx="12" cy="12" r="3" />
@@ -101,6 +104,8 @@ const etiquetaRol: Partial<Record<Rol, string>> = {
 }
 
 export function AdminSidebar({ nombre, rol }: AdminSidebarProps) {
+  const { pathname } = useLocation()
+
   return (
     <aside className="flex flex-col bg-[var(--ink)] px-4 py-[22px] text-white">
       <div className="mb-7 mt-1 px-2.5 text-lg font-extrabold">
@@ -116,7 +121,8 @@ export function AdminSidebar({ nombre, rol }: AdminSidebarProps) {
             end
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13.5px] font-semibold ${
-                isActive && enlace.to !== '/proximamente'
+                (isActive || enlace.activoEn?.some((ruta) => pathname.startsWith(ruta))) &&
+                enlace.to !== '/proximamente'
                   ? 'bg-[var(--orange)] text-white'
                   : 'text-[#cfc6ba] hover:text-white'
               }`

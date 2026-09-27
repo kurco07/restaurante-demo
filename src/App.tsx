@@ -18,6 +18,10 @@ import PersonalPage from './views/modules/administracion/PersonalPage'
 import PedidosAdminPage from './views/modules/administracion/PedidosAdminPage'
 import MovimientosPage from './views/modules/administracion/MovimientosPage'
 import MesasAdminPage from './views/modules/administracion/MesasAdminPage'
+import InsumosPage from './views/modules/administracion/InsumosPage'
+import LotesPage from './views/modules/administracion/LotesPage'
+import ConfiguracionPage from './views/modules/administracion/ConfiguracionPage'
+import ComprasPage from './views/modules/administracion/ComprasPage'
 import GerenciaPage from './views/modules/gerencia/GerenciaPage'
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
@@ -179,6 +183,38 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
                   <MovimientosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/administracion/insumos"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                  <InsumosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/administracion/insumos/:insumoId/lotes"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                  <LotesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/administracion/compras"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                  <ComprasPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/administracion/configuracion"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                  <ConfiguracionPage />
                 </ProtectedRoute>
               }
             />

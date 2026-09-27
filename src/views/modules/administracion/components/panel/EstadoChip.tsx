@@ -1,5 +1,5 @@
 interface EstadoChipProps {
-  tono: 'verde' | 'naranja' | 'rojo'
+  tono: 'verde' | 'naranja' | 'rojo' | 'gris'
   children: string
 }
 
@@ -7,6 +7,7 @@ const clasePorTono: Record<EstadoChipProps['tono'], string> = {
   verde: 'bg-[var(--green-bg)] text-[var(--green)]',
   naranja: 'bg-[var(--orange-bg)] text-[var(--orange-dark)]',
   rojo: 'bg-[var(--red-bg)] text-[var(--red)]',
+  gris: 'bg-[var(--gray-bg)] text-[var(--ink-soft)]',
 }
 
 export function EstadoChip({ tono, children }: EstadoChipProps) {
