@@ -3,6 +3,7 @@ import { AuthProvider } from './views/components/AuthProvider'
 import { UsuarioProvider } from './views/components/UsuarioProvider'
 import { ProtectedRoute } from './controllers/auth/ProtectedRoute'
 import LoginPage from './views/modules/login/LoginPage'
+import RegistroPage from './views/modules/registro/RegistroPage'
 import { useAuth } from './controllers/auth/useAuth'
 import { useUsuario } from './controllers/usuario/useUsuario'
 import { rolesPorModulo } from './lib/rolesPorModulo'
@@ -100,6 +101,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/registro" element={<RegistroPage />} />
             {/* /autopedido queda pública a propósito: es la vista del cliente por QR */}
             <Route path="/autopedido" element={<AutopedidoPage />} />
             {/* /inicio y /proximamente también son públicas: prototipo navegable
