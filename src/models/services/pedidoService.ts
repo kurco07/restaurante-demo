@@ -36,3 +36,10 @@ export async function enviarPedidoACocina(
     }
   })
 }
+
+export async function cambiarEstadoPedidoItem(
+  id: string,
+  estado: 'pendiente' | 'en_preparacion' | 'listo' | 'entregado',
+) {
+  await powerSync.execute(`update pedidos_items set estado = ? where id = ?`, [estado, id])
+}

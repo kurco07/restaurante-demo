@@ -1,68 +1,57 @@
 import { useState } from 'react'
-import { ordenesMock, etiquetaEstadoOrden, accionSegunEstado, type EstadoOrden } from './ordenesMock'
+import {
+  useCocina,
+  ETIQUETA_ESTADO,
+  ACCION_SEGUN_ESTADO,
+  type EstadoItemCocina,
+  type ItemCocina,
+} from '../../../../controllers/cocina/useCocina'
 import { OrderDetailModal } from './OrderDetailModal'
 import { RecetaModal } from './RecetaModal'
 
-type Filtro = 'todos' | EstadoOrden
+type Filtro = 'todos' | EstadoItemCocina
 
 const filtros: { key: Filtro; label: string }[] = [
   { key: 'todos', label: 'Todos' },
-  { key: 'espera', label: 'En espera' },
-  { key: 'prep', label: 'En preparación' },
+  { key: 'pendiente', label: 'En espera' },
+  { key: 'en_preparacion', label: 'En preparación' },
   { key: 'listo', label: 'Listos' },
-  { key: 'tarde', label: 'Tardes' },
 ]
 
-const puntoColor: Record<EstadoOrden, string> = {
-  espera: 'bg-gray-400',
-  prep: 'bg-orange-500',
+const puntoColor: Record<EstadoItemCocina, string> = {
+  pendiente: 'bg-gray-400',
+  en_preparacion: 'bg-orange-500',
   listo: 'bg-green-500',
-  tarde: 'bg-red-500',
 }
 
-const botonColor: Record<EstadoOrden, string> = {
-  espera: 'bg-orange-500 text-white',
-  prep: 'bg-green-600 text-white',
+const botonColor: Record<EstadoItemCocina, string> = {
+  pendiente: 'bg-orange-500 text-white',
+  en_preparacion: 'bg-green-600 text-white',
   listo: 'border border-gray-200 bg-orange-50 text-gray-600',
-  tarde: 'bg-red-500 text-white',
 }
 
-function contarPorEstado(estado: EstadoOrden) {
-  return ordenesMock.filter((o) => o.estado === estado).length
-}
-
-// Resumen global derivado de las órdenes, no hardcodeado — evita que quede
-// desincronizado si se agregan/quitan pedidos de ejemplo más adelante.
-function calcularResumen() {
-  const totales = new Map<string, number>()
-  for (const orden of ordenesMock) {
-    for (const item of orden.items) {
-      totales.set(item.plato, (totales.get(item.plato) ?? 0) + item.cantidad)
-    }
-  }
-  return [...totales.entries()].sort((a, b) => b[1] - a[1])
+function tiempoTranscurrido(creadoEnIso: string) {
+  const minutos = Math.max(0, Math.round((Date.now() - new Date(creadoEnIso).getTime()) / 60000))
+  return `${minutos} min`
 }
 
 export function TableroCocina() {
-  const [filtro, setFiltro] = useState<Filtro>('todos')
-  const [ordenAbiertaId, setOrdenAbiertaId] = useState<string | null>(null)
-  const [recetaPlato, setRecetaPlato] = useState<string | null>(null)
+  const { items, filtro, setFiltro, contador, resumen, avanzarEstado, avanzandoId } = useCocina()
+  const [itemAbiertoId, setItemAbiertoId] = useState<string | null>(null)
+  const [verReceta, setVerReceta] = useState(false)
 
-  const ordenAbierta = ordenesMock.find((o) => o.id === ordenAbiertaId) ?? null
-
-  const secciones: EstadoOrden[] = ['espera', 'prep', 'listo', 'tarde']
-  const resumen = calcularResumen()
+  const itemAbierto: ItemCocina | null = items.find((i) => i.id === itemAbiertoId) ?? null
+  const secciones: EstadoItemCocina[] = ['pendiente', 'en_preparacion', 'listo']
 
   return (
     <div className="mx-auto max-w-305 p-7">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-gray-900">Cocina</h1>
-        <span className="text-sm font-semibold text-gray-500">⏱ 19:15</span>
       </div>
 
       <div className="mb-5 flex flex-wrap gap-1 border-b-2 border-gray-100">
         {filtros.map((f) => {
-          const count = f.key === 'todos' ? ordenesMock.length : contarPorEstado(f.key)
+          const count = contador(f.key)
           const activo = filtro === f.key
           return (
             <button
@@ -88,62 +77,58 @@ export function TableroCocina() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_250px]">
         <div>
-          {secciones
-            .filter((s) => filtro === 'todos' || filtro === s)
-            .map((seccion) => {
-              const ordenes = ordenesMock.filter((o) => o.estado === seccion)
-              if (ordenes.length === 0) return null
-              return (
-                <div key={seccion} className="mb-6">
-                  <div className="mb-3 flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 rounded-full ${puntoColor[seccion]}`} />
-                    <span className="text-xs font-extrabold uppercase tracking-wider text-gray-800">
-                      {etiquetaEstadoOrden[seccion]}
-                    </span>
-                    <span className="text-xs font-semibold text-gray-400">· {ordenes.length}</span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                    {ordenes.map((orden) => (
-                      <button
-                        key={orden.id}
-                        type="button"
-                        onClick={() => {
-                          setOrdenAbiertaId(orden.id)
-                          setRecetaPlato(null)
-                        }}
-                        className={`rounded-2xl border-[1.5px] p-4 text-left shadow-sm transition-shadow hover:shadow-md ${
-                          seccion === 'tarde' ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-white'
-                        }`}
-                      >
-                        <div className="mb-1 flex items-center justify-between">
-                          <span className="text-[15.5px] font-extrabold text-gray-900">{orden.mesa}</span>
-                          <span className={`text-[13px] font-bold ${seccion === 'tarde' ? 'text-red-600' : seccion === 'listo' ? 'text-green-600' : 'text-gray-500'}`}>
-                            {orden.tiempo}
-                          </span>
-                        </div>
-                        <div className="mb-2.5 text-[11px] text-gray-500">
-                          Mesonero: {orden.mesonero ?? 'Sin asignar'} · Pedido #{orden.id}
-                        </div>
-                        <ul className="mb-3 text-sm">
-                          {orden.items.map((item, i) => (
-                            <li key={i} className="py-0.5">
-                              <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
-                              {item.plato}
-                              {item.mod && <div className="text-[10.5px] italic text-gray-500">{item.mod}</div>}
-                            </li>
-                          ))}
-                        </ul>
-                        <div
-                          className={`w-full rounded-lg py-2.5 text-center text-[13px] font-bold ${botonColor[seccion]}`}
+          {items.length === 0 ? (
+            <p className="py-12 text-center text-sm text-gray-500">No hay pedidos pendientes en cocina.</p>
+          ) : (
+            secciones
+              .filter((s) => filtro === 'todos' || filtro === s)
+              .map((seccion) => {
+                const itemsSeccion = items.filter((i) => i.estado === seccion)
+                if (itemsSeccion.length === 0) return null
+                return (
+                  <div key={seccion} className="mb-6">
+                    <div className="mb-3 flex items-center gap-2">
+                      <span className={`h-2.5 w-2.5 rounded-full ${puntoColor[seccion]}`} />
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-gray-800">
+                        {ETIQUETA_ESTADO[seccion]}
+                      </span>
+                      <span className="text-xs font-semibold text-gray-400">· {itemsSeccion.length}</span>
+                    </div>
+                    <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+                      {itemsSeccion.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setItemAbiertoId(item.id)
+                            setVerReceta(false)
+                          }}
+                          className="rounded-2xl border-[1.5px] border-gray-200 bg-white p-4 text-left shadow-sm transition-shadow hover:shadow-md"
                         >
-                          {accionSegunEstado[seccion]}
-                        </div>
-                      </button>
-                    ))}
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="text-[15.5px] font-extrabold text-gray-900">Mesa {item.mesa}</span>
+                            <span className="text-[13px] font-bold text-gray-500">{tiempoTranscurrido(item.creadoEn)}</span>
+                          </div>
+                          <div className="mb-2.5 text-[11px] text-gray-500">
+                            Mesonero: {item.mesonero ?? 'Sin asignar'}
+                          </div>
+                          <div className="mb-3 text-sm">
+                            <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
+                            {item.plato}
+                            {item.notas && <div className="text-[10.5px] italic text-gray-500">{item.notas}</div>}
+                          </div>
+                          <div
+                            className={`w-full rounded-lg py-2.5 text-center text-[13px] font-bold ${botonColor[seccion]}`}
+                          >
+                            {ACCION_SEGUN_ESTADO[seccion]}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )
-            })}
+                )
+              })
+          )}
         </div>
 
         <div className="h-fit rounded-2xl border border-gray-200 bg-white p-4.5">
@@ -158,21 +143,24 @@ export function TableroCocina() {
         </div>
       </div>
 
-      {ordenAbierta && !recetaPlato && (
+      {itemAbierto && !verReceta && (
         <OrderDetailModal
-          orden={ordenAbierta}
-          onCerrar={() => setOrdenAbiertaId(null)}
-          onVerReceta={(plato) => setRecetaPlato(plato)}
+          item={itemAbierto}
+          avanzando={avanzandoId === itemAbierto.id}
+          onCerrar={() => setItemAbiertoId(null)}
+          onVerReceta={() => setVerReceta(true)}
+          onAvanzarEstado={() => avanzarEstado(itemAbierto)}
         />
       )}
 
-      {recetaPlato && (
+      {itemAbierto && verReceta && (
         <RecetaModal
-          plato={recetaPlato}
-          onVolver={() => setRecetaPlato(null)}
+          menuItemId={itemAbierto.menuItemId}
+          plato={itemAbierto.plato}
+          onVolver={() => setVerReceta(false)}
           onCerrar={() => {
-            setRecetaPlato(null)
-            setOrdenAbiertaId(null)
+            setVerReceta(false)
+            setItemAbiertoId(null)
           }}
         />
       )}
