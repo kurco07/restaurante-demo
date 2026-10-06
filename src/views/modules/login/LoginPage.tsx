@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../controllers/auth/useAuth'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import { IconoCandado, IconoCorreo, IconoEscudo, IconoOjo, IconoOjoTachado, IconoRestaurante } from '../../components/ui/IconosAuth'
+import { AccesosPrueba } from './components/AccesosPrueba'
 
 export default function LoginPage() {
   const { signIn } = useAuth()
@@ -13,12 +14,11 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault()
+  async function iniciarSesion(correo: string, clave: string) {
     setSubmitting(true)
     setError(null)
 
-    const { error } = await signIn(email, password)
+    const { error } = await signIn(correo, clave)
 
     setSubmitting(false)
     if (error) {
@@ -26,6 +26,11 @@ export default function LoginPage() {
       return
     }
     navigate('/')
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    iniciarSesion(email, password)
   }
 
   return (
@@ -116,6 +121,10 @@ export default function LoginPage() {
             <IconoEscudo className="h-[15px] w-[15px] text-green-600" />
             Tus datos quedan aislados por restaurante — nunca se mezclan entre cuentas.
           </div>
+
+          {import.meta.env.DEV && (
+            <AccesosPrueba onSeleccionar={iniciarSesion} deshabilitado={submitting} />
+          )}
         </div>
       </div>
     </div>
