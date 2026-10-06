@@ -1,13 +1,3 @@
-export const CATEGORIAS_FIJAS = [
-  'Favoritos',
-  'Combos',
-  'Hamburguesas',
-  'Pizzas',
-  'Pollo',
-  'Acompañantes',
-  'Bebidas',
-] as const
-
 export const GRADIENTES_FOTO: Record<string, string> = {
   p1: 'linear-gradient(135deg, #ffb877, #ff7a1a)',
   p2: 'linear-gradient(135deg, #ffcf6b, #f5a623)',

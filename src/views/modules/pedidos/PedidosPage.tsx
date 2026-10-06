@@ -1,64 +1,72 @@
-import { Link } from 'react-router-dom'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { usePedidos } from '../../../controllers/pedido/usePedidos'
+import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
+import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import {
   HeaderMesa,
-  MesaSwitcher,
   BuscadorPlatos,
   CategoriaPills,
   PlatoCard,
   ResumenPedido,
   ModalPersonalizacion,
 } from './components'
-import { crearMesasActivas } from '../../../controllers/pedido/mockData/pedidos'
 import { ESTILOS_CSS } from './components/constants'
-import type { PlatoConExtras } from '../../../models/types'
 
 export default function PedidosPage() {
   const { mesaId } = useParams<{ mesaId: string }>()
-  const mesaNumero = Number(mesaId)
+  const { usuario, loading: loadingUsuario, error: errorUsuario } = useUsuario()
 
   const {
+    mesa,
+    sesion,
+    categorias,
     platosFiltrados,
     categoriaActiva,
     setCategoriaActiva,
     busqueda,
     setBusqueda,
     carrito,
-    notaGeneral,
-    setNotaGeneral,
+    itemsEnviados,
     modalAbierto,
     platoModal,
-    proteinaSeleccionada,
-    setProteinaSeleccionada,
-    ingredientesQuitados,
-    extrasSeleccionados,
     cantidad,
     setCantidad,
     notaItem,
     setNotaItem,
-    loading,
+    enviando,
     abrirModal,
     cerrarModal,
-    toggleQuitar,
-    toggleExtra,
     calcularPrecioItem,
     agregarAlCarrito,
     actualizarCantidadCarrito,
     eliminarDelCarrito,
     calcularSubtotal,
     enviarACocina,
-    guardarBorrador,
-  } = usePedidos()
+  } = usePedidos(mesaId ?? '')
 
-  const mesasActivas = crearMesasActivas(mesaNumero)
   const subtotal = calcularSubtotal()
   const precioModal = calcularPrecioItem()
 
-  if (loading) {
+  if (loadingUsuario) return <LoadingSpinner message="Cargando tu perfil…" />
+  if (errorUsuario) return <ErrorMessage message={errorUsuario} />
+  if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+
+  if (!mesa) {
     return (
       <div className="flex h-screen items-center justify-center" style={ESTILOS_CSS}>
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
+        <LoadingSpinner message="Cargando mesa…" />
+      </div>
+    )
+  }
+
+  if (!sesion) {
+    return (
+      <div className="flex h-screen flex-col items-center justify-center gap-3" style={ESTILOS_CSS}>
+        <p className="text-[var(--ink-soft)]">Esta mesa no tiene una sesión abierta.</p>
+        <Link to="/mesoneros" className="font-bold text-[var(--orange-dark)]">
+          ← Volver al mapa de mesas
+        </Link>
       </div>
     )
   }
@@ -70,14 +78,12 @@ export default function PedidosPage() {
           ← Volver al mapa de mesas
         </Link>
 
-        <HeaderMesa mesaNumero={mesaNumero} zona="Terraza · Exterior" user={null} />
-
-        <MesaSwitcher mesaActual={mesaNumero} mesas={mesasActivas} />
+        <HeaderMesa mesaNombre={mesa.nombre_numero} nombreUsuario={usuario.nombre} />
 
         <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
           <section>
             <BuscadorPlatos value={busqueda} onChange={setBusqueda} />
-            <CategoriaPills categoriaActiva={categoriaActiva} onCambiarCategoria={setCategoriaActiva} />
+            <CategoriaPills categorias={categorias} categoriaActiva={categoriaActiva} onCambiarCategoria={setCategoriaActiva} />
 
             <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
               {platosFiltrados.length === 0 ? (
@@ -85,12 +91,8 @@ export default function PedidosPage() {
                   No hay platos en esta categoría
                 </div>
               ) : (
-                platosFiltrados.map((plato: PlatoConExtras) => (
-                  <PlatoCard
-                    key={plato.id}
-                    plato={plato}
-                    onClick={() => abrirModal(plato)}
-                  />
+                platosFiltrados.map((plato) => (
+                  <PlatoCard key={plato.id} plato={plato} onClick={() => abrirModal(plato)} />
                 ))
               )}
             </div>
@@ -98,13 +100,12 @@ export default function PedidosPage() {
 
           <ResumenPedido
             carrito={carrito}
-            mesaNumero={mesaNumero}
-            notaGeneral={notaGeneral}
-            onNotaGeneralChange={setNotaGeneral}
+            itemsEnviados={itemsEnviados}
+            mesaNombre={mesa.nombre_numero}
             onActualizarCantidad={actualizarCantidadCarrito}
             onEliminar={eliminarDelCarrito}
-            onEnviarACocina={() => enviarACocina(mesaNumero, notaGeneral)}
-            onGuardarBorrador={() => guardarBorrador(mesaNumero, notaGeneral)}
+            onEnviarACocina={enviarACocina}
+            enviando={enviando}
             subtotal={subtotal}
           />
         </div>
@@ -114,12 +115,6 @@ export default function PedidosPage() {
         plato={platoModal}
         isOpen={modalAbierto}
         onClose={cerrarModal}
-        proteinaSeleccionada={proteinaSeleccionada}
-        onProteinaChange={setProteinaSeleccionada}
-        ingredientesQuitados={ingredientesQuitados}
-        onToggleQuitar={toggleQuitar}
-        extrasSeleccionados={extrasSeleccionados}
-        onToggleExtra={toggleExtra}
         cantidad={cantidad}
         onCantidadChange={setCantidad}
         notaItem={notaItem}

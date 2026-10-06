@@ -1,126 +1,96 @@
-import { useEffect, useState, useCallback } from 'react'
-import { useAuth } from '../auth/useAuth'
-import { fetchMenuItems } from '../../models/services/menuService'
-import { fetchRecetaPorMenuItem } from '../../models/services/menuService'
-import type { MenuItem } from '../../models/types'
-import type { PlatoConExtras, ItemCarrito } from '../../models/types'
-import { crearPedidosPrueba } from './mockData/pedidos'
+import { useMemo, useState } from 'react'
+import { useUsuario } from '../usuario/useUsuario'
+import { usePowerSyncWatch } from '../usePowerSyncWatch'
+import { enviarPedidoACocina } from '../../models/services/pedidoService'
+import type { ItemCarrito, Plato } from '../../models/types'
 
-interface UsePedidosReturn {
-  platos: PlatoConExtras[]
-  platosFiltrados: PlatoConExtras[]
-  categoriaActiva: string
-  setCategoriaActiva: (cat: string) => void
-  busqueda: string
-  setBusqueda: (b: string) => void
-  carrito: ItemCarrito[]
-  setCarrito: React.Dispatch<React.SetStateAction<ItemCarrito[]>>
-  notaGeneral: string
-  setNotaGeneral: (n: string) => void
-  modalAbierto: boolean
-  setModalAbierto: (open: boolean) => void
-  platoModal: PlatoConExtras | null
-  setPlatoModal: (p: PlatoConExtras | null) => void
-  proteinaSeleccionada: string | null
-  setProteinaSeleccionada: (p: string | null) => void
-  ingredientesQuitados: Set<string>
-  setIngredientesQuitados: React.Dispatch<React.SetStateAction<Set<string>>>
-  extrasSeleccionados: Set<string>
-  setExtrasSeleccionados: React.Dispatch<React.SetStateAction<Set<string>>>
-  cantidad: number
-  setCantidad: (c: number) => void
-  notaItem: string
-  setNotaItem: (n: string) => void
-  loading: boolean
-  filtrarPlatos: (lista: PlatoConExtras[]) => void
-  abrirModal: (plato: PlatoConExtras) => void
-  cerrarModal: () => void
-  toggleQuitar: (ing: string) => void
-  toggleExtra: (nombre: string) => void
-  calcularPrecioItem: () => number
-  agregarAlCarrito: () => void
-  actualizarCantidadCarrito: (id: string, delta: number) => void
-  eliminarDelCarrito: (id: string) => void
-  calcularSubtotal: () => number
-  enviarACocina: (mesaNumero: number, notaGeneral: string) => void
-  guardarBorrador: (mesaNumero: number, notaGeneral: string) => void
+interface MesaRow {
+  id: string
+  nombre_numero: string
 }
 
-export function usePedidos(): UsePedidosReturn {
-  const { user } = useAuth()
+interface SesionRow {
+  id: string
+  mesa_id: string
+}
 
-  const [platos, setPlatos] = useState<PlatoConExtras[]>([])
-  const [platosFiltrados, setPlatosFiltrados] = useState<PlatoConExtras[]>([])
-  const [categoriaActiva, setCategoriaActiva] = useState<string>('Favoritos')
+interface CategoriaRow {
+  id: string
+  nombre: string
+  orden: number
+}
+
+interface EnviadoRow {
+  id: string
+  menu_item_id: string
+  cantidad: number
+  precio_unitario: number
+  notas: string | null
+  estado: string
+}
+
+export const CATEGORIA_FAVORITOS = 'favoritos'
+
+export function usePedidos(mesaId: string) {
+  const { usuario } = useUsuario()
+
+  const mesaRows = usePowerSyncWatch<MesaRow>('select id, nombre_numero from mesas where id = ?', [mesaId])
+  const mesa = mesaRows[0] as MesaRow | undefined
+
+  const sesionRows = usePowerSyncWatch<SesionRow>(
+    "select id, mesa_id from sesiones_mesa where mesa_id = ? and estado = 'abierta' order by abierta_en desc limit 1",
+    [mesaId],
+  )
+  const sesion = sesionRows[0] as SesionRow | undefined
+
+  const categorias = usePowerSyncWatch<CategoriaRow>(
+    'select id, nombre, orden from categorias_menu where tenant_id = ? order by orden',
+    [usuario?.tenant_id ?? ''],
+  )
+
+  const platos = usePowerSyncWatch<Plato>('select * from menu_items where tenant_id = ? order by nombre', [
+    usuario?.tenant_id ?? '',
+  ])
+
+  const itemsEnviados = usePowerSyncWatch<EnviadoRow>(
+    'select id, menu_item_id, cantidad, precio_unitario, notas, estado from pedidos_items where sesion_id = ? order by creado_en',
+    [sesion?.id ?? ''],
+  )
+
+  const [categoriaActiva, setCategoriaActiva] = useState<string>(CATEGORIA_FAVORITOS)
   const [busqueda, setBusqueda] = useState('')
-  const [carrito, setCarrito] = useState<ItemCarrito[]>(() => crearPedidosPrueba())
-  const [notaGeneral, setNotaGeneral] = useState('Cliente celebra cumpleaños — llevar postre con vela')
+  const [carrito, setCarrito] = useState<ItemCarrito[]>([])
   const [modalAbierto, setModalAbierto] = useState(false)
-  const [platoModal, setPlatoModal] = useState<PlatoConExtras | null>(null)
-  const [proteinaSeleccionada, setProteinaSeleccionada] = useState<string | null>(null)
-  const [ingredientesQuitados, setIngredientesQuitados] = useState<Set<string>>(new Set())
-  const [extrasSeleccionados, setExtrasSeleccionados] = useState<Set<string>>(new Set())
+  const [platoModal, setPlatoModal] = useState<Plato | null>(null)
   const [cantidad, setCantidad] = useState(1)
   const [notaItem, setNotaItem] = useState('')
-  const [loading, setLoading] = useState(true)
+  const [enviando, setEnviando] = useState(false)
 
-  useEffect(() => {
-    async function cargarDatos() {
-      if (!user) return
-      try {
-        const tenantId = user.user_metadata?.tenant_id || ''
-        const items = await fetchMenuItems(tenantId)
-
-        const platosConExtras: PlatoConExtras[] = await Promise.all(
-          items.map(async (item: MenuItem) => {
-            const receta = await fetchRecetaPorMenuItem(item.id).catch(() => [])
-            return {
-              ...item,
-              receta,
-              extras: [
-                { nombre: 'Tocineta extra', precio: 1.00 },
-                { nombre: 'Queso extra', precio: 0.50 },
-                { nombre: 'Aguacate', precio: 1.00 },
-              ],
-              proteina: { opciones: ['Carne de res', 'Pollo'] },
-              quitar: ['Cebolla', 'Tomate', 'Queso cheddar', 'Lechuga', 'Pepinillos'],
-            }
-          })
-        )
-        setPlatos(platosConExtras)
-        filtrarPlatos(platosConExtras)
-      } catch (e) {
-        console.error('Error cargando menú:', e)
-      } finally {
-        setLoading(false)
-      }
-    }
-    cargarDatos()
-  }, [user])
-
-  const filtrarPlatos = useCallback((lista: PlatoConExtras[]) => {
-    let resultado = lista
-    if (categoriaActiva !== 'Favoritos') {
+  const platosFiltrados = useMemo(() => {
+    let resultado = platos
+    if (categoriaActiva !== CATEGORIA_FAVORITOS) {
       resultado = resultado.filter((p) => p.categoria_id === categoriaActiva)
     }
     if (busqueda) {
       const q = busqueda.toLowerCase()
       resultado = resultado.filter(
-        (p) => p.nombre.toLowerCase().includes(q) || p.descripcion?.toLowerCase().includes(q)
+        (p) => p.nombre.toLowerCase().includes(q) || p.descripcion?.toLowerCase().includes(q),
       )
     }
-    setPlatosFiltrados(resultado)
-  }, [categoriaActiva, busqueda])
+    return resultado
+  }, [platos, categoriaActiva, busqueda])
 
-  useEffect(() => {
-    filtrarPlatos(platos)
-  }, [categoriaActiva, busqueda, platos, filtrarPlatos])
+  const itemsEnviadosConNombre = useMemo(
+    () =>
+      itemsEnviados.map((item) => ({
+        ...item,
+        nombre: platos.find((p) => p.id === item.menu_item_id)?.nombre ?? 'Plato',
+      })),
+    [itemsEnviados, platos],
+  )
 
-  const abrirModal = (plato: PlatoConExtras) => {
+  const abrirModal = (plato: Plato) => {
     setPlatoModal(plato)
-    setProteinaSeleccionada(plato.proteina?.opciones[0] || null)
-    setIngredientesQuitados(new Set())
-    setExtrasSeleccionados(new Set())
     setCantidad(1)
     setNotaItem('')
     setModalAbierto(true)
@@ -131,42 +101,13 @@ export function usePedidos(): UsePedidosReturn {
     setPlatoModal(null)
   }
 
-  const toggleQuitar = (ing: string) => {
-    setIngredientesQuitados((prev) => {
-      const next = new Set(prev)
-      next.has(ing) ? next.delete(ing) : next.add(ing)
-      return next
-    })
-  }
-
-  const toggleExtra = (nombre: string) => {
-    setExtrasSeleccionados((prev) => {
-      const next = new Set(prev)
-      next.has(nombre) ? next.delete(nombre) : next.add(nombre)
-      return next
-    })
-  }
-
   const calcularPrecioItem = (): number => {
     if (!platoModal) return 0
-    let extraCost = 0
-    extrasSeleccionados.forEach((nombre) => {
-      const extra = platoModal.extras.find((e) => e.nombre === nombre)
-      if (extra) extraCost += extra.precio
-    })
-    return (platoModal.precio_base + extraCost) * cantidad
+    return platoModal.precio_base * cantidad
   }
 
   const agregarAlCarrito = () => {
     if (!platoModal) return
-
-    const modParts: string[] = []
-    if (proteinaSeleccionada && platoModal.proteina?.opciones[0] !== proteinaSeleccionada) {
-      modParts.push(proteinaSeleccionada)
-    }
-    ingredientesQuitados.forEach((r) => modParts.push(`Sin ${r.toLowerCase()}`))
-    extrasSeleccionados.forEach((e) => modParts.push(`+${e}`))
-    if (notaItem.trim()) modParts.push(`Nota: ${notaItem.trim()}`)
 
     const nuevoItem: ItemCarrito = {
       id: crypto.randomUUID(),
@@ -174,12 +115,8 @@ export function usePedidos(): UsePedidosReturn {
       nombre: platoModal.nombre,
       cantidad,
       precioBase: platoModal.precio_base,
-      extras: platoModal.extras.filter((e) => extrasSeleccionados.has(e.nombre)),
-      proteinaSeleccionada: proteinaSeleccionada ?? undefined,
-      ingredientesQuitados: Array.from(ingredientesQuitados),
       nota: notaItem.trim(),
       precioTotal: calcularPrecioItem(),
-      agregadoPor: user?.user_metadata?.nombre || user?.email || 'Mesonero',
     }
 
     setCarrito((prev) => [...prev, nuevoItem])
@@ -191,9 +128,8 @@ export function usePedidos(): UsePedidosReturn {
       prev.map((item) => {
         if (item.id !== id) return item
         const nuevaCant = Math.max(1, item.cantidad + delta)
-        const extraCost = item.extras.reduce((sum: number, e) => sum + e.precio, 0)
-        return { ...item, cantidad: nuevaCant, precioTotal: (item.precioBase + extraCost) * nuevaCant }
-      })
+        return { ...item, cantidad: nuevaCant, precioTotal: item.precioBase * nuevaCant }
+      }),
     )
   }
 
@@ -201,57 +137,47 @@ export function usePedidos(): UsePedidosReturn {
     setCarrito((prev) => prev.filter((item) => item.id !== id))
   }
 
-  const calcularSubtotal = (): number => {
-    return carrito.reduce((sum: number, item) => sum + item.precioTotal, 0)
-  }
+  const calcularSubtotal = (): number => carrito.reduce((sum, item) => sum + item.precioTotal, 0)
 
-  const enviarACocina = (mesaNumero: number, notaGeneral: string) => {
-    console.log('Enviar a cocina:', { mesaNumero, items: carrito, notaGeneral })
-    alert('Pedido enviado a cocina (pendiente de implementar integración real)')
-  }
-
-  const guardarBorrador = (mesaNumero: number, notaGeneral: string) => {
-    console.log('Guardar borrador:', { mesaNumero, items: carrito, notaGeneral })
-    alert('Borrador guardado (pendiente de implementar)')
+  async function enviarACocina() {
+    if (!usuario?.sede_id || !sesion || carrito.length === 0) return
+    setEnviando(true)
+    try {
+      await enviarPedidoACocina(
+        { tenant_id: usuario.tenant_id, sede_id: usuario.sede_id, sesion_id: sesion.id, agregadoPor: usuario.id },
+        carrito,
+      )
+      setCarrito([])
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return {
-    platos,
+    mesa,
+    sesion,
+    categorias,
     platosFiltrados,
     categoriaActiva,
     setCategoriaActiva,
     busqueda,
     setBusqueda,
     carrito,
-    setCarrito,
-    notaGeneral,
-    setNotaGeneral,
+    itemsEnviados: itemsEnviadosConNombre,
     modalAbierto,
-    setModalAbierto,
     platoModal,
-    setPlatoModal,
-    proteinaSeleccionada,
-    setProteinaSeleccionada,
-    ingredientesQuitados,
-    setIngredientesQuitados,
-    extrasSeleccionados,
-    setExtrasSeleccionados,
     cantidad,
     setCantidad,
     notaItem,
     setNotaItem,
-    loading,
-    filtrarPlatos,
+    enviando,
     abrirModal,
     cerrarModal,
-    toggleQuitar,
-    toggleExtra,
     calcularPrecioItem,
     agregarAlCarrito,
     actualizarCantidadCarrito,
     eliminarDelCarrito,
     calcularSubtotal,
     enviarACocina,
-    guardarBorrador,
   }
 }

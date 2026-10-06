@@ -1,8 +1,8 @@
-import type { PlatoConExtras } from '../../../../models/types'
+import type { Plato } from '../../../../models/types'
 import { GRADIENTES_FOTO, FOTO_POR_DEFECTO } from './constants'
 
 interface PlatoCardProps {
-  plato: PlatoConExtras
+  plato: Plato
   onClick: () => void
 }
 

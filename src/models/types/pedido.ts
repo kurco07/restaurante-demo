@@ -14,7 +14,7 @@ export interface PedidoItem {
   creado_en: string
 }
 
-export interface PlatoConExtras {
+export interface Plato {
   id: string
   tenant_id: string
   categoria_id: string
@@ -22,22 +22,19 @@ export interface PlatoConExtras {
   descripcion: string | null
   precio_base: number
   imagen_url: string | null
-  receta?: import('./inventario').Receta[]
-  extras: { nombre: string; precio: number }[]
-  proteina?: { opciones: string[] }
-  quitar?: string[]
 }
 
+// Carrito es un borrador local, en memoria — solo se vuelve real
+// (pedidos_items) al tocar "Enviar a cocina" (ver pedidoService.ts). El
+// sistema de extras/proteína/ingredientes a quitar quedó fuera: no existe
+// ninguna tabla para eso todavía (anotado como pendiente en la migración
+// 0002), así que de momento un ítem es solo cantidad + nota libre.
 export interface ItemCarrito {
   id: string
   menuItemId: string
   nombre: string
   cantidad: number
   precioBase: number
-  extras: { nombre: string; precio: number }[]
-  proteinaSeleccionada?: string
-  ingredientesQuitados: string[]
   nota: string
   precioTotal: number
-  agregadoPor: string
 }

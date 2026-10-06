@@ -1,16 +1,10 @@
-import type { PlatoConExtras } from '../../../../models/types'
+import type { Plato } from '../../../../models/types'
 import { GRADIENTES_FOTO, FOTO_POR_DEFECTO } from './constants'
 
 interface ModalPersonalizacionProps {
-  plato: PlatoConExtras | null
+  plato: Plato | null
   isOpen: boolean
   onClose: () => void
-  proteinaSeleccionada: string | null
-  onProteinaChange: (value: string | null) => void
-  ingredientesQuitados: Set<string>
-  onToggleQuitar: (ing: string) => void
-  extrasSeleccionados: Set<string>
-  onToggleExtra: (nombre: string) => void
   cantidad: number
   onCantidadChange: (value: number) => void
   notaItem: string
@@ -23,12 +17,6 @@ export function ModalPersonalizacion({
   plato,
   isOpen,
   onClose,
-  proteinaSeleccionada,
-  onProteinaChange,
-  ingredientesQuitados,
-  onToggleQuitar,
-  extrasSeleccionados,
-  onToggleExtra,
   cantidad,
   onCantidadChange,
   notaItem,
@@ -76,87 +64,6 @@ export function ModalPersonalizacion({
               ✕
             </button>
           </div>
-
-          {plato.proteina && (
-            <div className="mt-5">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-extrabold uppercase tracking-wide text-[var(--ink)]">
-                  Elige tu proteína
-                </span>
-                <span className="text-xs font-extrabold text-[var(--red)]">· obligatorio</span>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {plato.proteina.opciones.map((op) => (
-                  <button
-                    key={op}
-                    type="button"
-                    onClick={() => onProteinaChange(op)}
-                    className={`rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
-                      proteinaSeleccionada === op
-                        ? 'bg-[var(--orange)] border-[var(--orange)] text-white'
-                        : 'border-[var(--border)] bg-[var(--surface)] text-[var(--ink)]'
-                    }`}
-                  >
-                    {op}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {plato.quitar && plato.quitar.length > 0 && (
-            <div className="mt-5">
-              <span className="text-sm font-extrabold uppercase tracking-wide text-[var(--ink)]">
-                Quitar ingredientes
-              </span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {plato.quitar.map((ing) => {
-                  const quitado = ingredientesQuitados.has(ing)
-                  return (
-                    <button
-                      key={ing}
-                      type="button"
-                      onClick={() => onToggleQuitar(ing)}
-                      className={`rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
-                        quitado
-                          ? 'border-[var(--red)] bg-[var(--surface)] text-[var(--red)] line-through'
-                          : 'border-[var(--border)] bg-[var(--surface-alt)] text-[var(--ink)]'
-                      }`}
-                    >
-                      {quitado ? '✕ ' : '✓ '}{ing}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {plato.extras && plato.extras.length > 0 && (
-            <div className="mt-5">
-              <span className="text-sm font-extrabold uppercase tracking-wide text-[var(--ink)]">
-                Extras
-              </span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {plato.extras.map((ex) => {
-                  const activo = extrasSeleccionados.has(ex.nombre)
-                  return (
-                    <button
-                      key={ex.nombre}
-                      type="button"
-                      onClick={() => onToggleExtra(ex.nombre)}
-                      className={`rounded-full px-4 py-2 text-sm font-extrabold transition-colors ${
-                        activo
-                          ? 'border-[var(--orange)] bg-[var(--surface-alt)] text-[var(--orange-dark)]'
-                          : 'border-[var(--border)] bg-[var(--surface)] text-[var(--ink-soft)]'
-                      }`}
-                    >
-                      {activo ? '✓ ' : '+ '}{ex.nombre} (${ex.precio.toFixed(2)})
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
 
           <div className="mt-5 flex items-center justify-between">
             <span className="text-sm font-extrabold uppercase tracking-wide text-[var(--ink)]">
