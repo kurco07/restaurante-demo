@@ -1,48 +1,42 @@
 import { useState } from 'react'
-import { MesaCard, type EstadoMesaVista } from './MesaCard'
+import { useNavigate } from 'react-router-dom'
+import { usePowerSyncWatch } from '../../../../controllers/usePowerSyncWatch'
+import { abrirMesa, marcarMesaLibre } from '../../../../models/services/sesionMesaService'
+import type { Usuario } from '../../../../models/types'
+import { MesaCard } from './MesaCard'
 import { DetalleMesaPanel } from './DetalleMesaPanel'
 
-export interface MesaMock {
-  numero: number
-  zona: string
-  estado: EstadoMesaVista
-  left: string
-  top: string
-  forma?: 'square' | 'round'
-  tiempo?: string
-  items?: number
-  total?: number
+export interface MesaVista {
+  id: string
+  numero: string
+  estado: 'libre' | 'mia' | 'otro' | 'por_limpiar'
   mesero?: string
-  demorada?: boolean
-  status?: 'cocina' | 'listo' | 'cuenta'
+  tiempoLabel?: string
 }
 
-// Datos de ejemplo — esto se reemplaza por datos reales (Supabase/PowerSync)
-// cuando se conecte el módulo de verdad. Por ahora es solo boceto visual.
-const mesasEjemplo: MesaMock[] = [
-  { numero: 1, zona: 'Salón principal', estado: 'libre', left: '16%', top: '8%' },
-  { numero: 2, zona: 'Salón principal', estado: 'mia', left: '34%', top: '6%', tiempo: '12 min', items: 4, total: 24.5 },
-  { numero: 3, zona: 'Salón principal', estado: 'mia', left: '52%', top: '11%', forma: 'round', tiempo: '4 min', items: 2, total: 14, status: 'listo' },
-  { numero: 4, zona: 'Salón principal', estado: 'otro', left: '70%', top: '7%', mesero: 'Carlos', tiempo: '9 min' },
+interface MesaRow {
+  id: string
+  nombre_numero: string
+  posicion_x: number | null
+  posicion_y: number | null
+  estado: 'libre' | 'ocupada' | 'por_limpiar'
+}
 
-  { numero: 5, zona: 'Salón principal', estado: 'libre', left: '18%', top: '30%' },
-  { numero: 6, zona: 'Salón principal', estado: 'limpiar', left: '38%', top: '32%' },
-  { numero: 7, zona: 'Salón principal', estado: 'mia', left: '58%', top: '35%', forma: 'round', tiempo: '18 min', items: 3, total: 22, demorada: true },
+interface SesionRow {
+  id: string
+  mesa_id: string
+  mesonero_id: string | null
+  abierta_en: string
+}
 
-  { numero: 8, zona: 'Terraza', estado: 'libre', left: '19%', top: '54%' },
-  { numero: 9, zona: 'Terraza', estado: 'mia', left: '39%', top: '57%', forma: 'round', tiempo: '6 min', items: 1, total: 6, status: 'cuenta' },
-  { numero: 10, zona: 'Terraza', estado: 'otro', left: '60%', top: '55%', mesero: 'Carlos', tiempo: '5 min' },
+interface UsuarioRow {
+  id: string
+  nombre: string
+}
 
-  { numero: 11, zona: 'Terraza', estado: 'libre', left: '17%', top: '78%' },
-  { numero: 12, zona: 'Terraza', estado: 'mia', left: '43%', top: '80%', forma: 'round', tiempo: '2 min', items: 5, total: 31 },
-]
-
-const etiquetaSegunEstado = (mesa: MesaMock) => {
-  if (mesa.estado === 'libre') return 'Libre'
-  if (mesa.estado === 'limpiar') return 'Limpiar'
-  if (mesa.estado === 'otro') return mesa.mesero ?? '—'
-  if (mesa.status === 'cuenta') return 'Cuenta'
-  return mesa.tiempo ?? ''
+function etiquetaTiempo(abiertaEnIso: string) {
+  const minutos = Math.max(0, Math.round((Date.now() - new Date(abiertaEnIso).getTime()) / 60000))
+  return `${minutos} min`
 }
 
 type Filtro = 'todas' | 'mias' | 'libres' | 'otro' | 'limpiar'
@@ -55,19 +49,63 @@ const filtros: { key: Filtro; label: string }[] = [
   { key: 'limpiar', label: 'Por limpiar' },
 ]
 
-function coincideFiltro(mesa: MesaMock, filtro: Filtro) {
+function coincideFiltro(mesa: MesaVista, filtro: Filtro) {
   if (filtro === 'todas') return true
   if (filtro === 'mias') return mesa.estado === 'mia'
   if (filtro === 'libres') return mesa.estado === 'libre'
   if (filtro === 'otro') return mesa.estado === 'otro'
-  return mesa.estado === 'limpiar'
+  return mesa.estado === 'por_limpiar'
 }
 
-export function MapaMesas() {
-  const [seleccionada, setSeleccionada] = useState<number | null>(null)
+interface MapaMesasProps {
+  usuario: Usuario
+}
+
+export function MapaMesas({ usuario }: MapaMesasProps) {
+  const navigate = useNavigate()
+  const [seleccionada, setSeleccionada] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<Filtro>('todas')
 
-  const contador = (f: Filtro) => mesasEjemplo.filter((m) => coincideFiltro(m, f)).length
+  const mesasRaw = usePowerSyncWatch<MesaRow>('select * from mesas where sede_id = ?', [usuario.sede_id])
+  const sesiones = usePowerSyncWatch<SesionRow>(
+    "select * from sesiones_mesa where sede_id = ? and estado = 'abierta'",
+    [usuario.sede_id],
+  )
+  const usuariosSede = usePowerSyncWatch<UsuarioRow>('select id, nombre from usuarios where tenant_id = ?', [
+    usuario.tenant_id,
+  ])
+
+  const mesas: (MesaVista & { posicionX: number; posicionY: number })[] = mesasRaw.map((mesa) => {
+    const sesion = sesiones.find((s) => s.mesa_id === mesa.id)
+
+    let estado: MesaVista['estado']
+    if (mesa.estado === 'libre') estado = 'libre'
+    else if (mesa.estado === 'por_limpiar') estado = 'por_limpiar'
+    else estado = sesion?.mesonero_id === usuario.id ? 'mia' : 'otro'
+
+    return {
+      id: mesa.id,
+      numero: mesa.nombre_numero,
+      estado,
+      mesero: sesion ? usuariosSede.find((u) => u.id === sesion.mesonero_id)?.nombre : undefined,
+      tiempoLabel: sesion ? etiquetaTiempo(sesion.abierta_en) : undefined,
+      posicionX: mesa.posicion_x ?? 50,
+      posicionY: mesa.posicion_y ?? 50,
+    }
+  })
+
+  const contador = (f: Filtro) => mesas.filter((m) => coincideFiltro(m, f)).length
+
+  async function abrirYTomarPedido(mesa: MesaVista) {
+    if (!usuario.sede_id) return
+    await abrirMesa({ id: mesa.id, tenant_id: usuario.tenant_id, sede_id: usuario.sede_id }, usuario.id)
+    navigate(`/mesoneros/pedidos/${mesa.id}`)
+  }
+
+  async function marcarLibre(mesa: MesaVista) {
+    await marcarMesaLibre(mesa.id)
+    setSeleccionada(null)
+  }
 
   return (
     <div>
@@ -77,12 +115,12 @@ export function MapaMesas() {
           <div className="text-xs text-gray-500">Mesas asignadas</div>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-4">
-          <div className="text-xl font-extrabold text-gray-900">{contador('mias')}</div>
+          <div className="text-xl font-extrabold text-gray-900">{mesas.filter((m) => m.estado !== 'libre').length}</div>
           <div className="text-xs text-gray-500">Ocupadas ahora</div>
         </div>
         <div className="rounded-2xl border border-gray-200 bg-white p-4">
-          <div className="text-xl font-extrabold text-red-500">{mesasEjemplo.filter((m) => m.demorada).length}</div>
-          <div className="text-xs text-gray-500">Mesa demorada</div>
+          <div className="text-xl font-extrabold text-gray-900">{contador('limpiar')}</div>
+          <div className="text-xs text-gray-500">Por limpiar</div>
         </div>
       </div>
 
@@ -118,9 +156,6 @@ export function MapaMesas() {
               <span className="h-2.5 w-2.5 rounded-sm border border-orange-400 bg-orange-50" /> Tuya
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-sm border border-red-400 bg-red-50" /> Demorada
-            </span>
-            <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-sm bg-gray-100" /> Otro mesonero
             </span>
             <span className="flex items-center gap-1.5">
@@ -139,29 +174,29 @@ export function MapaMesas() {
               <div className="absolute right-0 top-[34%] flex h-[16%] w-[16%] items-center justify-center border-2 border-amber-200 bg-orange-50 text-[9px] font-extrabold uppercase text-gray-400">
                 Baños
               </div>
-              <div className="absolute right-[2%] bottom-[4%] flex h-[16%] w-[26%] items-center justify-center gap-2 rounded-lg border-2 border-orange-400 bg-orange-50">
-                <div className="flex h-6 w-6 items-center justify-center rounded-md border border-dashed border-gray-200 bg-white text-[9px] font-extrabold text-gray-400">B1</div>
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-orange-500 text-[9px] font-extrabold text-white">B2</div>
-                <div className="flex h-6 w-6 items-center justify-center rounded-md border border-dashed border-gray-200 bg-white text-[9px] font-extrabold text-gray-400">B3</div>
-                <div className="flex h-6 w-6 items-center justify-center rounded-md border border-dashed border-gray-200 bg-white text-[9px] font-extrabold text-gray-400">B4</div>
-              </div>
 
-              {mesasEjemplo.map((mesa) => (
+              {mesas.map((mesa) => (
                 <MesaCard
-                  key={mesa.numero}
+                  key={mesa.id}
                   numero={mesa.numero}
                   estado={mesa.estado}
-                  forma={mesa.forma}
-                  demorada={mesa.demorada}
-                  etiqueta={etiquetaSegunEstado(mesa)}
-                  selected={seleccionada === mesa.numero}
+                  etiqueta={
+                    mesa.estado === 'libre'
+                      ? 'Libre'
+                      : mesa.estado === 'por_limpiar'
+                        ? 'Limpiar'
+                        : mesa.estado === 'otro'
+                          ? (mesa.mesero ?? '—')
+                          : (mesa.tiempoLabel ?? '')
+                  }
+                  selected={seleccionada === mesa.id}
                   style={{
-                    left: mesa.left,
-                    top: mesa.top,
+                    left: `${mesa.posicionX}%`,
+                    top: `${mesa.posicionY}%`,
                     opacity: coincideFiltro(mesa, filtro) ? 1 : 0.25,
                     pointerEvents: coincideFiltro(mesa, filtro) ? 'auto' : 'none',
                   }}
-                  onClick={() => setSeleccionada(mesa.numero)}
+                  onClick={() => setSeleccionada(mesa.id)}
                 />
               ))}
             </div>
@@ -169,10 +204,13 @@ export function MapaMesas() {
         </div>
 
         <DetalleMesaPanel
-          mesas={mesasEjemplo}
+          mesas={mesas}
           seleccionada={seleccionada}
           onSeleccionar={setSeleccionada}
           onVolver={() => setSeleccionada(null)}
+          onAbrirMesa={abrirYTomarPedido}
+          onMarcarLibre={marcarLibre}
+          onVerPedido={(mesa) => navigate(`/mesoneros/pedidos/${mesa.id}`)}
         />
       </div>
     </div>

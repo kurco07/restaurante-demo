@@ -24,7 +24,6 @@ export type {
   PedidoAdmin,
   TipoMovimiento,
   MovimientoInventario,
-  MesaEditable,
   InsumoAdmin,
   EstadoLote,
   LoteInsumo,

@@ -1,45 +1,120 @@
-import { useState } from 'react'
-import { mesasAdminMock } from './mockData/mesasAdmin'
+import { useEffect, useState } from 'react'
+import { useUsuario } from '../usuario/useUsuario'
+import { actualizarMesa, crearMesa, eliminarMesa, fetchMesas } from '../../models/services/mesaService'
+import type { Mesa } from '../../models/types'
 
-type Filtro = 'todas' | 'libres' | 'ocupadas' | 'demoradas'
+type Filtro = 'todas' | 'libre' | 'ocupada' | 'por_limpiar'
 
 const filtros: { key: Filtro; label: string }[] = [
   { key: 'todas', label: 'Todas' },
-  { key: 'libres', label: 'Libres' },
-  { key: 'ocupadas', label: 'Ocupadas' },
-  { key: 'demoradas', label: 'Demoradas' },
+  { key: 'libre', label: 'Libres' },
+  { key: 'ocupada', label: 'Ocupadas' },
+  { key: 'por_limpiar', label: 'Por limpiar' },
 ]
 
-function coincideFiltro(mesa: (typeof mesasAdminMock)[number], filtro: Filtro) {
-  if (filtro === 'todas') return true
-  if (filtro === 'libres') return mesa.estado === 'libre'
-  if (filtro === 'ocupadas') return mesa.estado === 'ocupada'
-  return Boolean(mesa.demorada)
+function coincideFiltro(mesa: Mesa, filtro: Filtro) {
+  return filtro === 'todas' || mesa.estado === filtro
 }
 
 export function useMesasAdmin() {
+  const { usuario } = useUsuario()
+  const [mesas, setMesas] = useState<Mesa[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<Filtro>('todas')
-  const [editando, setEditando] = useState(false)
-  const [seleccionada, setSeleccionada] = useState<number | null>(7)
+  const [seleccionadaId, setSeleccionadaId] = useState<string | null>(null)
+  const [guardando, setGuardando] = useState(false)
 
-  const contador = (f: Filtro) => mesasAdminMock.filter((m) => coincideFiltro(m, f)).length
+  useEffect(() => {
+    if (!usuario?.sede_id) return
+    let cancelado = false
+    setLoading(true)
+    fetchMesas(usuario.tenant_id, usuario.sede_id)
+      .then((data) => {
+        if (cancelado) return
+        setMesas(data)
+        setLoading(false)
+      })
+      .catch((err: unknown) => {
+        if (cancelado) return
+        setError(err instanceof Error ? err.message : 'No se pudieron cargar las mesas')
+        setLoading(false)
+      })
+    return () => {
+      cancelado = true
+    }
+  }, [usuario?.tenant_id, usuario?.sede_id])
+
+  async function agregarMesa() {
+    if (!usuario?.sede_id) return
+    setGuardando(true)
+    try {
+      const nueva = await crearMesa({
+        tenant_id: usuario.tenant_id,
+        sede_id: usuario.sede_id,
+        nombre_numero: String(mesas.length + 1),
+        posicion_x: 50,
+        posicion_y: 50,
+      })
+      setMesas((prev) => [...prev, nueva])
+      setSeleccionadaId(nueva.id)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo crear la mesa')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  async function guardarMesa(
+    id: string,
+    cambios: { nombre_numero: string; posicion_x: number | null; posicion_y: number | null },
+  ) {
+    setGuardando(true)
+    try {
+      const actualizada = await actualizarMesa(id, cambios)
+      setMesas((prev) => prev.map((m) => (m.id === id ? actualizada : m)))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar la mesa')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  async function borrarMesa(id: string) {
+    setGuardando(true)
+    try {
+      await eliminarMesa(id)
+      setMesas((prev) => prev.filter((m) => m.id !== id))
+      setSeleccionadaId((actual) => (actual === id ? null : actual))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar la mesa')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  const contador = (f: Filtro) => mesas.filter((m) => coincideFiltro(m, f)).length
 
   return {
-    mesas: mesasAdminMock,
+    mesas,
+    loading,
+    error,
     filtro,
     setFiltro,
     filtros,
     contador,
-    coincideFiltro: (mesa: (typeof mesasAdminMock)[number]) => coincideFiltro(mesa, filtro),
-    editando,
-    setEditando,
-    seleccionada,
-    setSeleccionada,
-    mesaSeleccionada: mesasAdminMock.find((m) => m.numero === seleccionada) ?? null,
+    coincideFiltro: (mesa: Mesa) => coincideFiltro(mesa, filtro),
+    seleccionadaId,
+    setSeleccionadaId,
+    mesaSeleccionada: mesas.find((m) => m.id === seleccionadaId) ?? null,
+    guardando,
+    agregarMesa,
+    guardarMesa,
+    borrarMesa,
     totales: {
-      total: mesasAdminMock.length,
-      ocupadas: mesasAdminMock.filter((m) => m.estado === 'ocupada').length,
-      demoradas: mesasAdminMock.filter((m) => m.demorada).length,
+      total: mesas.length,
+      ocupadas: mesas.filter((m) => m.estado === 'ocupada').length,
+      porLimpiar: mesas.filter((m) => m.estado === 'por_limpiar').length,
     },
   }
 }

@@ -142,23 +142,6 @@ export interface MovimientoInventario {
   horaLabel: string
 }
 
-// ---- Mesas (editor de administración) ----
-
-export interface MesaEditable {
-  numero: number
-  zona: string
-  capacidad: number
-  forma: 'square' | 'round'
-  estado: 'libre' | 'ocupada' | 'limpiar'
-  activa: boolean
-  left: string
-  top: string
-  tiempo?: string
-  mesero?: string
-  demorada?: boolean
-  status?: 'cocina' | 'listo' | 'cuenta'
-}
-
 // ---- Inventario: insumos ----
 
 export interface InsumoAdmin {
