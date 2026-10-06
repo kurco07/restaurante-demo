@@ -8,6 +8,7 @@ interface DetalleMesaPanelProps {
   onAbrirMesa: (mesa: MesaVista) => void
   onMarcarLibre: (mesa: MesaVista) => void
   onVerPedido: (mesa: MesaVista) => void
+  onCobrarYCerrar: (mesa: MesaVista) => void
 }
 
 export function DetalleMesaPanel({
@@ -18,6 +19,7 @@ export function DetalleMesaPanel({
   onAbrirMesa,
   onMarcarLibre,
   onVerPedido,
+  onCobrarYCerrar,
 }: DetalleMesaPanelProps) {
   const mesa = mesas.find((m) => m.id === seleccionada)
 
@@ -119,9 +121,13 @@ export function DetalleMesaPanel({
           >
             Ver / editar pedido
           </button>
-          <div className="rounded-xl bg-green-600 py-3 text-center text-sm font-bold text-white">
+          <button
+            type="button"
+            onClick={() => onCobrarYCerrar(mesa)}
+            className="w-full rounded-xl bg-green-600 py-3 text-center text-sm font-bold text-white hover:bg-green-700 transition-colors"
+          >
             Cobrar y cerrar cuenta
-          </div>
+          </button>
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { abrirMesa, marcarMesaLibre } from '../../../../models/services/sesionMe
 import type { Usuario } from '../../../../models/types'
 import { MesaCard } from './MesaCard'
 import { DetalleMesaPanel } from './DetalleMesaPanel'
+import { CierreCuentaModal } from './CierreCuentaModal'
 
 export interface MesaVista {
   id: string
@@ -65,6 +66,7 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
   const navigate = useNavigate()
   const [seleccionada, setSeleccionada] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<Filtro>('todas')
+  const [mesaCierreId, setMesaCierreId] = useState<string | null>(null)
 
   const mesasRaw = usePowerSyncWatch<MesaRow>('select * from mesas where sede_id = ?', [usuario.sede_id])
   const sesiones = usePowerSyncWatch<SesionRow>(
@@ -106,6 +108,8 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
     await marcarMesaLibre(mesa.id)
     setSeleccionada(null)
   }
+
+  const mesaCierre = mesas.find((m) => m.id === mesaCierreId) ?? null
 
   return (
     <div>
@@ -211,8 +215,21 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
           onAbrirMesa={abrirYTomarPedido}
           onMarcarLibre={marcarLibre}
           onVerPedido={(mesa) => navigate(`/mesoneros/pedidos/${mesa.id}`)}
+          onCobrarYCerrar={(mesa) => setMesaCierreId(mesa.id)}
         />
       </div>
+
+      {mesaCierre && (
+        <CierreCuentaModal
+          mesa={mesaCierre}
+          usuario={usuario}
+          onCerrar={() => setMesaCierreId(null)}
+          onCerrada={() => {
+            setMesaCierreId(null)
+            setSeleccionada(null)
+          }}
+        />
+      )}
     </div>
   )
 }
