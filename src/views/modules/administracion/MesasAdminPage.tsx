@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
@@ -21,10 +21,56 @@ const etiquetaEstado: Record<Mesa['estado'], string> = {
 export default function MesasAdminPage() {
   const { usuario, loading: loadingUsuario, error: errorUsuario } = useUsuario()
   const m = useMesasAdmin()
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const movidoRef = useRef(false)
+
+  const [colocando, setColocando] = useState(false)
+  const [arrastrandoId, setArrastrandoId] = useState<string | null>(null)
+  const [posicionArrastre, setPosicionArrastre] = useState<{ x: number; y: number } | null>(null)
 
   if (loadingUsuario) return <LoadingSpinner message="Cargando tu perfil…" />
   if (errorUsuario) return <ErrorMessage message={errorUsuario} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+
+  function posicionDesdeEvento(clientX: number, clientY: number) {
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return { x: 50, y: 50 }
+    const x = Math.round(Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100)))
+    const y = Math.round(Math.min(100, Math.max(0, ((clientY - rect.top) / rect.height) * 100)))
+    return { x, y }
+  }
+
+  function handleClickCanvas(e: React.MouseEvent<HTMLDivElement>) {
+    if (!colocando || e.target !== e.currentTarget) return
+    const pos = posicionDesdeEvento(e.clientX, e.clientY)
+    m.agregarMesa(pos.x, pos.y)
+    setColocando(false)
+  }
+
+  function handlePointerDownMesa(e: React.PointerEvent<HTMLButtonElement>, mesa: Mesa) {
+    e.stopPropagation()
+    movidoRef.current = false
+    setArrastrandoId(mesa.id)
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+
+  function handlePointerMoveMesa(e: React.PointerEvent<HTMLButtonElement>, mesaId: string) {
+    if (arrastrandoId !== mesaId) return
+    movidoRef.current = true
+    setPosicionArrastre(posicionDesdeEvento(e.clientX, e.clientY))
+  }
+
+  function handlePointerUpMesa(mesa: Mesa) {
+    if (arrastrandoId !== mesa.id) return
+    const pos = posicionArrastre
+    setArrastrandoId(null)
+    setPosicionArrastre(null)
+    if (movidoRef.current && pos) {
+      m.moverMesa(mesa.id, pos.x, pos.y)
+    } else {
+      m.setSeleccionadaId(mesa.id)
+    }
+  }
 
   return (
     <AdminLayout usuario={usuario}>
@@ -32,7 +78,8 @@ export default function MesasAdminPage() {
         <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Administración</div>
         <h1 className="mt-1 text-[27px] font-extrabold">Mesas</h1>
         <p className="mt-1 text-[12.5px] text-[var(--ink-soft)]">
-          Este es el mismo mapa que ve el mesonero — aquí lo configuras, ellos solo lo ven.
+          Este es el mismo mapa que ve el mesonero — aquí lo configuras, ellos solo lo ven. Arrastra una mesa para
+          moverla.
         </p>
       </header>
 
@@ -70,14 +117,28 @@ export default function MesasAdminPage() {
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          onClick={m.agregarMesa}
-          disabled={m.guardando}
-          className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-bold text-[var(--ink)] disabled:opacity-50"
-        >
-          + Agregar mesa
-        </button>
+
+        {colocando ? (
+          <div className="flex items-center gap-2 text-xs font-bold text-[var(--orange-dark)]">
+            Haz clic en el plano para colocar la nueva mesa
+            <button
+              type="button"
+              onClick={() => setColocando(false)}
+              className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 text-[var(--ink-soft)]"
+            >
+              Cancelar
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setColocando(true)}
+            disabled={m.guardando}
+            className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-bold text-[var(--ink)] disabled:opacity-50"
+          >
+            + Agregar mesa
+          </button>
+        )}
       </div>
 
       <div className="mb-3 flex flex-wrap gap-3.5 text-[11px] text-[var(--ink-soft)]">
@@ -91,33 +152,47 @@ export default function MesasAdminPage() {
           {m.loading ? (
             <LoadingSpinner message="Cargando mesas…" />
           ) : (
-            <div className="relative h-[460px] w-full overflow-hidden rounded-xl border-2 border-[var(--border)] bg-[var(--gray-bg)]">
-              <div className="absolute right-0 top-0 flex h-[30%] w-[22%] items-center justify-center border-2 border-[var(--border)] bg-[var(--surface-alt)] text-[11px] font-extrabold uppercase tracking-wide text-[var(--ink-soft)]">
+            <div
+              ref={canvasRef}
+              onClick={handleClickCanvas}
+              className={`relative h-[460px] w-full overflow-hidden rounded-xl border-2 border-[var(--border)] bg-[var(--gray-bg)] ${
+                colocando ? 'cursor-crosshair' : ''
+              }`}
+            >
+              <div className="pointer-events-none absolute right-0 top-0 flex h-[30%] w-[22%] items-center justify-center border-2 border-[var(--border)] bg-[var(--surface-alt)] text-[11px] font-extrabold uppercase tracking-wide text-[var(--ink-soft)]">
                 Cocina
               </div>
-              <div className="absolute right-0 top-[30%] flex h-[14%] w-[14%] items-center justify-center border-2 border-[var(--border)] bg-[var(--surface-alt)] text-[9px] font-extrabold uppercase text-[var(--ink-soft)]">
+              <div className="pointer-events-none absolute right-0 top-[30%] flex h-[14%] w-[14%] items-center justify-center border-2 border-[var(--border)] bg-[var(--surface-alt)] text-[9px] font-extrabold uppercase text-[var(--ink-soft)]">
                 Baños
               </div>
 
-              {m.mesas.map((mesa) => (
-                <button
-                  key={mesa.id}
-                  type="button"
-                  onClick={() => m.setSeleccionadaId(mesa.id)}
-                  style={{
-                    left: `${mesa.posicion_x ?? 50}%`,
-                    top: `${mesa.posicion_y ?? 50}%`,
-                    opacity: m.coincideFiltro(mesa) ? 1 : 0.25,
-                    pointerEvents: m.coincideFiltro(mesa) ? 'auto' : 'none',
-                  }}
-                  className={`absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-xl border-2 text-center shadow-sm transition-shadow hover:shadow-md ${
-                    claseSegunEstado[mesa.estado]
-                  } ${m.seleccionadaId === mesa.id ? 'ring-2 ring-[var(--orange)] ring-offset-1' : ''}`}
-                >
-                  <span className="text-sm font-extrabold leading-none">{mesa.nombre_numero}</span>
-                  <span className="mt-0.5 text-[8px] font-bold leading-none">{etiquetaEstado[mesa.estado]}</span>
-                </button>
-              ))}
+              {m.mesas.map((mesa) => {
+                const arrastrandoEsta = arrastrandoId === mesa.id && posicionArrastre
+                const left = arrastrandoEsta ? posicionArrastre.x : mesa.posicion_x ?? 50
+                const top = arrastrandoEsta ? posicionArrastre.y : mesa.posicion_y ?? 50
+                return (
+                  <button
+                    key={mesa.id}
+                    type="button"
+                    onPointerDown={(e) => handlePointerDownMesa(e, mesa)}
+                    onPointerMove={(e) => handlePointerMoveMesa(e, mesa.id)}
+                    onPointerUp={() => handlePointerUpMesa(mesa)}
+                    style={{
+                      left: `${left}%`,
+                      top: `${top}%`,
+                      opacity: m.coincideFiltro(mesa) ? 1 : 0.25,
+                      pointerEvents: m.coincideFiltro(mesa) ? 'auto' : 'none',
+                      touchAction: 'none',
+                    }}
+                    className={`absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 cursor-grab flex-col items-center justify-center rounded-xl border-2 text-center shadow-sm transition-shadow active:cursor-grabbing hover:shadow-md ${
+                      claseSegunEstado[mesa.estado]
+                    } ${m.seleccionadaId === mesa.id ? 'ring-2 ring-[var(--orange)] ring-offset-1' : ''}`}
+                  >
+                    <span className="text-sm font-extrabold leading-none">{mesa.nombre_numero}</span>
+                    <span className="mt-0.5 text-[8px] font-bold leading-none">{etiquetaEstado[mesa.estado]}</span>
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
@@ -132,7 +207,7 @@ export default function MesasAdminPage() {
               onEliminar={m.borrarMesa}
             />
           ) : (
-            <p className="text-sm text-[var(--ink-soft)]">Toca una mesa del plano para editarla.</p>
+            <p className="text-sm text-[var(--ink-soft)]">Toca una mesa del plano para editarla, o arrástrala para moverla.</p>
           )}
         </div>
       </div>
@@ -152,8 +227,6 @@ interface EditorMesaProps {
 
 function EditorMesa({ mesa, guardando, onGuardar, onEliminar }: EditorMesaProps) {
   const [nombreNumero, setNombreNumero] = useState(mesa.nombre_numero)
-  const [posicionX, setPosicionX] = useState(mesa.posicion_x ?? 50)
-  const [posicionY, setPosicionY] = useState(mesa.posicion_y ?? 50)
 
   return (
     <>
@@ -168,30 +241,9 @@ function EditorMesa({ mesa, guardando, onGuardar, onEliminar }: EditorMesaProps)
           />
         </label>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">Posición X (%)</span>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={posicionX}
-              onChange={(e) => setPosicionX(Number(e.target.value))}
-              className="rounded-lg bg-[var(--surface-alt)] px-3 py-2 font-semibold outline-none"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">Posición Y (%)</span>
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={posicionY}
-              onChange={(e) => setPosicionY(Number(e.target.value))}
-              className="rounded-lg bg-[var(--surface-alt)] px-3 py-2 font-semibold outline-none"
-            />
-          </label>
-        </div>
+        <p className="text-[11.5px] text-[var(--ink-soft)]">
+          La posición se ajusta arrastrando la mesa directamente en el plano.
+        </p>
 
         <div>
           <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">Estado</p>
@@ -205,7 +257,13 @@ function EditorMesa({ mesa, guardando, onGuardar, onEliminar }: EditorMesaProps)
           <button
             type="button"
             disabled={guardando}
-            onClick={() => onGuardar(mesa.id, { nombre_numero: nombreNumero, posicion_x: posicionX, posicion_y: posicionY })}
+            onClick={() =>
+              onGuardar(mesa.id, {
+                nombre_numero: nombreNumero,
+                posicion_x: mesa.posicion_x,
+                posicion_y: mesa.posicion_y,
+              })
+            }
             className="flex-1 rounded-lg bg-[var(--orange)] py-2.5 text-[13px] font-bold text-white disabled:opacity-50"
           >
             Guardar cambios

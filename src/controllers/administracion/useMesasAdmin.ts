@@ -45,7 +45,7 @@ export function useMesasAdmin() {
     }
   }, [usuario?.tenant_id, usuario?.sede_id])
 
-  async function agregarMesa() {
+  async function agregarMesa(posicionX: number, posicionY: number) {
     if (!usuario?.sede_id) return
     setGuardando(true)
     try {
@@ -53,8 +53,8 @@ export function useMesasAdmin() {
         tenant_id: usuario.tenant_id,
         sede_id: usuario.sede_id,
         nombre_numero: String(mesas.length + 1),
-        posicion_x: 50,
-        posicion_y: 50,
+        posicion_x: posicionX,
+        posicion_y: posicionY,
       })
       setMesas((prev) => [...prev, nueva])
       setSeleccionadaId(nueva.id)
@@ -77,6 +77,18 @@ export function useMesasAdmin() {
       setError(err instanceof Error ? err.message : 'No se pudo guardar la mesa')
     } finally {
       setGuardando(false)
+    }
+  }
+
+  // Reposicionar por arrastre es más frecuente que editar texto — se
+  // guarda directo sin pasar por el flujo de "guardando" del formulario,
+  // así el arrastre se siente inmediato.
+  async function moverMesa(id: string, posicionX: number, posicionY: number) {
+    try {
+      const actualizada = await actualizarMesa(id, { posicion_x: posicionX, posicion_y: posicionY })
+      setMesas((prev) => prev.map((m) => (m.id === id ? actualizada : m)))
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo mover la mesa')
     }
   }
 
@@ -110,6 +122,7 @@ export function useMesasAdmin() {
     guardando,
     agregarMesa,
     guardarMesa,
+    moverMesa,
     borrarMesa,
     totales: {
       total: mesas.length,
