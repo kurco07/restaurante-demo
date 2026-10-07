@@ -53,20 +53,30 @@ Alta de categorías, platos, precio, y los insumos con su cantidad que componen 
 
 Implementado en `src/views/modules/administracion/` (alta, edición y borrado de categorías y platos; editor de receta por plato que reutiliza un insumo existente o crea uno nuevo al vuelo). Verificado en vivo contra Supabase con una sesión real, incluida recarga de página para confirmar persistencia. El menú real del cliente piloto (`docs/Menu.md`) ya está cargado: 13 categorías, 45 platos — sin recetas todavía, porque el documento del cliente no trae cantidades de insumo por plato.
 
-**Módulo 2 — Mapeo de mesas**
-Editor visual simple para crear la distribución de mesas del salón (posición, nombre o número). Vista de estado de cada mesa: libre, ocupada, por limpiar.
+**Módulo 2 — Mapeo de mesas** ✅
+Editor visual para crear la distribución de mesas del salón. Vista de estado de cada mesa: libre, ocupada, por limpiar.
 
-**Módulo 3 — Toma de pedidos del mesonero (offline)**
-El mesonero abre una mesa, agrega ítems del menú, con notas o modificadores. Debe seguir funcionando sin internet, guardando localmente vía PowerSync.
+Implementado con `mesaService.ts` (CRUD online para administración) + lectura reactiva vía `powerSync.watch` para el mapa del mesonero (hook reutilizable `usePowerSyncWatch`, primer uso de lectura offline en el proyecto). La posición no se edita con números X/Y — el plano de administración es interactivo: "+ Agregar mesa" entra en modo "colocar" (clic en el plano) y cada mesa existente se arrastra con el mouse para moverla (mejora pedida por el usuario sobre la versión mínima original). "Abrir mesa y tomar pedido" crea de verdad una fila en `sesiones_mesa`. Verificado en vivo con dos sesiones reales (administración + mesonero, dos navegadores): una mesa creada o movida en administración aparece sola en el mapa del mesonero sin recargar.
+
+**Módulo 3 — Toma de pedidos del mesonero (offline)** ✅
+El mesonero abre una mesa y agrega ítems del menú. El sistema completo de personalización (proteína, quitar ingredientes, extras) del mockup original queda diferido a propósito — no existe tabla para eso todavía, y se confirmó con el usuario dejarlo así por ahora (ver nota al final de este módulo). Por ahora cada ítem es cantidad + nota libre.
+
+El menú (categorías y platos) se lee vía `powerSync.watch`, así que armar el pedido funciona sin internet. "Enviar a cocina" inserta de verdad en `pedidos_items` como escritura local PowerSync, uno por ítem, con `client_local_id` (clave de deduplicación ante reintentos offline). Verificado en vivo contra RLS real y end-to-end con cocina viendo el pedido sin recargar.
 
 **Módulo 4 — Sincronización de comandas**
 Verificar en la práctica que los pedidos creados offline se suben solos al reconectar, sin duplicarse ni perderse — usando el `client_local_id` ya definido en el modelo de datos. Este módulo es principalmente de pruebas dirigidas: forzar una desconexión real y confirmar el comportamiento.
 
-**Módulo 5 — Cocina: pantalla en tiempo real**
-Una sola pantalla (no por estación, ya decidido) que muestra los pedidos entrantes y permite marcar estado: pendiente, en preparación, listo. Debe actualizarse en tiempo real vía Supabase Realtime cuando hay conexión, y seguir mostrando lo que ya tenía sincronizado si no la hay.
+Pendiente de correr la prueba real (cortar red, armar pedido offline, reconectar, confirmar en Supabase que no se duplicó). La base técnica ya está lista — PowerSync es quien maneja la cola local y el `unique(sesion_id, client_local_id)` del esquema ya cubre el caso de reintento — pero no se ha ejecutado la verificación dirigida todavía.
 
-**Módulo 6 — Cierre de cuenta por mesa**
+**Módulo 5 — Cocina: pantalla en tiempo real** ✅
+Una sola pantalla que muestra los pedidos entrantes y permite marcar estado: pendiente, en preparación, listo.
+
+Implementado vía `powerSync.watch` sobre `pedidos_items` (join con `menu_items`/`sesiones_mesa`/`mesas`/`usuarios` para contexto) en vez de Supabase Realtime directo — PowerSync ya cubre tiempo real + offline con un solo mecanismo de reactividad, así que no hace falta uno adicional. Los ítems de una misma mesa que comparten estado se agrupan en una sola tarjeta (un "ticket"), y "Iniciar preparación"/"Marcar listo"/"Entregar" avanza todos esos ítems juntos con un solo `update`, sin abrir el modal de detalle (el modal solo se abre al tocar el resto de la tarjeta, no el botón de acción). La ficha de receta lee `recetas`+`insumos` real por `menu_item_id`, sin el indicador de disponible/agotado (inventario real llega en Fase 4). Verificado en vivo con dos pestañas reales: mesonero envía pedido → aparece en cocina sin recargar.
+
+**Módulo 6 — Cierre de cuenta por mesa** ✅
 El mesonero calcula y cierra la cuenta de una mesa específica: método de pago, propina. Siempre lo hace un mesonero, nunca el cliente.
+
+Pantalla nueva (modal), inspirada en el mockup correspondiente — solo la vista mesonero, nunca la de cliente. Calcula el subtotal desde los `pedidos_items` reales de la sesión. `pagos_cierre` no está entre las tablas que PowerSync sincroniza offline (ni en el esquema del cliente ni en la publicación `powersync` de Postgres) — extenderlo requiere tocar las Sync Rules de la instancia PowerSync, así que por decisión explícita el pago se inserta online directo a Supabase (si falla, no se cierra la mesa); `sesiones_mesa`/`mesas` sí se actualizan vía escritura local PowerSync una vez el pago queda registrado. Verificado en vivo.
 
 ---
 
