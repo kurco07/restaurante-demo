@@ -101,14 +101,21 @@ export function TableroCocina() {
                     </div>
                     <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
                       {ticketsSeccion.map((ticket) => (
-                        <button
+                        <div
                           key={ticketKey(ticket)}
-                          type="button"
+                          role="button"
+                          tabIndex={0}
                           onClick={() => {
                             setTicketAbiertoKey(ticketKey(ticket))
                             setItemReceta(null)
                           }}
-                          className="rounded-2xl border-[1.5px] border-gray-200 bg-white p-4 text-left shadow-sm transition-shadow hover:shadow-md"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              setTicketAbiertoKey(ticketKey(ticket))
+                              setItemReceta(null)
+                            }
+                          }}
+                          className="cursor-pointer rounded-2xl border-[1.5px] border-gray-200 bg-white p-4 text-left shadow-sm transition-shadow hover:shadow-md"
                         >
                           <div className="mb-1 flex items-center justify-between">
                             <span className="text-[15.5px] font-extrabold text-gray-900">Mesa {ticket.mesa}</span>
@@ -126,12 +133,18 @@ export function TableroCocina() {
                               </li>
                             ))}
                           </ul>
-                          <div
-                            className={`w-full rounded-lg py-2.5 text-center text-[13px] font-bold ${botonColor[seccion]}`}
+                          <button
+                            type="button"
+                            disabled={avanzandoId === ticketKey(ticket)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              avanzarEstado(ticket)
+                            }}
+                            className={`w-full rounded-lg py-2.5 text-center text-[13px] font-bold disabled:opacity-50 ${botonColor[seccion]}`}
                           >
-                            {ACCION_SEGUN_ESTADO[seccion]}
-                          </div>
-                        </button>
+                            {avanzandoId === ticketKey(ticket) ? 'Actualizando…' : ACCION_SEGUN_ESTADO[seccion]}
+                          </button>
+                        </div>
                       ))}
                     </div>
                   </div>
