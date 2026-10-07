@@ -5,6 +5,7 @@ import {
   ACCION_SEGUN_ESTADO,
   type EstadoItemCocina,
   type ItemCocina,
+  type TicketCocina,
 } from '../../../../controllers/cocina/useCocina'
 import { OrderDetailModal } from './OrderDetailModal'
 import { RecetaModal } from './RecetaModal'
@@ -35,12 +36,16 @@ function tiempoTranscurrido(creadoEnIso: string) {
   return `${minutos} min`
 }
 
-export function TableroCocina() {
-  const { items, filtro, setFiltro, contador, resumen, avanzarEstado, avanzandoId } = useCocina()
-  const [itemAbiertoId, setItemAbiertoId] = useState<string | null>(null)
-  const [verReceta, setVerReceta] = useState(false)
+function ticketKey(ticket: TicketCocina) {
+  return `${ticket.sesionId}::${ticket.estado}`
+}
 
-  const itemAbierto: ItemCocina | null = items.find((i) => i.id === itemAbiertoId) ?? null
+export function TableroCocina() {
+  const { tickets, filtro, setFiltro, contador, resumen, avanzarEstado, avanzandoId } = useCocina()
+  const [ticketAbiertoKey, setTicketAbiertoKey] = useState<string | null>(null)
+  const [itemReceta, setItemReceta] = useState<ItemCocina | null>(null)
+
+  const ticketAbierto: TicketCocina | null = tickets.find((t) => ticketKey(t) === ticketAbiertoKey) ?? null
   const secciones: EstadoItemCocina[] = ['pendiente', 'en_preparacion', 'listo']
 
   return (
@@ -77,14 +82,14 @@ export function TableroCocina() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_250px]">
         <div>
-          {items.length === 0 ? (
+          {tickets.length === 0 ? (
             <p className="py-12 text-center text-sm text-gray-500">No hay pedidos pendientes en cocina.</p>
           ) : (
             secciones
               .filter((s) => filtro === 'todos' || filtro === s)
               .map((seccion) => {
-                const itemsSeccion = items.filter((i) => i.estado === seccion)
-                if (itemsSeccion.length === 0) return null
+                const ticketsSeccion = tickets.filter((t) => t.estado === seccion)
+                if (ticketsSeccion.length === 0) return null
                 return (
                   <div key={seccion} className="mb-6">
                     <div className="mb-3 flex items-center gap-2">
@@ -92,31 +97,35 @@ export function TableroCocina() {
                       <span className="text-xs font-extrabold uppercase tracking-wider text-gray-800">
                         {ETIQUETA_ESTADO[seccion]}
                       </span>
-                      <span className="text-xs font-semibold text-gray-400">· {itemsSeccion.length}</span>
+                      <span className="text-xs font-semibold text-gray-400">· {ticketsSeccion.length}</span>
                     </div>
                     <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                      {itemsSeccion.map((item) => (
+                      {ticketsSeccion.map((ticket) => (
                         <button
-                          key={item.id}
+                          key={ticketKey(ticket)}
                           type="button"
                           onClick={() => {
-                            setItemAbiertoId(item.id)
-                            setVerReceta(false)
+                            setTicketAbiertoKey(ticketKey(ticket))
+                            setItemReceta(null)
                           }}
                           className="rounded-2xl border-[1.5px] border-gray-200 bg-white p-4 text-left shadow-sm transition-shadow hover:shadow-md"
                         >
                           <div className="mb-1 flex items-center justify-between">
-                            <span className="text-[15.5px] font-extrabold text-gray-900">Mesa {item.mesa}</span>
-                            <span className="text-[13px] font-bold text-gray-500">{tiempoTranscurrido(item.creadoEn)}</span>
+                            <span className="text-[15.5px] font-extrabold text-gray-900">Mesa {ticket.mesa}</span>
+                            <span className="text-[13px] font-bold text-gray-500">{tiempoTranscurrido(ticket.creadoEn)}</span>
                           </div>
                           <div className="mb-2.5 text-[11px] text-gray-500">
-                            Mesonero: {item.mesonero ?? 'Sin asignar'}
+                            Mesonero: {ticket.mesonero ?? 'Sin asignar'}
                           </div>
-                          <div className="mb-3 text-sm">
-                            <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
-                            {item.plato}
-                            {item.notas && <div className="text-[10.5px] italic text-gray-500">{item.notas}</div>}
-                          </div>
+                          <ul className="mb-3 text-sm">
+                            {ticket.items.map((item) => (
+                              <li key={item.id} className="py-0.5">
+                                <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
+                                {item.plato}
+                                {item.notas && <div className="text-[10.5px] italic text-gray-500">{item.notas}</div>}
+                              </li>
+                            ))}
+                          </ul>
                           <div
                             className={`w-full rounded-lg py-2.5 text-center text-[13px] font-bold ${botonColor[seccion]}`}
                           >
@@ -143,24 +152,24 @@ export function TableroCocina() {
         </div>
       </div>
 
-      {itemAbierto && !verReceta && (
+      {ticketAbierto && !itemReceta && (
         <OrderDetailModal
-          item={itemAbierto}
-          avanzando={avanzandoId === itemAbierto.id}
-          onCerrar={() => setItemAbiertoId(null)}
-          onVerReceta={() => setVerReceta(true)}
-          onAvanzarEstado={() => avanzarEstado(itemAbierto)}
+          ticket={ticketAbierto}
+          avanzando={avanzandoId === ticketKey(ticketAbierto)}
+          onCerrar={() => setTicketAbiertoKey(null)}
+          onVerReceta={(item) => setItemReceta(item)}
+          onAvanzarEstado={() => avanzarEstado(ticketAbierto)}
         />
       )}
 
-      {itemAbierto && verReceta && (
+      {itemReceta && (
         <RecetaModal
-          menuItemId={itemAbierto.menuItemId}
-          plato={itemAbierto.plato}
-          onVolver={() => setVerReceta(false)}
+          menuItemId={itemReceta.menuItemId}
+          plato={itemReceta.plato}
+          onVolver={() => setItemReceta(null)}
           onCerrar={() => {
-            setVerReceta(false)
-            setItemAbiertoId(null)
+            setItemReceta(null)
+            setTicketAbiertoKey(null)
           }}
         />
       )}

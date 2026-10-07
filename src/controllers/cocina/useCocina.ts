@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import { usePowerSyncWatch } from '../usePowerSyncWatch'
-import { cambiarEstadoPedidoItem } from '../../models/services/pedidoService'
+import { avanzarItemsDeSesion } from '../../models/services/pedidoService'
 
 export type EstadoItemCocina = 'pendiente' | 'en_preparacion' | 'listo'
 
@@ -13,14 +13,27 @@ export interface ItemCocina {
   creadoEn: string
   menuItemId: string
   plato: string
+  sesionId: string
   mesa: string
   mesonero: string | null
 }
 
-// pedidos_items.estado es por ítem, no por "ticket" — a diferencia del
-// mock anterior (una orden con varios platos y un solo estado), cada
-// tarjeta del tablero es un ítem individual. "entregado" no se muestra:
-// ya salió de cocina.
+export interface TicketCocina {
+  sesionId: string
+  estado: EstadoItemCocina
+  mesa: string
+  mesonero: string | null
+  creadoEn: string
+  items: ItemCocina[]
+}
+
+// pedidos_items.estado es por ítem, no por "ticket" — así que se agrupan
+// acá los ítems de una misma mesa que comparten estado, para que cocina
+// vea "Mesa 1: 2× Hamburguesa, 1× Papas" como una sola tarjeta (igual que
+// el boceto), en vez de una tarjeta por plato. Si una mesa tiene ítems en
+// distintos estados (unos en espera, otros en preparación), aparece en
+// más de una columna — eso sí es real. "entregado" no se muestra: ya
+// salió de cocina.
 const SQL = `
   select
     pi.id as id,
@@ -30,6 +43,7 @@ const SQL = `
     pi.creado_en as creadoEn,
     pi.menu_item_id as menuItemId,
     mi.nombre as plato,
+    sm.id as sesionId,
     m.nombre_numero as mesa,
     u.nombre as mesonero
   from pedidos_items pi
@@ -61,18 +75,42 @@ export const ACCION_SEGUN_ESTADO: Record<EstadoItemCocina, string> = {
 
 type Filtro = 'todos' | EstadoItemCocina
 
+function agruparEnTickets(items: ItemCocina[]): TicketCocina[] {
+  const grupos = new Map<string, TicketCocina>()
+  for (const item of items) {
+    const key = `${item.sesionId}::${item.estado}`
+    const existente = grupos.get(key)
+    if (existente) {
+      existente.items.push(item)
+      if (item.creadoEn < existente.creadoEn) existente.creadoEn = item.creadoEn
+    } else {
+      grupos.set(key, {
+        sesionId: item.sesionId,
+        estado: item.estado,
+        mesa: item.mesa,
+        mesonero: item.mesonero,
+        creadoEn: item.creadoEn,
+        items: [item],
+      })
+    }
+  }
+  return [...grupos.values()].sort((a, b) => a.creadoEn.localeCompare(b.creadoEn))
+}
+
 export function useCocina() {
   const { usuario } = useUsuario()
   const items = usePowerSyncWatch<ItemCocina>(SQL, [usuario?.tenant_id ?? '', usuario?.sede_id ?? ''])
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [avanzandoId, setAvanzandoId] = useState<string | null>(null)
 
-  const itemsFiltrados = useMemo(
-    () => (filtro === 'todos' ? items : items.filter((i) => i.estado === filtro)),
-    [items, filtro],
+  const tickets = useMemo(() => agruparEnTickets(items), [items])
+
+  const ticketsFiltrados = useMemo(
+    () => (filtro === 'todos' ? tickets : tickets.filter((t) => t.estado === filtro)),
+    [tickets, filtro],
   )
 
-  const contador = (f: Filtro) => (f === 'todos' ? items.length : items.filter((i) => i.estado === f).length)
+  const contador = (f: Filtro) => (f === 'todos' ? tickets.length : tickets.filter((t) => t.estado === f).length)
 
   const resumen = useMemo(() => {
     const totales = new Map<string, number>()
@@ -82,14 +120,14 @@ export function useCocina() {
     return [...totales.entries()].sort((a, b) => b[1] - a[1])
   }, [items])
 
-  async function avanzarEstado(item: ItemCocina) {
-    setAvanzandoId(item.id)
+  async function avanzarEstado(ticket: TicketCocina) {
+    setAvanzandoId(ticket.sesionId + ticket.estado)
     try {
-      await cambiarEstadoPedidoItem(item.id, SIGUIENTE_ESTADO[item.estado])
+      await avanzarItemsDeSesion(ticket.sesionId, ticket.estado, SIGUIENTE_ESTADO[ticket.estado])
     } finally {
       setAvanzandoId(null)
     }
   }
 
-  return { items: itemsFiltrados, filtro, setFiltro, contador, resumen, avanzarEstado, avanzandoId }
+  return { tickets: ticketsFiltrados, filtro, setFiltro, contador, resumen, avanzarEstado, avanzandoId }
 }

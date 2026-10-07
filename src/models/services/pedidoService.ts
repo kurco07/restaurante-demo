@@ -37,9 +37,17 @@ export async function enviarPedidoACocina(
   })
 }
 
-export async function cambiarEstadoPedidoItem(
-  id: string,
-  estado: 'pendiente' | 'en_preparacion' | 'listo' | 'entregado',
+// Avanza de una vez todos los ítems de una mesa que compartían el mismo
+// estado (el "ticket" que ve cocina) — no uno por uno, para que la
+// tarjeta completa cambie de columna junta.
+export async function avanzarItemsDeSesion(
+  sesionId: string,
+  estadoActual: 'pendiente' | 'en_preparacion' | 'listo',
+  estadoNuevo: 'en_preparacion' | 'listo' | 'entregado',
 ) {
-  await powerSync.execute(`update pedidos_items set estado = ? where id = ?`, [estado, id])
+  await powerSync.execute(`update pedidos_items set estado = ? where sesion_id = ? and estado = ?`, [
+    estadoNuevo,
+    sesionId,
+    estadoActual,
+  ])
 }
