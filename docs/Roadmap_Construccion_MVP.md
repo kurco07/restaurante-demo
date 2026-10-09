@@ -84,8 +84,10 @@ Pantalla nueva (modal), inspirada en el mockup correspondiente — solo la vista
 
 Se construye después de que el ciclo mesonero + cocina esté probado y funcionando — no antes, como ya se decidió.
 
-**Módulo 1 — Página pública de menú por mesa**
+**Módulo 1 — Página pública de menú por mesa** ✅
 Una vista del menú accesible desde un enlace o QR único por mesa, sin necesidad de que el cliente inicie sesión.
+
+El QR lleva el id de la mesa (`/autopedido/:mesaId`), que llama a la función `menu_publico_mesa` en Supabase (`security definer`, de solo lectura — el cliente anónimo nunca lee tablas directo vía RLS). Devuelve el menú real del tenant de esa mesa: categorías y platos, respetando disponibilidad y precio por sede (`menu_item_sede`, construido en este mismo módulo — también se usa ahora en el menú del mesonero). El carrito del cliente vive solo en memoria del celular; el envío a cocina es el Módulo 2. Administración → Mesas tiene "Enlace del QR" por mesa (copiar / abrir vista del cliente). Migración `0003_menu_publico_mesa.sql` aplicada y probada en vivo (menú público + toggle de disponibilidad por sede). Construido por Pedro — detalle completo en `docs/Registro_de_Cambios.md`.
 
 **Módulo 2 — Función segura de autopedido**
 El cliente no tiene cuenta de usuario, así que no debe escribir directo a `pedidos_items` vía RLS. Se construye una función de Postgres (RPC) o Edge Function que valide el identificador de la mesa incluido en el enlace del QR, y haga el insert con permisos elevados por dentro — ya señalado como pendiente en `supabase_schema.sql`.
