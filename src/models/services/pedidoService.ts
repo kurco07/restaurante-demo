@@ -37,6 +37,23 @@ export async function enviarPedidoACocina(
   })
 }
 
+// Aprueba el pedido del autopedido: pasa todos sus ítems a 'pendiente'
+// (recién ahí cocina los ve) y, si la sesión no tenía mesonero asignado
+// (la abrió el cliente por QR), deja al que aprueba como su mesonero —
+// aprobar la primera orden de una mesa sin atender es, en la práctica,
+// hacerse cargo de ella.
+export async function aprobarPedidoAutopedido(sesionId: string, usuarioId: string) {
+  await powerSync.writeTransaction(async (tx) => {
+    await tx.execute(`update pedidos_items set estado = 'pendiente' where sesion_id = ? and estado = 'por_aprobar'`, [
+      sesionId,
+    ])
+    await tx.execute(`update sesiones_mesa set mesonero_id = ? where id = ? and mesonero_id is null`, [
+      usuarioId,
+      sesionId,
+    ])
+  })
+}
+
 // Avanza de una vez todos los ítems de una mesa que compartían el mismo
 // estado (el "ticket" que ve cocina) — no uno por uno, para que la
 // tarjeta completa cambie de columna junta.

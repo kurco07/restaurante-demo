@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePowerSyncWatch } from '../../../../controllers/usePowerSyncWatch'
+import { usePorAprobar } from '../../../../controllers/pedido/usePorAprobar'
 import { abrirMesa, marcarMesaLibre } from '../../../../models/services/sesionMesaService'
 import type { Usuario } from '../../../../models/types'
 import { MesaCard } from './MesaCard'
 import { DetalleMesaPanel } from './DetalleMesaPanel'
 import { CierreCuentaModal } from './CierreCuentaModal'
+import { SolicitudesAutopedidoModal } from './SolicitudesAutopedidoModal'
 
 export interface MesaVista {
   id: string
@@ -67,6 +69,8 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
   const [seleccionada, setSeleccionada] = useState<string | null>(null)
   const [filtro, setFiltro] = useState<Filtro>('todas')
   const [mesaCierreId, setMesaCierreId] = useState<string | null>(null)
+  const [verSolicitudes, setVerSolicitudes] = useState(false)
+  const { tickets: solicitudesPorAprobar, aprobar, aprobandoId } = usePorAprobar()
 
   const mesasRaw = usePowerSyncWatch<MesaRow>('select * from mesas where sede_id = ?', [usuario.sede_id])
   const sesiones = usePowerSyncWatch<SesionRow>(
@@ -113,6 +117,20 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
 
   return (
     <div>
+      {solicitudesPorAprobar.length > 0 && (
+        <button
+          type="button"
+          onClick={() => setVerSolicitudes(true)}
+          className="mb-4 flex w-full items-center justify-between rounded-2xl border border-orange-300 bg-orange-50 px-4 py-3 text-left text-sm font-bold text-orange-700 hover:bg-orange-100"
+        >
+          <span>
+            🔔 {solicitudesPorAprobar.length} pedido{solicitudesPorAprobar.length > 1 ? 's' : ''} de autopedido por
+            aprobar
+          </span>
+          <span className="rounded-full bg-orange-500 px-3 py-1 text-xs text-white">Revisar</span>
+        </button>
+      )}
+
       <div className="grid grid-cols-3 gap-3 mb-5">
         <div className="rounded-2xl border border-gray-200 bg-white p-4">
           <div className="text-xl font-extrabold text-gray-900">{contador('mias')}</div>
@@ -228,6 +246,15 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
             setMesaCierreId(null)
             setSeleccionada(null)
           }}
+        />
+      )}
+
+      {verSolicitudes && (
+        <SolicitudesAutopedidoModal
+          tickets={solicitudesPorAprobar}
+          aprobandoId={aprobandoId}
+          onAprobar={aprobar}
+          onCerrar={() => setVerSolicitudes(false)}
         />
       )}
     </div>

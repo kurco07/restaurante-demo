@@ -33,7 +33,8 @@ export interface TicketCocina {
 // el boceto), en vez de una tarjeta por plato. Si una mesa tiene ítems en
 // distintos estados (unos en espera, otros en preparación), aparece en
 // más de una columna — eso sí es real. "entregado" no se muestra: ya
-// salió de cocina.
+// salió de cocina. "por_aprobar" tampoco: es un pedido de autopedido que
+// todavía no confirmó ningún mesonero, cocina no debe verlo aún.
 const SQL = `
   select
     pi.id as id,
@@ -51,7 +52,7 @@ const SQL = `
   join sesiones_mesa sm on sm.id = pi.sesion_id
   join mesas m on m.id = sm.mesa_id
   left join usuarios u on u.id = sm.mesonero_id
-  where pi.tenant_id = ? and pi.sede_id = ? and pi.estado != 'entregado'
+  where pi.tenant_id = ? and pi.sede_id = ? and pi.estado not in ('por_aprobar', 'entregado')
   order by pi.creado_en
 `
 

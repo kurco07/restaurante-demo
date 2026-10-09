@@ -9,6 +9,14 @@ interface ItemEnviado {
   estado: string
 }
 
+const ETIQUETA_ESTADO_ITEM: Record<string, string> = {
+  por_aprobar: 'Por aprobar',
+  pendiente: 'En cocina',
+  en_preparacion: 'En preparación',
+  listo: 'Listo',
+  entregado: 'Entregado',
+}
+
 interface ResumenPedidoProps {
   carrito: ItemCarrito[]
   itemsEnviados: ItemEnviado[]
@@ -54,7 +62,9 @@ export function ResumenPedido({
                   <span className="text-[var(--ink)]">
                     {item.cantidad}× {item.nombre}
                   </span>
-                  <span className="text-[11px] font-semibold text-[var(--ink-soft)]">{item.estado}</span>
+                  <span className="text-[11px] font-semibold text-[var(--ink-soft)]">
+                    {ETIQUETA_ESTADO_ITEM[item.estado] ?? item.estado}
+                  </span>
                 </div>
               ))}
             </div>
