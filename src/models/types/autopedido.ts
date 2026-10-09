@@ -1,25 +1,32 @@
-export interface ExtraPlato {
+// Forma de lo que devuelve la función pública menu_publico_mesa
+// (migración 0003). Solo lo necesario para mostrar el menú al cliente.
+
+export interface CategoriaAutopedido {
+  id: string
   nombre: string
-  precio: number
 }
 
 export interface PlatoAutopedido {
   id: string
+  categoria_id: string
   nombre: string
-  descripcion: string
+  descripcion: string | null
   precio: number
-  categoria: string
-  gradiente: string
-  proteinas?: string[]
-  quitables?: string[]
-  extras?: ExtraPlato[]
+  imagen_url: string | null
 }
 
-export interface ItemPedidoMesa {
+export interface MenuPublicoMesa {
+  restaurante: string
+  mesa: { id: string; nombre_numero: string }
+  categorias: CategoriaAutopedido[]
+  platos: PlatoAutopedido[]
+}
+
+// Ítem del carrito del cliente. Por ahora vive solo en memoria del
+// celular — el envío a cocina es Fase 3, Módulo 2.
+export interface ItemCarritoAutopedido {
   id: string
-  nombre: string
+  plato: PlatoAutopedido
   cantidad: number
-  modificaciones: string[]
-  agregadoPor: string
-  precioTotal: number
+  nota: string
 }

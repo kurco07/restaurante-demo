@@ -102,8 +102,10 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/registro" element={<RegistroPage />} />
-            {/* /autopedido queda pública a propósito: es la vista del cliente por QR */}
+            {/* /autopedido queda pública a propósito: es la vista del cliente por QR.
+                Sin :mesaId muestra "QR no válido". */}
             <Route path="/autopedido" element={<AutopedidoPage />} />
+            <Route path="/autopedido/:mesaId" element={<AutopedidoPage />} />
             {/* /inicio y /proximamente también son públicas: prototipo navegable
                 de interfaces (Pedro + Cesar), sin funcionalidad todavía */}
             <Route path="/inicio" element={<InicioPage />} />

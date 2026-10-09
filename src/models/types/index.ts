@@ -35,4 +35,9 @@ export type {
   ItemOrdenCompra,
   OrdenCompra,
 } from './administracion'
-export type { ExtraPlato, PlatoAutopedido, ItemPedidoMesa } from './autopedido'
+export type {
+  CategoriaAutopedido,
+  PlatoAutopedido,
+  MenuPublicoMesa,
+  ItemCarritoAutopedido,
+} from './autopedido'

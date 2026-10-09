@@ -253,6 +253,8 @@ function EditorMesa({ mesa, guardando, onGuardar, onEliminar }: EditorMesaProps)
           </p>
         </div>
 
+        <EnlaceAutopedido mesaId={mesa.id} />
+
         <div className="mt-2 flex gap-2">
           <button
             type="button"
@@ -283,6 +285,36 @@ function EditorMesa({ mesa, guardando, onGuardar, onEliminar }: EditorMesaProps)
         </div>
       </div>
     </>
+  )
+}
+
+// Enlace público del autopedido de esta mesa (Fase 3, Módulo 1). Es el que
+// va impreso en el QR de la mesa; lleva el id de la mesa tal cual.
+function EnlaceAutopedido({ mesaId }: { mesaId: string }) {
+  const [copiado, setCopiado] = useState(false)
+  const url = `${window.location.origin}/autopedido/${mesaId}`
+
+  return (
+    <div>
+      <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">Enlace del QR</p>
+      <p className="break-all rounded-lg bg-[var(--surface-alt)] px-3 py-2 text-[11.5px]">{url}</p>
+      <div className="mt-1.5 flex gap-3 text-[12px] font-bold text-[var(--orange-dark)]">
+        <button
+          type="button"
+          onClick={() =>
+            navigator.clipboard.writeText(url).then(
+              () => setCopiado(true),
+              () => setCopiado(false),
+            )
+          }
+        >
+          {copiado ? 'Copiado ✓' : 'Copiar enlace'}
+        </button>
+        <a href={url} target="_blank" rel="noreferrer">
+          Abrir vista del cliente
+        </a>
+      </div>
+    </div>
   )
 }
 
