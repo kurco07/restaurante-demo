@@ -41,7 +41,7 @@ export function OrderDetailModal({ ticket, avanzando, onCerrar, onVerReceta, onA
           <div className="my-4 grid grid-cols-2 gap-2.5">
             <div className="rounded-xl bg-orange-50 px-3 py-2.5">
               <div className="text-[10.5px] font-bold uppercase tracking-wide text-gray-500">Mesonero</div>
-              <div className="text-sm font-extrabold text-gray-900">{ticket.mesonero ?? 'Sin asignar'}</div>
+              <div className="text-sm font-extrabold text-gray-900">{ticket.mesonero ?? 'Sin mesonero (pedido por QR)'}</div>
             </div>
             <div className="rounded-xl bg-orange-50 px-3 py-2.5">
               <div className="text-[10.5px] font-bold uppercase tracking-wide text-gray-500">Hora de pedido</div>

@@ -7,6 +7,7 @@ interface ItemEnviado {
   precio_unitario: number
   notas: string | null
   estado: string
+  porQr: boolean
 }
 
 interface ResumenPedidoProps {
@@ -53,6 +54,9 @@ export function ResumenPedido({
                 <div key={item.id} className="flex items-center justify-between text-sm">
                   <span className="text-[var(--ink)]">
                     {item.cantidad}× {item.nombre}
+                    {item.porQr && (
+                      <span className="ml-1.5 rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-bold text-sky-700">QR</span>
+                    )}
                   </span>
                   <span className="text-[11px] font-semibold text-[var(--ink-soft)]">{item.estado}</span>
                 </div>

@@ -28,6 +28,7 @@ interface EnviadoRow {
   notas: string | null
   estado: string
   nombre: string | null
+  agregado_por: string | null
 }
 
 export const CATEGORIA_FAVORITOS = 'favoritos'
@@ -65,7 +66,7 @@ export function usePedidos(mesaId: string) {
   const itemsEnviados = usePowerSyncWatch<EnviadoRow>(
     // El nombre sale de menu_items directo (no de `platos`), así un plato que
     // la sede marca como no disponible después de pedirlo sigue con su nombre.
-    `select pi.id, pi.menu_item_id, pi.cantidad, pi.precio_unitario, pi.notas, pi.estado, mi.nombre
+    `select pi.id, pi.menu_item_id, pi.cantidad, pi.precio_unitario, pi.notas, pi.estado, mi.nombre, pi.agregado_por
        from pedidos_items pi
        left join menu_items mi on mi.id = pi.menu_item_id
       where pi.sesion_id = ?
@@ -97,7 +98,8 @@ export function usePedidos(mesaId: string) {
   }, [platos, categoriaActiva, busqueda])
 
   const itemsEnviadosConNombre = useMemo(
-    () => itemsEnviados.map((item) => ({ ...item, nombre: item.nombre ?? 'Plato' })),
+    // agregado_por nulo = lo pidió el cliente por QR (Fase 3, Módulo 2/3)
+    () => itemsEnviados.map((item) => ({ ...item, nombre: item.nombre ?? 'Plato', porQr: item.agregado_por === null })),
     [itemsEnviados],
   )
 

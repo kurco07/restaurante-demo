@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 
-export type EstadoMesaVista = 'libre' | 'mia' | 'otro' | 'por_limpiar'
+export type EstadoMesaVista = 'libre' | 'mia' | 'otro' | 'sin_atender' | 'por_limpiar'
 
 interface MesaCardProps {
   numero: string
@@ -15,6 +15,7 @@ const claseSegunEstado: Record<EstadoMesaVista, string> = {
   libre: 'bg-white border-dashed border-gray-300 text-gray-400',
   mia: 'bg-orange-50 border-orange-400 text-orange-600',
   otro: 'bg-gray-100 border-gray-300 text-gray-500',
+  sin_atender: 'bg-sky-50 border-sky-400 text-sky-700',
   por_limpiar: 'bg-amber-50/80 border-amber-200 text-gray-400',
 }
 

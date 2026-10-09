@@ -122,7 +122,7 @@ export function TableroCocina() {
                             <span className="text-[13px] font-bold text-gray-500">{tiempoTranscurrido(ticket.creadoEn)}</span>
                           </div>
                           <div className="mb-2.5 text-[11px] text-gray-500">
-                            Mesonero: {ticket.mesonero ?? 'Sin asignar'}
+                            Mesonero: {ticket.mesonero ?? 'Sin mesonero (pedido por QR)'}
                           </div>
                           <ul className="mb-3 text-sm">
                             {ticket.items.map((item) => (

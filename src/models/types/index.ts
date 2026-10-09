@@ -40,4 +40,7 @@ export type {
   PlatoAutopedido,
   MenuPublicoMesa,
   ItemCarritoAutopedido,
+  EstadoItemPedido,
+  ItemPedidoCompartido,
+  PedidoCompartidoMesa,
 } from './autopedido'

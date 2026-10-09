@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import type { ItemCarritoAutopedido, MenuPublicoMesa } from '../types'
+import type { ItemCarritoAutopedido, MenuPublicoMesa, PedidoCompartidoMesa } from '../types'
 
 // Lectura pública (sin sesión) del menú de una mesa, vía la función
 // security definer menu_publico_mesa (migración 0003). El cliente del QR
@@ -27,4 +27,14 @@ export async function enviarPedidoAutopedido(mesaId: string, items: ItemCarritoA
     })),
   })
   if (error) throw error
+}
+
+// Lectura pública (sin sesión) del pedido compartido de la mesa, vía la
+// función security definer pedido_publico_mesa (migración 0005). Incluye
+// lo que cargó el mesonero y lo que pidió el cliente, con su estado.
+// Devuelve null si la mesa no existe o el restaurante no está activo.
+export async function fetchPedidoCompartidoMesa(mesaId: string) {
+  const { data, error } = await supabase.rpc('pedido_publico_mesa', { p_mesa_id: mesaId })
+  if (error) throw error
+  return data as PedidoCompartidoMesa | null
 }

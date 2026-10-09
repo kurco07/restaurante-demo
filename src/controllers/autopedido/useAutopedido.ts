@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ItemCarritoAutopedido, MenuPublicoMesa, PlatoAutopedido } from '../../models/types'
 import { enviarPedidoAutopedido, fetchMenuPublicoMesa } from '../../models/services/menuPublicoService'
+import { usePedidoCompartido } from './usePedidoCompartido'
 
 export type VistaAutopedido = 'menu' | 'pedido'
 
@@ -21,6 +22,8 @@ type Carga =
 // El carrito vive en memoria hasta enviarlo: enviarPedido() llama a la
 // función segura enviar_pedido_autopedido (Fase 3, Módulo 2) — el precio
 // de cada ítem lo recalcula el servidor, nunca el que mandaría el celular.
+// Lo ya pedido en la mesa (por el cliente o el mesonero) viene de
+// usePedidoCompartido (Fase 3, Módulo 3).
 export function useAutopedido(mesaId: string | undefined) {
   const [carga, setCarga] = useState<Carga>({ estado: 'cargando' })
   const [vista, setVista] = useState<VistaAutopedido>('menu')
@@ -57,6 +60,8 @@ export function useAutopedido(mesaId: string | undefined) {
   }, [mesaId])
 
   const menu = carga.estado === 'lista' ? carga.menu : null
+  // Solo se consulta el pedido de una mesa que ya se validó con el menú.
+  const compartido = usePedidoCompartido(menu && mesaId ? mesaId : null)
   const platosVisibles = !menu
     ? []
     : categoria === TODAS
@@ -83,6 +88,7 @@ export function useAutopedido(mesaId: string | undefined) {
       await enviarPedidoAutopedido(mesaId, carrito)
       setCarrito([])
       setPedidoEnviado(true)
+      void compartido.refrescar()
     } catch (e) {
       setErrorEnvio(e instanceof Error ? e.message : 'No se pudo enviar el pedido. Intenta de nuevo.')
     } finally {
@@ -98,6 +104,7 @@ export function useAutopedido(mesaId: string | undefined) {
     categoria,
     setCategoria,
     platosVisibles,
+    compartido,
     carrito,
     quitarDelCarrito: (id: string) => setCarrito((prev) => prev.filter((i) => i.id !== id)),
     totalCarrito: carrito.reduce((s, i) => s + i.plato.precio * i.cantidad, 0),

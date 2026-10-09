@@ -28,3 +28,15 @@ export async function abrirMesa(
 export async function marcarMesaLibre(mesaId: string) {
   await powerSync.execute(`update mesas set estado = 'libre' where id = ?`, [mesaId])
 }
+
+// Una sesión abierta por el cliente con el QR (enviar_pedido_autopedido,
+// migración 0004) nace con mesonero_id nulo: nadie la atiende todavía.
+// Atenderla = asignarse como mesonero de esa sesión. Escritura local
+// PowerSync, igual que abrirMesa. Si dos mesoneros la toman sin conexión
+// a la vez, gana la última escritura que llegue al servidor.
+export async function atenderMesa(sesionId: string, mesoneroId: string) {
+  await powerSync.execute(`update sesiones_mesa set mesonero_id = ? where id = ? and mesonero_id is null`, [
+    mesoneroId,
+    sesionId,
+  ])
+}

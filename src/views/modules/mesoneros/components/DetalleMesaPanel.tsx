@@ -6,6 +6,7 @@ interface DetalleMesaPanelProps {
   onSeleccionar: (id: string) => void
   onVolver: () => void
   onAbrirMesa: (mesa: MesaVista) => void
+  onAtender: (mesa: MesaVista) => void
   onMarcarLibre: (mesa: MesaVista) => void
   onVerPedido: (mesa: MesaVista) => void
   onCobrarYCerrar: (mesa: MesaVista) => void
@@ -17,6 +18,7 @@ export function DetalleMesaPanel({
   onSeleccionar,
   onVolver,
   onAbrirMesa,
+  onAtender,
   onMarcarLibre,
   onVerPedido,
   onCobrarYCerrar,
@@ -25,9 +27,28 @@ export function DetalleMesaPanel({
 
   if (!mesa) {
     const misMesas = mesas.filter((m) => m.estado === 'mia')
+    const sinAtender = mesas.filter((m) => m.estado === 'sin_atender')
 
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-4">
+        {sinAtender.length > 0 && (
+          <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50/60 p-3">
+            <p className="text-sm font-semibold text-sky-800">Pedidos por QR sin atender</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {sinAtender.map((m) => (
+                <button
+                  type="button"
+                  key={m.id}
+                  onClick={() => onSeleccionar(m.id)}
+                  className="rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-bold text-sky-700"
+                >
+                  Mesa {m.numero} · {m.tiempoLabel}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <p className="font-semibold text-gray-900">Tus mesas abiertas</p>
         <p className="mb-3 text-xs text-gray-500">{misMesas.length} mesas</p>
 
@@ -86,6 +107,26 @@ export function DetalleMesaPanel({
             className="w-full rounded-xl border border-gray-200 py-3 text-center text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
           >
             Marcar como libre
+          </button>
+        </div>
+      )}
+
+      {mesa.estado === 'sin_atender' && (
+        <div className="space-y-3 mt-3">
+          <div>
+            <div className="mb-1 text-[11px] font-semibold text-gray-500">Abierta por QR hace</div>
+            <div className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
+          </div>
+          <div className="rounded-lg border border-dashed border-sky-200 bg-sky-50/50 p-3 text-xs text-gray-500">
+            El cliente abrió esta mesa con el QR y ya pidió a cocina, pero ningún mesonero la atiende todavía.
+            Al atenderla queda a tu nombre: podrás agregar platos y cerrar la cuenta.
+          </div>
+          <button
+            type="button"
+            onClick={() => onAtender(mesa)}
+            className="w-full rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors"
+          >
+            Atender esta mesa
           </button>
         </div>
       )}

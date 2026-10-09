@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePowerSyncWatch } from '../../../../controllers/usePowerSyncWatch'
-import { abrirMesa, marcarMesaLibre } from '../../../../models/services/sesionMesaService'
+import { abrirMesa, atenderMesa, marcarMesaLibre } from '../../../../models/services/sesionMesaService'
 import type { Usuario } from '../../../../models/types'
 import { MesaCard } from './MesaCard'
 import { DetalleMesaPanel } from './DetalleMesaPanel'
@@ -10,7 +10,9 @@ import { CierreCuentaModal } from './CierreCuentaModal'
 export interface MesaVista {
   id: string
   numero: string
-  estado: 'libre' | 'mia' | 'otro' | 'por_limpiar'
+  // sin_atender = la abrió el cliente con el QR y ningún mesonero la tomó
+  estado: 'libre' | 'mia' | 'otro' | 'sin_atender' | 'por_limpiar'
+  sesionId?: string
   mesero?: string
   tiempoLabel?: string
 }
@@ -40,11 +42,12 @@ function etiquetaTiempo(abiertaEnIso: string) {
   return `${minutos} min`
 }
 
-type Filtro = 'todas' | 'mias' | 'libres' | 'otro' | 'limpiar'
+type Filtro = 'todas' | 'mias' | 'qr' | 'libres' | 'otro' | 'limpiar'
 
 const filtros: { key: Filtro; label: string }[] = [
   { key: 'todas', label: 'Todas' },
   { key: 'mias', label: 'Mías' },
+  { key: 'qr', label: 'Por QR sin atender' },
   { key: 'libres', label: 'Libres' },
   { key: 'otro', label: 'Otro mesonero' },
   { key: 'limpiar', label: 'Por limpiar' },
@@ -53,6 +56,7 @@ const filtros: { key: Filtro; label: string }[] = [
 function coincideFiltro(mesa: MesaVista, filtro: Filtro) {
   if (filtro === 'todas') return true
   if (filtro === 'mias') return mesa.estado === 'mia'
+  if (filtro === 'qr') return mesa.estado === 'sin_atender'
   if (filtro === 'libres') return mesa.estado === 'libre'
   if (filtro === 'otro') return mesa.estado === 'otro'
   return mesa.estado === 'por_limpiar'
@@ -80,15 +84,22 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
   const mesas: (MesaVista & { posicionX: number; posicionY: number })[] = mesasRaw.map((mesa) => {
     const sesion = sesiones.find((s) => s.mesa_id === mesa.id)
 
+    // Una sesión abierta manda sobre mesas.estado: el cliente puede abrir
+    // la mesa por QR aunque siga marcada "por limpiar" (0004 solo la pasa a
+    // ocupada si estaba libre).
     let estado: MesaVista['estado']
-    if (mesa.estado === 'libre') estado = 'libre'
-    else if (mesa.estado === 'por_limpiar') estado = 'por_limpiar'
-    else estado = sesion?.mesonero_id === usuario.id ? 'mia' : 'otro'
+    if (sesion) {
+      if (sesion.mesonero_id === null) estado = 'sin_atender'
+      else estado = sesion.mesonero_id === usuario.id ? 'mia' : 'otro'
+    } else if (mesa.estado === 'por_limpiar') estado = 'por_limpiar'
+    else if (mesa.estado === 'libre') estado = 'libre'
+    else estado = 'otro'
 
     return {
       id: mesa.id,
       numero: mesa.nombre_numero,
       estado,
+      sesionId: sesion?.id,
       mesero: sesion ? usuariosSede.find((u) => u.id === sesion.mesonero_id)?.nombre : undefined,
       tiempoLabel: sesion ? etiquetaTiempo(sesion.abierta_en) : undefined,
       posicionX: mesa.posicion_x ?? 50,
@@ -100,8 +111,20 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
 
   async function abrirYTomarPedido(mesa: MesaVista) {
     if (!usuario.sede_id) return
+    // Si el cliente la abrió por QR mientras tanto, se atiende esa misma
+    // sesión en vez de abrir una segunda.
+    if (mesa.sesionId) {
+      await atenderMesa(mesa.sesionId, usuario.id)
+      navigate(`/mesoneros/pedidos/${mesa.id}`)
+      return
+    }
     await abrirMesa({ id: mesa.id, tenant_id: usuario.tenant_id, sede_id: usuario.sede_id }, usuario.id)
     navigate(`/mesoneros/pedidos/${mesa.id}`)
+  }
+
+  async function atender(mesa: MesaVista) {
+    if (!mesa.sesionId) return
+    await atenderMesa(mesa.sesionId, usuario.id)
   }
 
   async function marcarLibre(mesa: MesaVista) {
@@ -160,6 +183,9 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
               <span className="h-2.5 w-2.5 rounded-sm border border-orange-400 bg-orange-50" /> Tuya
             </span>
             <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-2.5 rounded-sm border border-sky-400 bg-sky-50" /> Pedido por QR sin atender
+            </span>
+            <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-sm bg-gray-100" /> Otro mesonero
             </span>
             <span className="flex items-center gap-1.5">
@@ -189,7 +215,9 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
                       ? 'Libre'
                       : mesa.estado === 'por_limpiar'
                         ? 'Limpiar'
-                        : mesa.estado === 'otro'
+                        : mesa.estado === 'sin_atender'
+                          ? 'QR'
+                          : mesa.estado === 'otro'
                           ? (mesa.mesero ?? '—')
                           : (mesa.tiempoLabel ?? '')
                   }
@@ -213,6 +241,7 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
           onSeleccionar={setSeleccionada}
           onVolver={() => setSeleccionada(null)}
           onAbrirMesa={abrirYTomarPedido}
+          onAtender={atender}
           onMarcarLibre={marcarLibre}
           onVerPedido={(mesa) => navigate(`/mesoneros/pedidos/${mesa.id}`)}
           onCobrarYCerrar={(mesa) => setMesaCierreId(mesa.id)}

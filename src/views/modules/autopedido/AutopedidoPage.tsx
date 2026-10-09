@@ -50,6 +50,10 @@ export default function AutopedidoPage() {
               ) : (
                 <PedidoMesa
                   mesa={ap.menu.mesa.nombre_numero}
+                  enMesa={ap.compartido.items}
+                  totalEnMesa={ap.compartido.total}
+                  cuentaCerrada={ap.compartido.cuentaCerrada}
+                  sinConexion={ap.compartido.sinConexion}
                   items={ap.carrito}
                   total={ap.totalCarrito}
                   onQuitar={ap.quitarDelCarrito}
