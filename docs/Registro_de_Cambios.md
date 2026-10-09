@@ -75,7 +75,8 @@ Las mesas no aparecían en la vista del mesonero en la máquina de Pedro. Causa:
 
 ### Pendiente
 
-- [ ] Aplicar `0003_menu_publico_mesa.sql` en Supabase. Antes de `supabase db push`, correr `supabase migration list`: si `0002` no figura como aplicada (se aplicó por el SQL Editor), `db push` intentaría correrla de nuevo. En ese caso, primero `supabase migration repair --status applied 0002`.
+- [x] Aplicar `0003_menu_publico_mesa.sql` en Supabase. Hecho el 2026-10-09 por el SQL Editor, con la versión que incluye `menu_item_sede` (verificado con `pg_get_functiondef`; la función responde 13 categorías y 45 platos para la mesa 3, y `null` para una mesa inexistente).
+- [ ] Registrar `0002` y `0003` en el historial de migraciones de Supabase. Ambas se aplicaron por el SQL Editor, así que un `supabase db push` intentaría correrlas de nuevo. Antes de usar `db push`: `supabase migration repair --status applied 0002` y `... 0003`. Ojo: desde la red de Pedro el CLI no logra conectarse a la base (la conexión al pooler de Postgres da timeout), así que `migration list`, `repair` y `db push` hay que correrlos desde otra red o hacerlo César.
 - [ ] Probar el menú público: Administración → Mesas → "Abrir vista del cliente" en incógnito.
 - [ ] Probar "En esta sede": desmarcar un plato y confirmar que desaparece para mesonero y cliente. Depende de que `menu_item_sede` esté en las Sync Rules de PowerSync (la guía la incluye, no se pudo confirmar porque la tabla estaba vacía).
 - [ ] Marcar Fase 3, Módulo 1 como ✅ en el roadmap cuando esté probado.
