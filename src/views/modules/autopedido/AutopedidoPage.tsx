@@ -37,7 +37,9 @@ export default function AutopedidoPage() {
             />
 
             <main className="flex-1 pb-24">
-              {ap.vista === 'menu' ? (
+              {ap.pedidoEnviado ? (
+                <PedidoEnviado mesa={ap.menu.mesa.nombre_numero} onNuevoPedido={ap.nuevoPedido} />
+              ) : ap.vista === 'menu' ? (
                 <ListaPlatos
                   categorias={ap.menu.categorias}
                   categoria={ap.categoria}
@@ -51,11 +53,14 @@ export default function AutopedidoPage() {
                   items={ap.carrito}
                   total={ap.totalCarrito}
                   onQuitar={ap.quitarDelCarrito}
+                  onEnviar={ap.enviarPedido}
+                  enviando={ap.enviando}
+                  error={ap.errorEnvio}
                 />
               )}
             </main>
 
-            {ap.vista === 'menu' && ap.carrito.length > 0 && (
+            {!ap.pedidoEnviado && ap.vista === 'menu' && ap.carrito.length > 0 && (
               <button
                 type="button"
                 onClick={() => ap.setVista('pedido')}
@@ -81,6 +86,26 @@ export default function AutopedidoPage() {
           />
         )}
       </div>
+    </div>
+  )
+}
+
+function PedidoEnviado({ mesa, onNuevoPedido }: { mesa: string; onNuevoPedido: () => void }) {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center">
+      <p className="text-5xl">✅</p>
+      <p className="mt-4 text-lg font-extrabold text-gray-900">¡Tu pedido ya está en cocina!</p>
+      <p className="mt-2 text-[13px] text-gray-500">
+        Mesa {mesa} — tu mesonero lo verá en un momento. El cierre de cuenta y el pago los coordinas directamente
+        con él.
+      </p>
+      <button
+        type="button"
+        onClick={onNuevoPedido}
+        className="mt-6 rounded-2xl border border-orange-200 bg-white px-5 py-3 text-[13px] font-bold text-orange-600"
+      >
+        Agregar más platos
+      </button>
     </div>
   )
 }

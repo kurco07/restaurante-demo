@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ItemCarritoAutopedido, MenuPublicoMesa, PlatoAutopedido } from '../../models/types'
-import { fetchMenuPublicoMesa } from '../../models/services/menuPublicoService'
+import { enviarPedidoAutopedido, fetchMenuPublicoMesa } from '../../models/services/menuPublicoService'
 
 export type VistaAutopedido = 'menu' | 'pedido'
 
@@ -18,7 +18,9 @@ type Carga =
 // Estado de la pantalla pública de autopedido (cliente por QR). El menú se
 // lee en vivo de Supabase vía menu_publico_mesa — el celular del cliente
 // no usa PowerSync (no tiene sesión), así que esta vista sí necesita red.
-// El carrito vive solo en memoria: enviarlo a cocina es Fase 3, Módulo 2.
+// El carrito vive en memoria hasta enviarlo: enviarPedido() llama a la
+// función segura enviar_pedido_autopedido (Fase 3, Módulo 2) — el precio
+// de cada ítem lo recalcula el servidor, nunca el que mandaría el celular.
 export function useAutopedido(mesaId: string | undefined) {
   const [carga, setCarga] = useState<Carga>({ estado: 'cargando' })
   const [vista, setVista] = useState<VistaAutopedido>('menu')
@@ -28,6 +30,10 @@ export function useAutopedido(mesaId: string | undefined) {
   const [platoAbierto, setPlatoAbierto] = useState<PlatoAutopedido | null>(null)
   const [cantidad, setCantidad] = useState(1)
   const [nota, setNota] = useState('')
+
+  const [enviando, setEnviando] = useState(false)
+  const [errorEnvio, setErrorEnvio] = useState<string | null>(null)
+  const [pedidoEnviado, setPedidoEnviado] = useState(false)
 
   useEffect(() => {
     if (!mesaId || !UUID_RE.test(mesaId)) {
@@ -69,6 +75,21 @@ export function useAutopedido(mesaId: string | undefined) {
     setPlatoAbierto(null)
   }
 
+  async function enviarPedido() {
+    if (!mesaId || carrito.length === 0) return
+    setEnviando(true)
+    setErrorEnvio(null)
+    try {
+      await enviarPedidoAutopedido(mesaId, carrito)
+      setCarrito([])
+      setPedidoEnviado(true)
+    } catch (e) {
+      setErrorEnvio(e instanceof Error ? e.message : 'No se pudo enviar el pedido. Intenta de nuevo.')
+    } finally {
+      setEnviando(false)
+    }
+  }
+
   return {
     carga,
     menu,
@@ -80,6 +101,14 @@ export function useAutopedido(mesaId: string | undefined) {
     carrito,
     quitarDelCarrito: (id: string) => setCarrito((prev) => prev.filter((i) => i.id !== id)),
     totalCarrito: carrito.reduce((s, i) => s + i.plato.precio * i.cantidad, 0),
+    enviarPedido,
+    enviando,
+    errorEnvio,
+    pedidoEnviado,
+    nuevoPedido: () => {
+      setPedidoEnviado(false)
+      setVista('menu')
+    },
     personalizacion: {
       plato: platoAbierto,
       abrir: abrirPlato,

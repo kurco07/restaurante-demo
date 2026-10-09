@@ -5,11 +5,15 @@ interface PedidoMesaProps {
   items: ItemCarritoAutopedido[]
   total: number
   onQuitar: (id: string) => void
+  onEnviar: () => void
+  enviando: boolean
+  error: string | null
 }
 
-// Carrito del cliente. El envío a cocina llega en Fase 3, Módulo 2; el
-// cierre y el pago siempre los hace el mesonero, nunca el cliente.
-export function PedidoMesa({ mesa, items, total, onQuitar }: PedidoMesaProps) {
+// Carrito del cliente. El envío real a cocina es la función segura
+// enviar_pedido_autopedido (Fase 3, Módulo 2); el cierre y el pago
+// siempre los hace el mesonero, nunca el cliente.
+export function PedidoMesa({ mesa, items, total, onQuitar, onEnviar, enviando, error }: PedidoMesaProps) {
   return (
     <div className="px-5">
       <p className="mb-3 mt-1 text-[17px] font-extrabold text-gray-900">Tu pedido en Mesa {mesa}</p>
@@ -41,9 +45,20 @@ export function PedidoMesa({ mesa, items, total, onQuitar }: PedidoMesaProps) {
         <span>${total.toFixed(2)}</span>
       </div>
 
-      <p className="text-center text-[11.5px] text-gray-500">
-        Por ahora, muéstrale este pedido a tu mesonero. Muy pronto podrás enviarlo directo a cocina desde aquí.
-      </p>
+      {error && (
+        <p className="mb-3 rounded-[12px] bg-red-50 px-3.5 py-2.5 text-center text-[12.5px] font-semibold text-red-600">
+          {error}
+        </p>
+      )}
+
+      <button
+        type="button"
+        onClick={onEnviar}
+        disabled={items.length === 0 || enviando}
+        className="mb-4 w-full rounded-2xl bg-orange-500 py-3.5 text-[14px] font-bold text-white disabled:opacity-50"
+      >
+        {enviando ? 'Enviando…' : 'Enviar pedido a cocina'}
+      </button>
     </div>
   )
 }
