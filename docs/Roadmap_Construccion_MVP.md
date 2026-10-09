@@ -66,7 +66,7 @@ El menú (categorías y platos) se lee vía `powerSync.watch`, así que armar el
 **Módulo 4 — Sincronización de comandas**
 Verificar en la práctica que los pedidos creados offline se suben solos al reconectar, sin duplicarse ni perderse — usando el `client_local_id` ya definido en el modelo de datos. Este módulo es principalmente de pruebas dirigidas: forzar una desconexión real y confirmar el comportamiento.
 
-Pendiente de correr la prueba real (cortar red, armar pedido offline, reconectar, confirmar en Supabase que no se duplicó). La base técnica ya está lista — PowerSync es quien maneja la cola local y el `unique(sesion_id, client_local_id)` del esquema ya cubre el caso de reintento — pero no se ha ejecutado la verificación dirigida todavía.
+Verificado contra Supabase real que el `unique(sesion_id, client_local_id)` sí impide duplicados ante un reintento (insert con el mismo `client_local_id` → error 409, la fila original queda intacta). Esto confirma el mecanismo de deduplicación, pero **no** es la misma prueba que pide este módulo: falta todavía cortar la red de verdad en un navegador, armar un pedido con la app realmente offline, reconectar, y confirmar que PowerSync sube la cola sin perder ni duplicar nada — eso solo se puede correr con acceso a navegador real.
 
 **Módulo 5 — Cocina: pantalla en tiempo real** ✅
 Una sola pantalla que muestra los pedidos entrantes y permite marcar estado: pendiente, en preparación, listo.
@@ -89,11 +89,15 @@ Una vista del menú accesible desde un enlace o QR único por mesa, sin necesida
 
 El QR lleva el id de la mesa (`/autopedido/:mesaId`), que llama a la función `menu_publico_mesa` en Supabase (`security definer`, de solo lectura — el cliente anónimo nunca lee tablas directo vía RLS). Devuelve el menú real del tenant de esa mesa: categorías y platos, respetando disponibilidad y precio por sede (`menu_item_sede`, construido en este mismo módulo — también se usa ahora en el menú del mesonero). El carrito del cliente vive solo en memoria del celular; el envío a cocina es el Módulo 2. Administración → Mesas tiene "Enlace del QR" por mesa (copiar / abrir vista del cliente). Migración `0003_menu_publico_mesa.sql` aplicada y probada en vivo (menú público + toggle de disponibilidad por sede). Construido por Pedro — detalle completo en `docs/Registro_de_Cambios.md`.
 
-**Módulo 2 — Función segura de autopedido**
+**Módulo 2 — Función segura de autopedido** ✅
 El cliente no tiene cuenta de usuario, así que no debe escribir directo a `pedidos_items` vía RLS. Se construye una función de Postgres (RPC) o Edge Function que valide el identificador de la mesa incluido en el enlace del QR, y haga el insert con permisos elevados por dentro — ya señalado como pendiente en `supabase_schema.sql`.
 
+Función `security definer` `enviar_pedido_autopedido` (migración `0004_autopedido_enviar_pedido.sql`), mismo espíritu que `menu_publico_mesa` (Módulo 1) pero de escritura: el precio de cada ítem lo calcula el servidor desde `menu_items`/`menu_item_sede` — nunca se confía en el precio que el celular tenía cacheado. Si la mesa no tiene sesión abierta, el cliente abre una nueva con `origen = 'autopedido'` y `mesonero_id` nulo (ya contemplado en `modelo-de-datos.md`); si ya hay una abierta, el pedido se agrega ahí. `client_local_id` evita duplicar ante un reintento. La pantalla del cliente ya envía de verdad ("Enviar pedido a cocina") con su propio estado de carga/error y una confirmación. Migración aplicada y verificado contra Supabase real: la función existe, calcula el precio del lado del servidor, reutiliza la sesión abierta en envíos sucesivos, y el reintento con el mismo `client_local_id` no duplica.
+
+Pendiente anotado para el Módulo 3: hoy una mesa cuya sesión tiene `mesonero_id` nulo (abierta por autopedido, sin mesonero asignado todavía) no es "mía" ni "de otro" para ningún mesonero en el mapa de mesas — hace falta una forma de que alguien la atienda/reclame.
+
 **Módulo 3 — Sesión de mesa compartida**
-El mesonero y el cliente ven y modifican la misma mesa en tiempo real. El cierre y el pago, sin embargo, siguen pasando siempre por el mesonero (ya decidido).
+El mesonero y el cliente ven y modifican la misma mesa en tiempo real. El cierre y el pago, sin embargo, siguen pasando siempre por el mesonero (ya decidido). A cargo de Pedro.
 
 ---
 
