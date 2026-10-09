@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import type { CategoriaMenu, MenuItem, Receta } from '../types'
+import type { CategoriaMenu, MenuItem, MenuItemSede, Receta } from '../types'
 
 export async function fetchCategorias(tenantId: string) {
   const { data, error } = await supabase
@@ -121,4 +121,36 @@ export async function agregarRecetaItem(item: {
 export async function eliminarRecetaItem(id: string) {
   const { error } = await supabase.from('recetas').delete().eq('id', id)
   if (error) throw error
+}
+
+// Disponibilidad y precio de un plato en una sede (menu_item_sede). Sin
+// fila = disponible a precio_base; por eso el upsert sobre
+// unique(menu_item_id, sede_id) en vez de exigir que la fila exista.
+export async function fetchMenuItemSede(menuItemId: string, sedeId: string) {
+  const { data, error } = await supabase
+    .from('menu_item_sede')
+    .select('*')
+    .eq('menu_item_id', menuItemId)
+    .eq('sede_id', sedeId)
+    .maybeSingle()
+
+  if (error) throw error
+  return data as MenuItemSede | null
+}
+
+export async function guardarMenuItemSede(fila: {
+  tenant_id: string
+  menu_item_id: string
+  sede_id: string
+  disponible: boolean
+  precio_override: number | null
+}) {
+  const { data, error } = await supabase
+    .from('menu_item_sede')
+    .upsert(fila, { onConflict: 'menu_item_id,sede_id' })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as MenuItemSede
 }

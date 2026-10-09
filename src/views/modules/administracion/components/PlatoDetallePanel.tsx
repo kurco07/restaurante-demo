@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import type { CategoriaMenu, Insumo, MenuItem, Receta } from '../../../../models/types'
 import { RecetaEditor } from './RecetaEditor'
+import { DisponibilidadSede } from './DisponibilidadSede'
 
 interface DatosPlato {
   categoria_id: string
@@ -174,6 +175,12 @@ export function PlatoDetallePanel({
 
         {error && <p className="text-[var(--red)]">{error}</p>}
       </form>
+
+      {!creando && plato && (
+        <div className="mt-5 border-t border-[var(--border)] pt-4">
+          <DisponibilidadSede menuItemId={plato.id} precioBase={plato.precio_base} />
+        </div>
+      )}
 
       {!creando && plato && (
         <div className="mt-5 border-t border-[var(--border)] pt-4">
