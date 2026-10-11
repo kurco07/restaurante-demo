@@ -96,10 +96,18 @@ Función `security definer` `enviar_pedido_autopedido` (migración `0004_autoped
 
 **Ajuste confirmado con el usuario tras el primer corte:** el pedido del cliente no pasa directo a `pendiente` — entra como un estado nuevo `por_aprobar` (migración `0005_autopedido_por_aprobar.sql`) hasta que cualquier mesonero disponible de la sede lo apruebe (confirmando con el cliente, evitando errores). Nuevo panel "Pedidos por aprobar" en el mapa de mesas (banner + modal, `usePorAprobar.ts`): cualquier mesonero de la sede ve las solicitudes, no una asignada. Al aprobar, los ítems pasan a `pendiente` (recién ahí cocina los ve — excluidos explícitamente de `useCocina.ts`) y, si la sesión no tenía mesonero asignado, queda el que aprueba — resuelve de paso el hueco de mesas de autopedido sin dueño en el mapa. Verificado el flujo completo contra Supabase real: entra como `por_aprobar`, el mesonero aprueba, pasa a `pendiente`, la sesión queda con mesonero asignado.
 
-**Módulo 3 — Sesión de mesa compartida**
+**Módulo 3 — Sesión de mesa compartida** ✅
 El mesonero y el cliente ven y modifican la misma mesa en tiempo real. El cierre y el pago, sin embargo, siguen pasando siempre por el mesonero (ya decidido). A cargo de Pedro.
 
-El hueco de "mesa de autopedido sin mesonero asignado" que tenía el Módulo 2 ya se resolvió ahí mismo (al aprobar el primer pedido, el mesonero que aprueba queda asignado a la sesión) — este módulo sigue siendo necesario para la parte de tiempo real compartido en sí (que el cliente vea el estado de su pedido sin recargar, etc.), no para ese hueco puntual.
+Función pública `pedido_publico_mesa` (migración `0006_mesa_compartida.sql`): el celular del cliente consulta cada 5 segundos (mientras la pestaña está visible) el pedido completo de la mesa — lo que cargó el mesonero y lo que pidió por QR, con su estado de cocina y si ya cerró la cuenta. El mesonero lo ve al instante vía PowerSync, sin necesidad de ese polling. Un trigger (`marcar_sesion_hibrida`) pone `sesiones_mesa.origen = 'hibrido'` cuando pidieron los dos. En el mapa, una mesa abierta por QR sin mesonero se distingue en celeste ("sin atender") y se atiende aprobando su pedido — unificado con el flujo del Módulo 2 en vez de dos botones separados.
+
+Probado en vivo por Pedro (migración aplicada, 2026-10-11) — encontró 4 problemas, los 4 ya resueltos:
+- Cierre de cuenta con platos sin terminar → bloqueado si algún ítem no llegó a "listo"/"entregado" (decisión: en mesas se prepara primero y se cobra al final; delivery, cuando se construya, sería al revés — anotado en memoria para esa fase).
+- Pedido por QR después de cerrar la cuenta → `enviar_pedido_autopedido` (migración `0007`) ya no abre sesión nueva salvo que la mesa esté `libre`; el cliente ve el botón de enviar deshabilitado tras ver que la cuenta cerró.
+- Dos mensajes de "vacío" redundantes en "Tu pedido" del cliente → un solo mensaje invitando a ir al menú cuando no hay nada en ninguna de las dos secciones.
+- Una mesa ya asignada a un mesonero no avisaba de un pedido nuevo por QR (solo el banner general, desconectado de la mesa) → campanita en la mesa misma del mapa.
+
+Riesgo conocido, sin resolver a propósito: si el mesonero abre la mesa sin internet justo cuando el cliente la abre por QR, pueden quedar dos sesiones abiertas para la misma mesa — no se agregó un índice único porque rompería la cola offline de PowerSync del mesonero (ver Módulo 4 de la Fase 2).
 
 ---
 
