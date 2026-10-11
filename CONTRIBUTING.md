@@ -31,21 +31,25 @@ Los módulos 1 y 2 son el punto de partida — no dependen entre sí, van en par
 
 ### Fase 4 — Administración e inventario completos
 
+**Reparto ajustado (2026-10-11):** esta fase completa queda con **Cesar**, no dividida por módulo como las anteriores — Pedro se enfoca en la Fase 5 completa mientras tanto.
+
 | Módulo | Responsable | Depende de |
 |---|---|---|
-| 1. Gestión de insumos | **Compañero** | Fase 2 Mód. 1 (recetas) |
+| 1. Gestión de insumos | **Cesar** | Fase 2 Mód. 1 (recetas) |
 | 2. Descuento automático de inventario | **Cesar** | Fase 4 Mód. 1, Fase 2 Mód. 3 |
-| 3. Lotes de insumo | **Compañero** | Fase 4 Mód. 1 |
-| 4. Movimientos de inventario | **Compañero** | Fase 4 Mód. 1-3 |
+| 3. Lotes de insumo | **Cesar** | Fase 4 Mód. 1 |
+| 4. Movimientos de inventario | **Cesar** | Fase 4 Mód. 1-3 |
 | 5. Proveedores y órdenes de compra | **Cesar** | Fase 4 Mód. 1 |
 
 ### Fase 5 — Gerencia y reportes
 
+**Reparto ajustado (2026-10-11):** esta fase completa queda con **Pedro**, en paralelo con la Fase 4 de Cesar.
+
 | Módulo | Responsable | Depende de |
 |---|---|---|
-| 1. Dashboard de KPIs | **Cesar** | Fases 2 y 4 generando datos reales |
+| 1. Dashboard de KPIs | **Compañero** | Fases 2 y 4 generando datos reales |
 | 2. Reportes por turno | **Compañero** | Fase 2 Mód. 6 (cierre de cuenta) |
-| 3. Vista multi-sede | **El que termine primero 1 o 2** | Fase 5 Mód. 1-2 |
+| 3. Vista multi-sede | **Compañero** | Fase 5 Mód. 1-2 |
 
 ### Fase 6 — Inteligencia artificial
 
