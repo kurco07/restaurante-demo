@@ -15,6 +15,8 @@ interface PedidoMesaProps {
 }
 
 const ETIQUETA_ESTADO: Record<EstadoItemPedido, string> = {
+  // Pedido por QR que el mesonero todavía no confirmó (migración 0005)
+  por_aprobar: 'Esperando al mesonero',
   pendiente: 'En espera',
   en_preparacion: 'En preparación',
   listo: 'Listo',
@@ -22,6 +24,7 @@ const ETIQUETA_ESTADO: Record<EstadoItemPedido, string> = {
 }
 
 const CLASE_ESTADO: Record<EstadoItemPedido, string> = {
+  por_aprobar: 'bg-sky-50 text-sky-700',
   pendiente: 'bg-gray-100 text-gray-500',
   en_preparacion: 'bg-amber-50 text-amber-700',
   listo: 'bg-green-50 text-green-700',
@@ -123,7 +126,7 @@ export function PedidoMesa(props: PedidoMesaProps) {
         disabled={items.length === 0 || props.enviando}
         className="mb-2 w-full rounded-2xl bg-orange-500 py-3.5 text-[14px] font-bold text-white disabled:opacity-50"
       >
-        {props.enviando ? 'Enviando…' : 'Enviar pedido a cocina'}
+        {props.enviando ? 'Enviando…' : 'Enviar pedido'}
       </button>
       <p className="mb-4 text-center text-[11px] text-gray-500">Para pagar, pídele la cuenta a tu mesonero.</p>
     </div>

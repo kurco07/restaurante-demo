@@ -32,9 +32,9 @@ export interface ItemCarritoAutopedido {
 }
 
 // Pedido compartido de la mesa, tal como lo devuelve la función pública
-// pedido_publico_mesa (migración 0005): lo que cargó el mesonero y lo
+// pedido_publico_mesa (migración 0006): lo que cargó el mesonero y lo
 // que pidió el cliente por QR, con su estado de cocina.
-export type EstadoItemPedido = 'pendiente' | 'en_preparacion' | 'listo' | 'entregado'
+export type EstadoItemPedido = 'por_aprobar' | 'pendiente' | 'en_preparacion' | 'listo' | 'entregado'
 
 export interface ItemPedidoCompartido {
   id: string

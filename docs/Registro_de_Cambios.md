@@ -4,18 +4,18 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
-## 2026-10-09 — Fase 3, Módulo 3 (sesión de mesa compartida)
+## 2026-10-11 — Fase 3, Módulo 3 (sesión de mesa compartida)
 
-Rama: `feature/fase3-mesa-compartida`. Autor: Pedro (con Claude Code). Reparto acordado: César hizo Fase 3 Módulo 2 (`enviar_pedido_autopedido`, migración 0004) y tiene la prueba de Fase 2 Módulo 4; Pedro hace este módulo.
+Rama: `feature/fase3-mesa-compartida`. Autor: Pedro (con Claude Code). Reparto acordado: César hizo Fase 3 Módulo 2 (`enviar_pedido_autopedido`, migración 0004) y tiene la prueba de Fase 2 Módulo 4; Pedro hace este módulo. Se mezcló con el ajuste de César de aprobación del mesonero (`por_aprobar`, migración 0005): por eso la migración de este módulo es la `0006`.
 
 ### Para qué sirve
 
-Mesonero y cliente ven el mismo pedido de la mesa: lo que cargó el mesonero y lo que pidió el cliente por QR, con su estado de cocina. Las mesas que abre el cliente con el QR ya no quedan huérfanas: cualquier mesonero puede atenderlas. El cierre y el pago siguen siendo siempre del mesonero; el cliente no tiene ningún botón para eso.
+Mesonero y cliente ven el mismo pedido de la mesa: lo que cargó el mesonero y lo que pidió el cliente por QR, con su estado de cocina. Las mesas que abre el cliente con el QR se distinguen en el mapa y se atienden aprobando su pedido. El cierre y el pago siguen siendo siempre del mesonero; el cliente no tiene ningún botón para eso.
 
 ### Cómo funciona
 
-- **Cliente (pestaña "Tu pedido"):** arriba, "Ya pedido en la mesa", con cada ítem, su estado (En espera / En preparación / Listo / Entregado), si se pidió por QR o con el mesonero, y el total de la mesa. Abajo, "Por enviar" (el carrito del Módulo 2). Se lee con la función pública `pedido_publico_mesa` (migración 0005) cada 5 segundos mientras la pestaña está visible, y al instante después de enviar. Si el mesonero cierra la cuenta mientras el cliente mira, aparece "Tu mesonero ya cerró la cuenta".
-- **Mesonero, mapa:** una mesa con sesión abierta y sin mesonero (abierta por QR) aparece en celeste con la etiqueta "QR", tiene su filtro "Por QR sin atender" y se lista arriba en el panel lateral. "Atender esta mesa" asigna al mesonero a esa misma sesión (escritura local PowerSync, funciona sin internet). Si el mesonero toca "Abrir mesa" en una mesa que el cliente ya abrió, se atiende esa sesión en vez de crear una segunda.
+- **Cliente (pestaña "Tu pedido"):** arriba, "Ya pedido en la mesa", con cada ítem, su estado (Esperando al mesonero / En espera / En preparación / Listo / Entregado), si se pidió por QR o con el mesonero, y el total de la mesa. Abajo, "Por enviar" (el carrito del Módulo 2). Se lee con la función pública `pedido_publico_mesa` (migración 0006) cada 5 segundos mientras la pestaña está visible, y al instante después de enviar. Si el mesonero cierra la cuenta mientras el cliente mira, aparece "Tu mesonero ya cerró la cuenta".
+- **Mesonero, mapa:** una mesa con sesión abierta y sin mesonero (abierta por QR) aparece en celeste con la etiqueta "QR" y tiene su filtro "Por QR sin atender". Al seleccionarla, el panel muestra los platos por aprobar y el botón "Aprobar y enviar a cocina" (la aprobación de César: pasa los platos a cocina y deja al mesonero asignado). Unificado a propósito: antes había un botón "Atender esta mesa" aparte que hacía casi lo mismo. Si la mesa no tiene nada por aprobar, aparece "Tomar esta mesa". Si el mesonero toca "Abrir mesa" en una mesa que el cliente ya abrió, se toma esa sesión en vez de crear una segunda.
 - **Mesonero, pantalla de pedido:** los ítems que pidió el cliente llevan la etiqueta "QR".
 - **Cocina:** donde decía "Sin asignar" ahora dice "Sin mesonero (pedido por QR)".
 - **Base de datos:** un trigger pone `sesiones_mesa.origen = 'hibrido'` cuando pidieron los dos (sesión del mesonero + ítem por QR, o sesión por QR + ítem del mesonero). `hibrido` ya existía en el esquema pero nada lo asignaba.
@@ -27,7 +27,7 @@ Mesonero y cliente ven el mismo pedido de la mesa: lo que cargó el mesonero y l
 | El cliente se actualiza consultando cada 5 s, no con Realtime | El cliente no tiene sesión, y Realtime respeta RLS: no puede suscribirse a `pedidos_items`. Alternativa: un canal Realtime Broadcast por mesa disparado desde Postgres; más piezas para el mismo resultado. El mesonero sí lo ve al instante (PowerSync). |
 | El cliente solo puede agregar, no editar ni quitar lo ya enviado | Cambiar o cancelar algo que cocina ya recibió lo decide el mesonero. No estaba decidido en los documentos; se puede revisar. |
 | El cliente no ve nombres de mesoneros | `pedido_publico_mesa` solo dice "por QR" o "con el mesonero". Cualquiera con el enlace de la mesa ve su pedido actual (consecuencia de que el QR lleve el id de la mesa). |
-| Cualquier mesonero de la sede puede atender una mesa por QR | El primero que la toma. Sin internet, si dos la toman a la vez gana la última escritura que llegue al servidor. |
+| Una mesa por QR se atiende aprobando su pedido | Decidido al mezclar con la aprobación de César: un solo camino en vez de "Atender" + "Aprobar". La aprueba cualquier mesonero de la sede; sin internet, si dos la toman a la vez gana la última escritura que llegue al servidor. |
 | `origen = 'hibrido'` con trigger, no dentro de las funciones | Cubre ambos caminos, incluidos pedidos del mesonero que suben tarde desde la cola offline, sin tocar `enviar_pedido_autopedido` de César. |
 | Una sesión abierta manda sobre `mesas.estado` en el mapa | `enviar_pedido_autopedido` solo pasa la mesa a ocupada si estaba libre; si el cliente pide en una mesa "por limpiar", el mapa igual la muestra como abierta por QR. |
 
@@ -35,22 +35,22 @@ Mesonero y cliente ven el mismo pedido de la mesa: lo que cargó el mesonero y l
 
 | Archivo | Cambio |
 | --- | --- |
-| `supabase/migrations/0005_mesa_compartida.sql` | Nuevo — función `pedido_publico_mesa` + trigger `marcar_sesion_hibrida` |
+| `supabase/migrations/0006_mesa_compartida.sql` | Nuevo — función `pedido_publico_mesa` + trigger `marcar_sesion_hibrida` |
 | `src/models/types/autopedido.ts`, `src/models/types/index.ts` | Tipos del pedido compartido |
 | `src/models/services/menuPublicoService.ts` | `fetchPedidoCompartidoMesa` |
 | `src/controllers/autopedido/usePedidoCompartido.ts` | Nuevo — lee el pedido de la mesa cada 5 s |
 | `src/controllers/autopedido/useAutopedido.ts` | Usa el pedido compartido y lo refresca al enviar |
 | `src/views/modules/autopedido/components/PedidoMesa.tsx` | "Ya pedido en la mesa" + "Por enviar" |
 | `src/views/modules/autopedido/components/EncabezadoAutopedido.tsx`, `AutopedidoPage.tsx` | Aviso de mesa compartida; pasa el pedido compartido |
-| `src/models/services/sesionMesaService.ts` | `atenderMesa` |
-| `src/views/modules/mesoneros/components/MapaMesas.tsx`, `MesaCard.tsx`, `DetalleMesaPanel.tsx` | Estado "Pedido por QR sin atender", filtro, panel y botón "Atender esta mesa" |
+| `src/models/services/sesionMesaService.ts` | `atenderMesa` (solo para no abrir una segunda sesión) |
+| `src/views/modules/mesoneros/components/MapaMesas.tsx`, `MesaCard.tsx`, `DetalleMesaPanel.tsx` | Estado "Pedido por QR sin atender", filtro y panel con "Aprobar y enviar a cocina" |
 | `src/controllers/pedido/usePedidos.ts`, `src/views/modules/pedidos/components/ResumenPedido.tsx` | Etiqueta "QR" en ítems del cliente |
 | `src/views/modules/cocina/components/TableroCocina.tsx`, `OrderDetailModal.tsx` | "Sin mesonero (pedido por QR)" |
 
 ### Pendiente
 
-- [ ] Aplicar `0005_mesa_compartida.sql` en Supabase (SQL Editor).
-- [ ] Probar en vivo con dos navegadores: cliente pide por QR → el mesonero ve la mesa en celeste → la atiende → agrega un plato → el cliente ve ambos ítems con su estado → cocina avanza el estado → el cliente lo ve cambiar → el mesonero cierra la cuenta → el cliente ve "ya cerró la cuenta". Confirmar en Supabase que la sesión quedó con `origen = 'hibrido'`.
+- [ ] Aplicar `0006_mesa_compartida.sql` en Supabase (SQL Editor).
+- [ ] Probar en vivo con dos navegadores: cliente pide por QR → ve "Esperando al mesonero" → el mesonero ve la mesa en celeste → aprueba el pedido → agrega un plato → el cliente ve ambos ítems con su estado → cocina avanza el estado → el cliente lo ve cambiar → el mesonero cierra la cuenta → el cliente ve "ya cerró la cuenta". Confirmar en Supabase que la sesión quedó con `origen = 'hibrido'`.
 - [ ] Riesgo conocido, sin resolver: si el mesonero abre la mesa **sin internet** justo cuando el cliente la abre por QR, quedan dos sesiones abiertas para la misma mesa. No se agregó un índice único porque haría fallar la subida offline del mesonero y bloquearía su cola de PowerSync (ver nota del Módulo 4 de la Fase 2).
 - [ ] Marcar Fase 3, Módulo 3 como ✅ en el roadmap cuando esté probado.
 

@@ -1,3 +1,4 @@
+import type { TicketPorAprobar } from '../../../../controllers/pedido/usePorAprobar'
 import type { MesaVista } from './MapaMesas'
 
 interface DetalleMesaPanelProps {
@@ -6,7 +7,9 @@ interface DetalleMesaPanelProps {
   onSeleccionar: (id: string) => void
   onVolver: () => void
   onAbrirMesa: (mesa: MesaVista) => void
-  onAtender: (mesa: MesaVista) => void
+  porAprobar: TicketPorAprobar[]
+  aprobandoId: string | null
+  onAprobar: (ticket: TicketPorAprobar) => void
   onMarcarLibre: (mesa: MesaVista) => void
   onVerPedido: (mesa: MesaVista) => void
   onCobrarYCerrar: (mesa: MesaVista) => void
@@ -18,7 +21,9 @@ export function DetalleMesaPanel({
   onSeleccionar,
   onVolver,
   onAbrirMesa,
-  onAtender,
+  porAprobar,
+  aprobandoId,
+  onAprobar,
   onMarcarLibre,
   onVerPedido,
   onCobrarYCerrar,
@@ -27,28 +32,9 @@ export function DetalleMesaPanel({
 
   if (!mesa) {
     const misMesas = mesas.filter((m) => m.estado === 'mia')
-    const sinAtender = mesas.filter((m) => m.estado === 'sin_atender')
 
     return (
       <div className="rounded-2xl border border-gray-200 bg-white p-4">
-        {sinAtender.length > 0 && (
-          <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50/60 p-3">
-            <p className="text-sm font-semibold text-sky-800">Pedidos por QR sin atender</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {sinAtender.map((m) => (
-                <button
-                  type="button"
-                  key={m.id}
-                  onClick={() => onSeleccionar(m.id)}
-                  className="rounded-lg border border-sky-300 bg-white px-3 py-1.5 text-xs font-bold text-sky-700"
-                >
-                  Mesa {m.numero} · {m.tiempoLabel}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
         <p className="font-semibold text-gray-900">Tus mesas abiertas</p>
         <p className="mb-3 text-xs text-gray-500">{misMesas.length} mesas</p>
 
@@ -112,23 +98,13 @@ export function DetalleMesaPanel({
       )}
 
       {mesa.estado === 'sin_atender' && (
-        <div className="space-y-3 mt-3">
-          <div>
-            <div className="mb-1 text-[11px] font-semibold text-gray-500">Abierta por QR hace</div>
-            <div className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
-          </div>
-          <div className="rounded-lg border border-dashed border-sky-200 bg-sky-50/50 p-3 text-xs text-gray-500">
-            El cliente abrió esta mesa con el QR y ya pidió a cocina, pero ningún mesonero la atiende todavía.
-            Al atenderla queda a tu nombre: podrás agregar platos y cerrar la cuenta.
-          </div>
-          <button
-            type="button"
-            onClick={() => onAtender(mesa)}
-            className="w-full rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors"
-          >
-            Atender esta mesa
-          </button>
-        </div>
+        <MesaPorQr
+          mesa={mesa}
+          ticket={porAprobar.find((t) => t.sesionId === mesa.sesionId)}
+          aprobando={aprobandoId === mesa.sesionId}
+          onAprobar={onAprobar}
+          onAbrirMesa={onAbrirMesa}
+        />
       )}
 
       {mesa.estado === 'otro' && (
@@ -170,6 +146,70 @@ export function DetalleMesaPanel({
             Cobrar y cerrar cuenta
           </button>
         </div>
+      )}
+    </div>
+  )
+}
+
+// Mesa que el cliente abrió con el QR y ningún mesonero tomó todavía. Se
+// atiende aprobando su pedido (aprobarPedidoAutopedido, Fase 3 Módulo 2):
+// los platos pasan a cocina y quien aprueba queda como su mesonero.
+function MesaPorQr({
+  mesa,
+  ticket,
+  aprobando,
+  onAprobar,
+  onAbrirMesa,
+}: {
+  mesa: MesaVista
+  ticket: TicketPorAprobar | undefined
+  aprobando: boolean
+  onAprobar: (ticket: TicketPorAprobar) => void
+  onAbrirMesa: (mesa: MesaVista) => void
+}) {
+  return (
+    <div className="space-y-3 mt-3">
+      <div>
+        <div className="mb-1 text-[11px] font-semibold text-gray-500">Abierta por QR hace</div>
+        <div className="rounded-lg bg-sky-50 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
+      </div>
+
+      {ticket ? (
+        <>
+          <div className="rounded-lg border border-dashed border-sky-200 bg-sky-50/50 p-3 text-xs text-gray-500">
+            El cliente pidió por QR. Confírmalo con la mesa: al aprobarlo pasa a cocina y la mesa queda a tu nombre.
+          </div>
+          <ul className="text-sm">
+            {ticket.items.map((item) => (
+              <li key={item.id} className="py-0.5">
+                <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
+                {item.plato}
+                {item.notas && <div className="text-[10.5px] italic text-gray-500">{item.notas}</div>}
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => onAprobar(ticket)}
+            disabled={aprobando}
+            className="w-full rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors disabled:opacity-50"
+          >
+            {aprobando ? 'Aprobando…' : 'Aprobar y enviar a cocina'}
+          </button>
+        </>
+      ) : (
+        <>
+          <div className="rounded-lg border border-dashed border-sky-200 bg-sky-50/50 p-3 text-xs text-gray-500">
+            El cliente abrió esta mesa con el QR y ningún mesonero la atiende todavía.
+          </div>
+          <button
+            type="button"
+            onClick={() => onAbrirMesa(mesa)}
+            className="w-full rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors"
+          >
+            Tomar esta mesa
+          </button>
+        </>
       )}
     </div>
   )

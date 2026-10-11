@@ -30,7 +30,7 @@ export async function enviarPedidoAutopedido(mesaId: string, items: ItemCarritoA
 }
 
 // Lectura pública (sin sesión) del pedido compartido de la mesa, vía la
-// función security definer pedido_publico_mesa (migración 0005). Incluye
+// función security definer pedido_publico_mesa (migración 0006). Incluye
 // lo que cargó el mesonero y lo que pidió el cliente, con su estado.
 // Devuelve null si la mesa no existe o el restaurante no está activo.
 export async function fetchPedidoCompartidoMesa(mesaId: string) {

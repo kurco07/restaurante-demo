@@ -30,10 +30,12 @@ export async function marcarMesaLibre(mesaId: string) {
 }
 
 // Una sesión abierta por el cliente con el QR (enviar_pedido_autopedido,
-// migración 0004) nace con mesonero_id nulo: nadie la atiende todavía.
-// Atenderla = asignarse como mesonero de esa sesión. Escritura local
-// PowerSync, igual que abrirMesa. Si dos mesoneros la toman sin conexión
-// a la vez, gana la última escritura que llegue al servidor.
+// migración 0004) nace con mesonero_id nulo. Lo normal es que la tome
+// quien aprueba su pedido (aprobarPedidoAutopedido); esto cubre el caso
+// en que el mesonero la toma sin pedido por aprobar, para no abrir una
+// segunda sesión sobre la misma mesa. Escritura local PowerSync, igual
+// que abrirMesa. Si dos mesoneros la toman sin conexión a la vez, gana
+// la última escritura que llegue al servidor.
 export async function atenderMesa(sesionId: string, mesoneroId: string) {
   await powerSync.execute(`update sesiones_mesa set mesonero_id = ? where id = ? and mesonero_id is null`, [
     mesoneroId,

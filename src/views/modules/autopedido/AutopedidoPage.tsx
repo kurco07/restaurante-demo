@@ -98,10 +98,10 @@ function PedidoEnviado({ mesa, onNuevoPedido }: { mesa: string; onNuevoPedido: (
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center">
       <p className="text-5xl">✅</p>
-      <p className="mt-4 text-lg font-extrabold text-gray-900">¡Tu pedido ya está en cocina!</p>
+      <p className="mt-4 text-lg font-extrabold text-gray-900">¡Pedido enviado!</p>
       <p className="mt-2 text-[13px] text-gray-500">
-        Mesa {mesa} — tu mesonero lo verá en un momento. El cierre de cuenta y el pago los coordinas directamente
-        con él.
+        Mesa {mesa} — tu mesonero lo confirmará contigo y lo pasará a cocina. Puedes seguir su estado en "Tu
+        pedido". El cierre de cuenta y el pago los coordinas directamente con él.
       </p>
       <button
         type="button"
