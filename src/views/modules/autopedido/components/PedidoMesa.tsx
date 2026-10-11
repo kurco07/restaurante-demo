@@ -12,6 +12,7 @@ interface PedidoMesaProps {
   onEnviar: () => void
   enviando: boolean
   error: string | null
+  onIrAlMenu: () => void
 }
 
 const ETIQUETA_ESTADO: Record<EstadoItemPedido, string> = {
@@ -37,6 +38,23 @@ const CLASE_ESTADO: Record<EstadoItemPedido, string> = {
 // Módulo 2). El cierre y el pago siempre los hace el mesonero.
 export function PedidoMesa(props: PedidoMesaProps) {
   const { mesa, enMesa, items } = props
+
+  if (enMesa.length === 0 && items.length === 0 && !props.cuentaCerrada) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center px-8 py-16 text-center">
+        <p className="text-5xl">🍽️</p>
+        <p className="mt-4 text-lg font-extrabold text-gray-900">Todavía no has pedido nada</p>
+        <p className="mt-2 text-[13px] text-gray-500">Mesa {mesa} — ve al menú para elegir tus platos.</p>
+        <button
+          type="button"
+          onClick={props.onIrAlMenu}
+          className="mt-6 rounded-2xl bg-orange-500 px-6 py-3 text-[13px] font-bold text-white"
+        >
+          Ver el menú
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="px-5">

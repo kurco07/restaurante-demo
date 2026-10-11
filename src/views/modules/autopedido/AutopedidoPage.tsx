@@ -60,6 +60,7 @@ export default function AutopedidoPage() {
                   onEnviar={ap.enviarPedido}
                   enviando={ap.enviando}
                   error={ap.errorEnvio}
+                  onIrAlMenu={() => ap.setVista('menu')}
                 />
               )}
             </main>
