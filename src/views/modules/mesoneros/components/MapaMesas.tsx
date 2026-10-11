@@ -207,6 +207,9 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
             <span className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-sm bg-amber-50" /> Por limpiar
             </span>
+            <span className="flex items-center gap-1.5">
+              🔔 Tiene un pedido nuevo por aprobar
+            </span>
           </div>
 
           <div className="rounded-[18px] border border-gray-200 bg-white p-4">
@@ -223,6 +226,7 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
                   key={mesa.id}
                   numero={mesa.numero}
                   estado={mesa.estado}
+                  pendienteAprobar={solicitudesPorAprobar.some((t) => t.sesionId === mesa.sesionId)}
                   etiqueta={
                     mesa.estado === 'libre'
                       ? 'Libre'
