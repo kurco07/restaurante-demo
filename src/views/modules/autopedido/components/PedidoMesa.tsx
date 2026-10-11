@@ -120,15 +120,23 @@ export function PedidoMesa(props: PedidoMesaProps) {
         </p>
       )}
 
-      <button
-        type="button"
-        onClick={props.onEnviar}
-        disabled={items.length === 0 || props.enviando}
-        className="mb-2 w-full rounded-2xl bg-orange-500 py-3.5 text-[14px] font-bold text-white disabled:opacity-50"
-      >
-        {props.enviando ? 'Enviando…' : 'Enviar pedido'}
-      </button>
-      <p className="mb-4 text-center text-[11px] text-gray-500">Para pagar, pídele la cuenta a tu mesonero.</p>
+      {props.cuentaCerrada ? (
+        <p className="mb-4 rounded-[12px] border border-dashed border-gray-200 px-3.5 py-3 text-center text-[12.5px] text-gray-500">
+          Esta mesa ya cerró su cuenta — si quieres pedir algo más, avísale a tu mesonero.
+        </p>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={props.onEnviar}
+            disabled={items.length === 0 || props.enviando}
+            className="mb-2 w-full rounded-2xl bg-orange-500 py-3.5 text-[14px] font-bold text-white disabled:opacity-50"
+          >
+            {props.enviando ? 'Enviando…' : 'Enviar pedido'}
+          </button>
+          <p className="mb-4 text-center text-[11px] text-gray-500">Para pagar, pídele la cuenta a tu mesonero.</p>
+        </>
+      )}
     </div>
   )
 }

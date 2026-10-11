@@ -13,6 +13,7 @@ interface ItemRow {
   cantidad: number
   precioUnitario: number
   nombre: string
+  estado: string
 }
 
 const SQL_SESION =
@@ -23,12 +24,15 @@ const SQL_ITEMS = `
     pi.id as id,
     pi.cantidad as cantidad,
     pi.precio_unitario as precioUnitario,
+    pi.estado as estado,
     mi.nombre as nombre
   from pedidos_items pi
   join menu_items mi on mi.id = pi.menu_item_id
   where pi.sesion_id = ?
   order by pi.creado_en
 `
+
+const ESTADOS_LISTOS = new Set(['listo', 'entregado'])
 
 const PROPINA_OPCIONES = [0.1, 0.15, 0.2] as const
 
@@ -60,8 +64,13 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
   const propina = propinaPct === 'otro' ? Number(propinaManual) || 0 : subtotal * propinaPct
   const total = subtotal + propina
 
+  // No se puede cerrar con comida que cocina todavía no marcó como lista
+  // — decisión confirmada con el usuario: en mesas se prepara primero y
+  // se paga al final (distinto de delivery, donde sería al revés).
+  const itemsSinTerminar = items.filter((i) => !ESTADOS_LISTOS.has(i.estado))
+
   async function confirmar() {
-    if (!sesion || !usuario.sede_id) return
+    if (!sesion || !usuario.sede_id || itemsSinTerminar.length > 0) return
     setEnviando(true)
     setError(null)
     try {
@@ -186,6 +195,13 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           </div>
         </div>
 
+        {itemsSinTerminar.length > 0 && (
+          <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+            Todavía hay {itemsSinTerminar.length} plato{itemsSinTerminar.length > 1 ? 's' : ''} que cocina no marcó
+            como listo{itemsSinTerminar.length > 1 ? 's' : ''} — no se puede cerrar la mesa hasta que lo estén.
+          </p>
+        )}
+
         {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
         <div className="mt-5 flex gap-2.5">
@@ -199,7 +215,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           <button
             type="button"
             onClick={confirmar}
-            disabled={enviando || items.length === 0 || !sesion}
+            disabled={enviando || items.length === 0 || !sesion || itemsSinTerminar.length > 0}
             className="flex-[1.4] rounded-xl bg-orange-500 py-3 text-sm font-bold text-white disabled:opacity-50"
           >
             {enviando ? 'Cerrando…' : 'Confirmar y cerrar mesa'}
