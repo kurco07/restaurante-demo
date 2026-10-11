@@ -52,7 +52,15 @@ Mesonero y cliente ven el mismo pedido de la mesa: lo que cargó el mesonero y l
 - [ ] Aplicar `0006_mesa_compartida.sql` en Supabase (SQL Editor).
 - [ ] Probar en vivo con dos navegadores: cliente pide por QR → ve "Esperando al mesonero" → el mesonero ve la mesa en celeste → aprueba el pedido → agrega un plato → el cliente ve ambos ítems con su estado → cocina avanza el estado → el cliente lo ve cambiar → el mesonero cierra la cuenta → el cliente ve "ya cerró la cuenta". Confirmar en Supabase que la sesión quedó con `origen = 'hibrido'`.
 - [ ] Riesgo conocido, sin resolver: si el mesonero abre la mesa **sin internet** justo cuando el cliente la abre por QR, quedan dos sesiones abiertas para la misma mesa. No se agregó un índice único porque haría fallar la subida offline del mesonero y bloquearía su cola de PowerSync (ver nota del Módulo 4 de la Fase 2).
-- [ ] Marcar Fase 3, Módulo 3 como ✅ en el roadmap cuando esté probado.
+- [x] Migración `0006` aplicada y prueba en vivo hecha por Pedro el 2026-10-11. Confirmado en Supabase: la sesión de prueba de la mesa 3 quedó `origen = 'hibrido'` y con el mesonero asignado al aprobar.
+- [ ] Marcar Fase 3, Módulo 3 como ✅ en el roadmap cuando estén resueltos los bugs de abajo.
+
+### Bugs encontrados en la prueba (para revisar después)
+
+- [ ] **"Ya pedido en la mesa" (vista del cliente):** Pedro vio un bug en esta sección; falta precisar qué pasaba y en qué paso.
+- [ ] **Cocina no siempre muestra los pedidos por QR:** "a veces no cargaban". Evidencia en Supabase: en la sesión cerrada de la mesa 3 (`f0828c30…`), el plato del cliente quedó en `pendiente` mientras los dos del mesonero llegaron a `entregado`. Hay que ver si el plato aprobado nunca apareció en cocina o si apareció y quedó sin avanzar.
+- [ ] **Falta impedir cerrar la cuenta con platos sin terminar:** hoy el mesonero puede cobrar y cerrar aunque cocina no haya marcado los platos como listos. Hay que decidir la regla exacta (¿bloquear, o solo advertir?; ¿"listo" o "entregado"?).
+- [ ] **Pedido por QR después de cerrar la cuenta:** si el celular del cliente sigue abierto y pide después del cierre, se abre una sesión nueva en una mesa que está "por limpiar" (pasó en la prueba: mesa 3, cerrada 04:58, nueva sesión 05:04). Hay que decidir si eso se permite.
 
 ---
 
