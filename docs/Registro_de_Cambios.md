@@ -57,10 +57,10 @@ Mesonero y cliente ven el mismo pedido de la mesa: lo que cargó el mesonero y l
 
 ### Bugs encontrados en la prueba (para revisar después)
 
-- [ ] **"Ya pedido en la mesa" (vista del cliente):** Pedro vio un bug en esta sección; falta precisar qué pasaba y en qué paso.
-- [ ] **Cocina no siempre muestra los pedidos por QR:** "a veces no cargaban". Evidencia en Supabase: en la sesión cerrada de la mesa 3 (`f0828c30…`), el plato del cliente quedó en `pendiente` mientras los dos del mesonero llegaron a `entregado`. Hay que ver si el plato aprobado nunca apareció en cocina o si apareció y quedó sin avanzar.
-- [ ] **Falta impedir cerrar la cuenta con platos sin terminar:** hoy el mesonero puede cobrar y cerrar aunque cocina no haya marcado los platos como listos. Hay que decidir la regla exacta (¿bloquear, o solo advertir?; ¿"listo" o "entregado"?).
-- [ ] **Pedido por QR después de cerrar la cuenta:** si el celular del cliente sigue abierto y pide después del cierre, se abre una sesión nueva en una mesa que está "por limpiar" (pasó en la prueba: mesa 3, cerrada 04:58, nueva sesión 05:04). Hay que decidir si eso se permite.
+- [ ] **"Ya pedido en la mesa" (vista del cliente):** Pedro vio un bug en esta sección; falta precisar qué pasaba y en qué paso. Sin reproducir todavía — necesita más detalle antes de tocar código.
+- [ ] **Cocina no siempre muestra los pedidos por QR:** "a veces no cargaban". Evidencia en Supabase: en la sesión cerrada de la mesa 3 (`f0828c30…`), el plato del cliente quedó en `pendiente` mientras los dos del mesonero llegaron a `entregado`. Revisada la lógica de agrupación/filtrado de `useCocina.ts` — no se encontró un bug de lógica ahí; lo más probable es demora normal de sincronización entre los dos dispositivos (mesonero aprueba → sube a Supabase → baja a cocina), no un error de código. Sigue sin reproducirse de forma controlada.
+- [x] **Falta impedir cerrar la cuenta con platos sin terminar:** resuelto (2026-10-11). Decisión confirmada con el usuario: en mesas se prepara primero y se cobra al final (al revés que en delivery, cuando se construya — anotado en memoria para esa fase). `CierreCuentaModal` bloquea "Confirmar y cerrar mesa" si algún ítem de la sesión sigue en `pendiente` o `en_preparacion`; cuenta como terminado `listo` o `entregado`. El botón "cancelar plato" para insumos agotados queda para después, como función de administración.
+- [x] **Pedido por QR después de cerrar la cuenta:** resuelto (2026-10-11). Migración `0007_autopedido_mesa_disponible.sql`: `enviar_pedido_autopedido` solo abre una sesión nueva si la mesa está `libre` — rechaza con "Esta mesa no está disponible para pedir en este momento" si está `por_limpiar`. El celular del cliente también deshabilita "Enviar pedido" una vez que ve "tu mesonero ya cerró la cuenta". Verificado contra Supabase real: rechaza en `por_limpiar`, acepta en `libre`.
 
 ---
 
