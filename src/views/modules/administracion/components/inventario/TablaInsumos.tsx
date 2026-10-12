@@ -1,58 +1,59 @@
-import type { InsumoAdmin } from '../../../../../models/types'
-import { estaBajoStock } from '../../../../../controllers/administracion/useInsumosAdmin'
-import { formatearMoneda } from '../constants'
+import type { Insumo, InventarioSede } from '../../../../../models/types'
 import { FilaTabla, TablaAdmin } from '../comunes'
 import { EstadoChip } from '../panel/EstadoChip'
 
 interface TablaInsumosProps {
-  insumos: InsumoAdmin[]
+  insumos: Insumo[]
+  inventarioPorInsumo: Map<string, InventarioSede>
   total: number
   seleccionadoId: string | undefined
   onSeleccionar: (id: string) => void
 }
 
-export function TablaInsumos({ insumos, total, seleccionadoId, onSeleccionar }: TablaInsumosProps) {
+const ETIQUETA_TIPO: Record<Insumo['tipo'], string> = {
+  exacto: 'Exacto',
+  por_lote: 'Por lote',
+  estimado: 'Estimado',
+}
+
+function estaBajoStock(inv: InventarioSede | undefined) {
+  return Boolean(inv && inv.stock_minimo !== null && inv.cantidad_actual < inv.stock_minimo)
+}
+
+export function TablaInsumos({ insumos, inventarioPorInsumo, total, seleccionadoId, onSeleccionar }: TablaInsumosProps) {
   return (
     <TablaAdmin
-      columnas="2.1fr 0.9fr 0.9fr 0.9fr 1.2fr 1fr"
+      columnas="2.1fr 1fr 1fr 1fr 1fr"
       encabezados={[
         { label: 'Insumo' },
+        { label: 'Tipo', alineacion: 'centro' },
         { label: 'Stock actual', alineacion: 'centro' },
         { label: 'Stock mín.', alineacion: 'centro' },
-        { label: 'Costo unit.', alineacion: 'centro' },
-        { label: 'Proveedor' },
         { label: 'Estado' },
       ]}
       pie={`Mostrando ${insumos.length} de ${total} insumos`}
     >
-      {insumos.map((insumo) => (
-        <FilaTabla
-          key={insumo.id}
-          onClick={() => onSeleccionar(insumo.id)}
-          className={insumo.id === seleccionadoId ? 'bg-[var(--orange-bg)]' : ''}
-        >
-          <div className="flex min-w-0 items-center gap-2.5">
-            <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[9px] bg-[var(--orange-bg)] text-[11.5px] font-extrabold text-[var(--orange-dark)]">
-              {insumo.iniciales}
-            </div>
+      {insumos.map((insumo) => {
+        const inv = inventarioPorInsumo.get(insumo.id)
+        return (
+          <FilaTabla
+            key={insumo.id}
+            onClick={() => onSeleccionar(insumo.id)}
+            className={insumo.id === seleccionadoId ? 'bg-[var(--orange-bg)]' : ''}
+          >
             <div className="min-w-0">
               <div className="truncate font-bold">{insumo.nombre}</div>
-              <div className="text-[11px] text-[var(--ink-soft)]">{insumo.categoria}</div>
+              <div className="text-[11px] text-[var(--ink-soft)]">{insumo.unidad_de_medida}</div>
             </div>
-          </div>
-          <span className="text-center font-semibold">
-            {insumo.stockActual} {insumo.unidadCorta}
-          </span>
-          <span className="text-center font-semibold">
-            {insumo.stockMinimo} {insumo.unidadCorta}
-          </span>
-          <span className="text-center font-semibold">{formatearMoneda(insumo.costoUnitario)}</span>
-          <span className="text-[12.5px] text-[var(--ink-soft)]">{insumo.proveedor}</span>
-          <span>
-            {estaBajoStock(insumo) ? <EstadoChip tono="rojo">Bajo stock</EstadoChip> : <EstadoChip tono="verde">OK</EstadoChip>}
-          </span>
-        </FilaTabla>
-      ))}
+            <span className="text-center text-[12px] text-[var(--ink-soft)]">{ETIQUETA_TIPO[insumo.tipo]}</span>
+            <span className="text-center font-semibold">{inv?.cantidad_actual ?? '—'}</span>
+            <span className="text-center font-semibold">{inv?.stock_minimo ?? '—'}</span>
+            <span>
+              {estaBajoStock(inv) ? <EstadoChip tono="rojo">Bajo stock</EstadoChip> : <EstadoChip tono="verde">OK</EstadoChip>}
+            </span>
+          </FilaTabla>
+        )
+      })}
     </TablaAdmin>
   )
 }

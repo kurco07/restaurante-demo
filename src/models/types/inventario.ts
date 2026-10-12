@@ -14,6 +14,7 @@ export interface InventarioSede {
   sede_id: string
   insumo_id: string
   cantidad_actual: number
+  stock_minimo: number | null
 }
 
 export interface Receta {
