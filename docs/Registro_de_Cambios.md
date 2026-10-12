@@ -4,6 +4,47 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-12 — Fase 4 completa (administración e inventario real)
+
+Rama: `feature/fase4-insumos`. Autor: Cesar (con Claude Code). Reparto acordado: Cesar toma Fase 4 completa, Pedro la Fase 5 (ver `CONTRIBUTING.md`). Los 5 módulos de la fase (insumos, descuento automático, lotes, movimientos, proveedores/compras) se construyeron en el orden 1 → 3 → 2 → 4 → 5 por dependencia real (el descuento automático para insumos `por_lote` necesita que ya existan lotes).
+
+### Para qué sirve
+
+Las 5 pantallas de inventario (`InsumosPage`, `LotesPage`, `MovimientosPage`, `ProveedoresPage`, `ComprasPage`) dejan de ser prototipos con datos inventados y quedan conectadas a Supabase real, siguiendo el mismo patrón "mock-first, luego real" del resto del proyecto.
+
+### Hallazgo que cambió el alcance
+
+El esquema real (`supabase/migrations/0002_esquema_inicial.sql`) resultó más simple que los mockups originales: no existían `stockMinimo`, `costoUnitario`, `categoria`, `fechaVencimiento`, separación teléfono/correo en proveedor, relación directa insumo↔proveedor, ni los estados `pendiente`/`rechazada` en órdenes de compra. Por cada campo se decidió explícitamente: agregar una columna nueva solo si la respaldaba `arquitectura.md` o una necesidad real de la UI (migración `0008_inventario_fase4.sql`: `stock_minimo`, `fecha_vencimiento`, `creado_por`, `creado_en`), o cortarlo y derivarlo de relaciones ya existentes.
+
+### Cómo funciona, módulo por módulo
+
+- **Insumos**: crear un insumo también crea su fila en `inventario_sede` en 0, para que el trigger de descuento siempre tenga dónde escribir. Eliminar propaga el error de Postgres si el insumo está en una receta (`on delete restrict`).
+- **Descuento automático**: trigger `descontar_inventario_por_entrega` sobre `pedidos_items` (migración `0008`) — reacciona cuando la fila de "entregado" llega al servidor, sea por escritura directa o por la cola offline de PowerSync (inventario es online-only, no está en el esquema de PowerSync). Insumos `estimado` no se descuentan; `por_lote` descuenta del lote FEFO.
+- **Lotes**: se agregó `fecha_vencimiento` (decisión confirmada con el usuario, FEFO real). Registrar un lote suma a `inventario_sede` vía el RPC atómico `incrementar_inventario_sede` (migración `0009`), para evitar condiciones de carrera si dos personas registran una entrada casi al mismo tiempo.
+- **Movimientos**: lista real de entrada/salida/merma/ajuste (4 valores reales, no los 3 del mock). El ajuste manual (merma/corrección) queda con `creado_por` = quien lo hizo; los automáticos (trigger, compra recibida) quedan con `creado_por` nulo.
+- **Proveedores y compras**: proveedor se simplificó a nombre + un campo de contacto libre. `ordenes_compra.estado` solo admite `borrador` → `aprobada` → `recibida` — no existe "rechazada": descartar un borrador lo elimina (cascada sobre sus items, decisión confirmada con el usuario). Al marcar una orden "recibida", cada item suma a `inventario_sede` con el mismo RPC atómico, deja un movimiento `entrada`, y si el insumo es `por_lote` abre un lote nuevo pidiendo la fecha de vencimiento en ese momento (no se asume ninguna).
+
+### Decisiones tomadas
+
+| Decisión | Por qué / alternativa |
+| --- | --- |
+| Orden de construcción 1 → 3 → 2 → 4 → 5, no el del roadmap | El descuento automático (Módulo 2) necesita lotes reales (Módulo 3) para poder descontar FEFO de insumos `por_lote`. |
+| Trigger de Postgres para el descuento, no una llamada desde cocina | `pedidos_items.estado` se escribe offline vía PowerSync; `inventario_sede`/`lotes_insumo`/`movimientos_inventario` son online-only. El trigger reacciona cuando la fila llega al servidor, sin importar cuándo. |
+| `incrementar_inventario_sede` como función atómica reusada en lotes y compras | Un `update cantidad_actual = cantidad_actual + X` directo desde el cliente sería una condición de carrera. |
+| Sin columna `activo` en insumos/proveedores | La base ya protege con `on delete restrict`/`cascade` — mismo patrón que `menuService.eliminarCategoria`. |
+| Sin estado "rechazada" en órdenes de compra | No existe en el esquema; descartar un borrador es simplemente eliminarlo. |
+| Fecha de vencimiento del lote se pide al recibir una compra, no se asume | Igual que al registrar un lote a mano — nunca se inventa un dato que el usuario no dio. |
+
+### Verificación
+
+Cada módulo: `npx tsc --noEmit` + `npx oxlint` + `npm run build` limpios, y verificación contra Supabase real vía REST con la cuenta de prueba `administracion@prueba.com` — crear datos de prueba, confirmar el efecto esperado, limpiar. El Módulo 5 se verificó además end-to-end completo: borrador → aprobada → recibida con un insumo exacto y uno por lote, descarte de un borrador (cascada de items), y bloqueo real de borrado de un proveedor con órdenes asociadas.
+
+### Pendiente
+
+Ninguno dentro del alcance de esta fase. La prueba de red real de Fase 2 Módulo 4 (cortar internet de verdad en un navegador) sigue diferida a propósito, a pedir del usuario.
+
+---
+
 ## 2026-10-11 — Fase 3, Módulo 3 (sesión de mesa compartida)
 
 Rama: `feature/fase3-mesa-compartida`. Autor: Pedro (con Claude Code). Reparto acordado: César hizo Fase 3 Módulo 2 (`enviar_pedido_autopedido`, migración 0004) y tiene la prueba de Fase 2 Módulo 4; Pedro hace este módulo. Se mezcló con el ajuste de César de aprobación del mesonero (`por_aprobar`, migración 0005): por eso la migración de este módulo es la `0006`.

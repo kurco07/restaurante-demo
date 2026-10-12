@@ -4,6 +4,7 @@ export type { PedidoItem, Plato, ItemCarrito } from './pedido'
 export type { Mesa, SesionMesa } from './mesa'
 export type { Insumo, InventarioSede, Receta, TipoMovimiento, MovimientoInventario } from './inventario'
 export type { LoteInsumo, EstadoLote } from './lote'
+export type { Proveedor, EstadoOrdenCompra } from './compra'
 export type {
   PeriodoPanel,
   IndicadoresPanel,
@@ -17,7 +18,6 @@ export type {
   VentaSemanalReporte,
   HoraPico,
   VentaCategoria,
-  Proveedor,
   PuestoEmpleado,
   Empleado,
   EstadoPedidoAdmin,
@@ -27,9 +27,6 @@ export type {
   Facturacion,
   ColorMarca,
   PreferenciaNotificacion,
-  EstadoOrdenCompra,
-  ItemOrdenCompra,
-  OrdenCompra,
 } from './administracion'
 export type {
   CategoriaAutopedido,

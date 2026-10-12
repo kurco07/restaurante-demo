@@ -1,14 +1,18 @@
-import type { OrdenCompra } from '../../../../../models/types'
+import type { OrdenCompraConDetalle } from '../../../../../models/services/compraService'
 import { totalOrden } from '../../../../../controllers/administracion/useCompras'
 import { formatearMoneda } from '../constants'
 import { FilaTabla, TablaAdmin } from '../comunes'
 import { EstadoOrdenChip } from './EstadoOrdenChip'
 
 interface TablaOrdenesProps {
-  ordenes: OrdenCompra[]
+  ordenes: OrdenCompraConDetalle[]
   totalMes: number
   seleccionadaId: string | undefined
   onSeleccionar: (id: string) => void
+}
+
+function formatearFecha(iso: string) {
+  return new Date(iso).toLocaleDateString('es-VE', { day: '2-digit', month: 'short' })
 }
 
 export function TablaOrdenes({ ordenes, totalMes, seleccionadaId, onSeleccionar }: TablaOrdenesProps) {
@@ -38,9 +42,14 @@ export function TablaOrdenes({ ordenes, totalMes, seleccionadaId, onSeleccionar 
           <span>
             <EstadoOrdenChip estado={orden.estado} />
           </span>
-          <span className="text-[11.5px] text-[var(--ink-soft)]">{orden.fecha}</span>
+          <span className="text-[11.5px] text-[var(--ink-soft)]">{formatearFecha(orden.creado_en)}</span>
         </FilaTabla>
       ))}
+      {ordenes.length === 0 && (
+        <div className="px-[18px] py-6 text-center text-[13px] text-[var(--ink-soft)]">
+          No hay órdenes de compra en este filtro.
+        </div>
+      )}
     </TablaAdmin>
   )
 }

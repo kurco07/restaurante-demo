@@ -76,21 +76,6 @@ export interface VentaCategoria {
   monto: number
 }
 
-// ---- Proveedores ----
-
-export interface Proveedor {
-  id: string
-  nombre: string
-  categoria: string
-  telefono: string
-  correo: string
-  entregaEstimada: string
-  formaPago: string
-  nota: string
-  insumos: string[]
-  activo: boolean
-}
-
 // ---- Personal ----
 
 export type PuestoEmpleado = 'mesonero' | 'cocinero' | 'administracion'
@@ -154,28 +139,4 @@ export interface PreferenciaNotificacion {
   label: string
 }
 
-// ---- Inventario: órdenes de compra ----
-
-// Estados del mockup. Ojo: `ordenes_compra.estado` en 0002 solo admite
-// borrador / aprobada / recibida — "pendiente" y "rechazada" aún no existen en la BD.
-export type EstadoOrdenCompra = 'borrador' | 'pendiente' | 'aprobada' | 'rechazada' | 'recibida'
-
-export interface ItemOrdenCompra {
-  insumo: string
-  cantidad: number
-  unidad: string
-  costoUnitario: number
-}
-
-export interface OrdenCompra {
-  id: string
-  codigo: string
-  proveedor: string
-  solicitadaPor: string
-  estado: EstadoOrdenCompra
-  fecha: string
-  fechaSolicitud: string
-  entregaEstimada: string
-  items: ItemOrdenCompra[]
-}
 

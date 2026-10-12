@@ -3,9 +3,7 @@ import { EstadoChip } from '../panel/EstadoChip'
 
 const chipPorEstado: Record<EstadoOrdenCompra, { tono: 'verde' | 'naranja' | 'rojo' | 'gris'; label: string }> = {
   borrador: { tono: 'gris', label: 'Borrador' },
-  pendiente: { tono: 'naranja', label: 'Pendiente' },
-  aprobada: { tono: 'verde', label: 'Aprobada' },
-  rechazada: { tono: 'rojo', label: 'Rechazada' },
+  aprobada: { tono: 'naranja', label: 'Aprobada' },
   recibida: { tono: 'verde', label: 'Recibida' },
 }
 
