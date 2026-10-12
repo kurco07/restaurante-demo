@@ -128,19 +128,6 @@ export interface PedidoAdmin {
   horaLabel: string
 }
 
-// ---- Movimientos de inventario ----
-
-export type TipoMovimiento = 'entrada' | 'salida' | 'merma'
-
-export interface MovimientoInventario {
-  id: string
-  tipo: TipoMovimiento
-  insumo: string
-  cantidadLabel: string
-  referencia: string
-  responsable: string
-  horaLabel: string
-}
 
 // ---- Configuración ----
 
