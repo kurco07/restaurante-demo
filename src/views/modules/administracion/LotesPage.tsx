@@ -11,29 +11,33 @@ import { RegistrarLotePanel } from './components/lotes/RegistrarLotePanel'
 
 export default function LotesPage() {
   const { insumoId } = useParams()
-  const { usuario, loading, error } = useUsuario()
-  const { insumo, lotes, selector, resumen } = useLotesInsumo(insumoId)
+  const { usuario, loading: loadingUsuario, error: errorUsuario } = useUsuario()
+  const l = useLotesInsumo(insumoId)
 
-  if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
-  if (error) return <ErrorMessage message={error} />
+  if (loadingUsuario || l.loading) return <LoadingSpinner message="Cargando…" />
+  if (errorUsuario) return <ErrorMessage message={errorUsuario} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
-  if (!insumo) return <Navigate to="/administracion/insumos" replace />
+  if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
+  if (!l.insumo) return <Navigate to="/administracion/insumos" replace />
+  if (l.insumo.tipo !== 'por_lote') return <Navigate to="/administracion/insumos" replace />
 
   return (
     <AdminLayout usuario={usuario}>
-      <EncabezadoLotes insumo={insumo} selector={selector} />
+      <EncabezadoLotes insumo={l.insumo} selector={l.selector} />
+
+      {l.error && <ErrorMessage message={l.error} />}
 
       <TarjetasResumen
         items={[
-          { valor: `${resumen.stockTotal} ${insumo.unidadCorta}`, etiqueta: 'Stock total (lotes activos)' },
-          { valor: resumen.lotesActivos, etiqueta: 'Lotes activos' },
-          { valor: resumen.porVencer, etiqueta: 'Lote por vencer', alerta: true },
+          { valor: `${l.resumen.stockTotal} ${l.insumo.unidad_de_medida}`, etiqueta: 'Stock total (lotes activos)' },
+          { valor: l.resumen.lotesActivos, etiqueta: 'Lotes activos' },
+          { valor: l.resumen.porVencer, etiqueta: 'Lotes por vencer', alerta: true },
         ]}
       />
 
       <div className="grid items-start gap-5 lg:grid-cols-[1.6fr_1fr]">
-        <TablaLotes lotes={lotes} unidad={insumo.unidadCorta} />
-        <RegistrarLotePanel insumo={insumo} />
+        <TablaLotes lotes={l.lotes} primerActivoId={l.primerActivoId} unidad={l.insumo.unidad_de_medida} />
+        <RegistrarLotePanel insumo={l.insumo} guardando={l.guardando} onRegistrar={l.crear} />
       </div>
     </AdminLayout>
   )

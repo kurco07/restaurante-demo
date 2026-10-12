@@ -142,23 +142,6 @@ export interface MovimientoInventario {
   horaLabel: string
 }
 
-// ---- Inventario: insumos ----
-
-export interface InsumoAdmin {
-  id: string
-  nombre: string
-  iniciales: string
-  categoria: string
-  unidad: string
-  unidadCorta: string
-  stockActual: number
-  stockMinimo: number
-  costoUnitario: number
-  proveedor: string
-  activo: boolean
-  usadoEn: string[]
-}
-
 // ---- Configuración ----
 
 export interface DatosRestaurante {
@@ -209,19 +192,3 @@ export interface OrdenCompra {
   items: ItemOrdenCompra[]
 }
 
-// ---- Inventario: lotes ----
-
-export type EstadoLote = 'por_vencer' | 'activo' | 'agotado'
-
-export interface LoteInsumo {
-  id: string
-  codigo: string
-  fechaIngreso: string
-  fechaVencimiento: string
-  cantidadRestante: number
-  cantidadInicial: number
-  costoUnitario: number
-  proveedor: string
-  estado: EstadoLote
-  usarPrimero: boolean
-}

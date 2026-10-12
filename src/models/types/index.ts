@@ -3,6 +3,7 @@ export type { CategoriaMenu, MenuItem, MenuItemSede } from './menu'
 export type { PedidoItem, Plato, ItemCarrito } from './pedido'
 export type { Mesa, SesionMesa } from './mesa'
 export type { Insumo, InventarioSede, Receta } from './inventario'
+export type { LoteInsumo, EstadoLote } from './lote'
 export type {
   PeriodoPanel,
   IndicadoresPanel,
@@ -24,9 +25,6 @@ export type {
   PedidoAdmin,
   TipoMovimiento,
   MovimientoInventario,
-  InsumoAdmin,
-  EstadoLote,
-  LoteInsumo,
   DatosRestaurante,
   Facturacion,
   ColorMarca,
