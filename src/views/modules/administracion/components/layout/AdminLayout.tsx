@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Usuario } from '../../../../../models/types'
-import { ESTILOS_ADMIN } from '../constants'
+import { ESTILOS_ADMIN } from '../../../../components/ui/constants'
 import { AdminSidebar } from './AdminSidebar'
 
 interface AdminLayoutProps {

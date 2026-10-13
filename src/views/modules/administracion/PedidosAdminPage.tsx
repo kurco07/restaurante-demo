@@ -3,7 +3,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { AdminLayout } from './components/layout/AdminLayout'
 import { EstadoChip } from './components/panel/EstadoChip'
-import { formatearMoneda } from './components/constants'
+import { formatearMoneda } from '../../components/ui/constants'
 import { usePedidosAdmin } from '../../../controllers/administracion/usePedidosAdmin'
 import type { EstadoPedidoAdmin } from '../../../models/types'
 

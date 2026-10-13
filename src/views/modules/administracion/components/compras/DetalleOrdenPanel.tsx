@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { OrdenCompraConDetalle, ItemOrdenCompraDetalle } from '../../../../../models/services/compraService'
 import { totalOrden, type ItemFormulario } from '../../../../../controllers/administracion/useCompras'
 import type { Insumo, Proveedor } from '../../../../../models/types'
-import { formatearMoneda } from '../constants'
+import { formatearMoneda } from '../../../../components/ui/constants'
 import { Campo, FilaCampos, NotaInfo, PanelLateral } from '../comunes'
 
 interface FilaItem {

@@ -82,11 +82,6 @@ const enlaces: EnlaceSidebar[] = [
     ),
   },
   {
-    label: 'Reportes',
-    to: '/administracion/reportes',
-    icono: <path d="M4 20V11M10 20V5M16 20v-6M22 20H2" />,
-  },
-  {
     label: 'Configuración',
     to: '/administracion/configuracion',
     icono: (

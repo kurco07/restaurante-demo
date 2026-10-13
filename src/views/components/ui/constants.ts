@@ -1,6 +1,7 @@
-// Paleta del módulo de administración (misma de mockup-admin-home.html).
-// Se aplica como variables CSS en el contenedor del layout y los componentes
-// las usan con clases tipo `bg-[var(--surface)]`.
+// Paleta y formato compartidos por las pantallas de "back office"
+// (administración y gerencia) — antes vivían dentro de administración y
+// gerencia los importaba cruzando de módulo; movido aquí para que ambos
+// dependan de un mismo lugar y no se desincronicen entre sí.
 export const ESTILOS_ADMIN = {
   '--bg': '#fffbf6',
   '--surface': '#ffffff',

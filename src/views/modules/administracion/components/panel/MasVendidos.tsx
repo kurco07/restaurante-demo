@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { ProductoMasVendido } from '../../../../../models/types'
-import { formatearMoneda } from '../constants'
-import { PanelCard } from './PanelCard'
+import { formatearMoneda } from '../../../../components/ui/constants'
+import { PanelCard } from '../../../../components/ui/PanelCard'
 
 interface MasVendidosProps {
   productos: ProductoMasVendido[]

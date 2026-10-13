@@ -5,7 +5,7 @@ import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { AdminLayout } from './components/layout/AdminLayout'
 import { InventarioTabs } from './components/InventarioTabs'
 import { BotonNuevo, EncabezadoAdmin, FiltroPills, TarjetasResumen } from './components/comunes'
-import { formatearMoneda } from './components/constants'
+import { formatearMoneda } from '../../components/ui/constants'
 import { TablaOrdenes } from './components/compras/TablaOrdenes'
 import { DetalleOrdenPanel } from './components/compras/DetalleOrdenPanel'
 

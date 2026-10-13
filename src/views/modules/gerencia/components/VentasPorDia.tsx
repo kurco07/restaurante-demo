@@ -1,5 +1,5 @@
 import type { VentaPorDia } from '../../../../models/types'
-import { formatearMoneda } from '../../administracion/components/constants'
+import { formatearMoneda } from '../../../components/ui/constants'
 
 const ALTO_MAXIMO_BARRA = 140
 const DIAS_SEMANA = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']

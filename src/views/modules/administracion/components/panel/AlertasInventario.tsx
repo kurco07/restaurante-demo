@@ -1,6 +1,6 @@
 import type { AlertaInventario } from '../../../../../models/types'
 import { EstadoChip } from './EstadoChip'
-import { PanelCard } from './PanelCard'
+import { PanelCard } from '../../../../components/ui/PanelCard'
 
 interface AlertasInventarioProps {
   alertas: AlertaInventario[]

@@ -1,5 +1,5 @@
 import type { VentaDia } from '../../../../../models/types'
-import { PanelCard } from './PanelCard'
+import { PanelCard } from '../../../../components/ui/PanelCard'
 
 interface VentasSemanaChartProps {
   ventas: VentaDia[]

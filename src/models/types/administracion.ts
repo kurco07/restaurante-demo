@@ -50,32 +50,6 @@ export interface MesaResumen {
   estado: Mesa['estado']
 }
 
-// ---- Reportes ----
-
-export interface IndicadoresReporte {
-  ventasMes: number
-  pedidosMes: number
-  ticketPromedioMes: number
-}
-
-export interface VentaSemanalReporte {
-  semana: string
-  total: number
-  actual: boolean
-}
-
-export interface HoraPico {
-  rango: string
-  intensidad: number
-  etiqueta: string
-}
-
-export interface VentaCategoria {
-  categoria: string
-  porcentaje: number
-  monto: number
-}
-
 // ---- Personal ----
 
 export type PuestoEmpleado = 'mesonero' | 'cocinero' | 'administracion'

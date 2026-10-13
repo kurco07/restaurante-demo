@@ -1,7 +1,7 @@
 import type { EstadoPedidoReciente, PedidoReciente } from '../../../../../models/types'
-import { formatearMoneda } from '../constants'
+import { formatearMoneda } from '../../../../components/ui/constants'
 import { EstadoChip } from './EstadoChip'
-import { PanelCard } from './PanelCard'
+import { PanelCard } from '../../../../components/ui/PanelCard'
 
 interface PedidosRecientesProps {
   pedidos: PedidoReciente[]

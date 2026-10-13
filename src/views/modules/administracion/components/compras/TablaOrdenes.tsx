@@ -1,6 +1,6 @@
 import type { OrdenCompraConDetalle } from '../../../../../models/services/compraService'
 import { totalOrden } from '../../../../../controllers/administracion/useCompras'
-import { formatearMoneda } from '../constants'
+import { formatearMoneda } from '../../../../components/ui/constants'
 import { FilaTabla, TablaAdmin } from '../comunes'
 import { EstadoOrdenChip } from './EstadoOrdenChip'
 

@@ -1,5 +1,5 @@
 import type { IndicadoresPanel, PeriodoPanel } from '../../../../../models/types'
-import { formatearMoneda } from '../constants'
+import { formatearMoneda } from '../../../../components/ui/constants'
 
 interface IndicadoresGridProps {
   indicadores: IndicadoresPanel

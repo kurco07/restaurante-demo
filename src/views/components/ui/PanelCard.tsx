@@ -8,7 +8,8 @@ interface PanelCardProps {
   children: ReactNode
 }
 
-// Tarjeta blanca con título, subtítulo y un enlace opcional arriba a la derecha.
+// Tarjeta blanca con título, subtítulo y un enlace opcional arriba a la
+// derecha — compartida entre administración y gerencia (ver constants.ts).
 export function PanelCard({ titulo, subtitulo, enlace, children }: PanelCardProps) {
   return (
     <section className="mb-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-[18px]">
