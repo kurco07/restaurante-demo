@@ -9,6 +9,21 @@ Cómo usarlo: cada módulo se le pasa a Claude Code como su propio prompt, uno a
 
 ---
 
+## Pantallas ya construidas por adelantado (prototipos navegables, sin módulo de conexión propio)
+
+Antes de que este roadmap se empezara a seguir módulo por módulo, se construyeron varias pantallas de administración como recorrido visual completo, con datos de prueba (`mockData/`). Ninguna de las cuatro que quedan tiene su propio módulo asignado en ninguna fase de abajo — **que sigan en mock no es un bug ni trabajo atrasado**, es que su turno de conectarse a datos reales todavía no llegó. Antes de "arreglar" cualquiera de estas, confirma primero si el roadmap ya le asignó un lugar:
+
+| Pantalla | Archivos | Se conecta como parte de |
+|---|---|---|
+| Panel (home de administración) | `AdministracionPage.tsx` / `usePanelAdmin.ts` | Ninguna fase lo reclama todavía — decidir si se agrega como módulo nuevo cuando se construya (reutilizaría ventas/más vendidos de Fase 5, mesas de Fase 2, alertas de inventario de Fase 4 — las tres fuentes ya son reales en sus propias pantallas) |
+| Pedidos (vista de todos los pedidos) | `PedidosAdminPage.tsx` / `usePedidosAdmin.ts` | Ninguna fase lo reclama todavía — revisar primero si no es redundante con Mesoneros (Fase 2) + Reportes de gerencia (Fase 5) antes de conectarlo |
+| Personal | `PersonalPage.tsx` / `usePersonal.ts` | Fase 7, Módulo 6 — Gestión de usuarios y roles |
+| Configuración | `ConfiguracionPage.tsx` / `useConfiguracion.ts` | Fase 7, Módulo 4 — Personalización de marca (la sección de branding) y Módulo 3 — Cobro y suscripción (la sección de facturación) |
+
+Esto es justo lo que pasó con "Reportes" de administración (ver `Registro_de_Cambios.md`, 2026-10-13): nadie había dejado por escrito cuál pantalla era mock y a qué fase pertenecía, se construyó un dashboard real en paralelo en gerencia sin saber que ya existía una versión de mentira con las mismas métricas en administración, y terminaron duplicadas con el rol equivocado. Esta tabla existe para que no se repita con las cuatro que quedan.
+
+---
+
 ## Fase 0 — Completado
 
 - ✅ Estructura del proyecto (Vite + React + TypeScript + Tailwind)
@@ -34,6 +49,8 @@ Un proveedor de contexto (o hook global) que expone en toda la app: el usuario a
 Cada ruta de módulo solo es accesible para los roles que corresponden, según la matriz de `permisos_rol` (ver `arquitectura.md`, sección 4.10). Un mesonero no debería poder ni ver la URL de administración.
 
 Matriz confirmada con el usuario (gerencia con acceso total, incluida cocina): `/mesoneros` → mesonero/supervisor/gerencia · `/cocina` → cocina/supervisor/gerencia · `/administracion` → administracion/gerencia · `/gerencia` → gerencia · `/super-admin` → super_admin · `/autopedido` queda pública, sin login (vista del cliente por QR). Ver `src/lib/rolesPorModulo.ts`.
+
+⚠️ **Discrepancia encontrada en auditoría (2026-10-13):** `modelo-de-datos.md` §6 y `arquitectura.md` §4.10 describen un sistema de permisos dinámico respaldado por la tabla `permisos_rol` (rol × acción → permitido), pensado para poder ajustar qué puede hacer un rol editando una fila, sin programar ni desplegar. La tabla existe en la base (`0002_esquema_inicial.sql`) pero el código real nunca la consulta — el gateo de rutas es el mapa estático `rolesPorModulo.ts`. Funciona igual de bien para el alcance actual (pocos roles, matriz fija), pero si algún día se necesita que un restaurante ajuste permisos sin tocar código, falta conectar esa tabla de verdad — por ahora queda como decisión de implementación simplificada, no como error.
 
 **Módulo 4 — Esquema real de PowerSync** ✅
 Definir el Schema del lado del cliente (ya no vacío) para las tablas que sí necesitan estar disponibles offline: `sedes`, `usuarios`, `categorias_menu`, `menu_items`, `menu_item_sede`, `mesas`, `sesiones_mesa`, `pedidos_items`, `insumos`, `recetas` — las mismas que ya están en la publicación `powersync` de Supabase. Conectar el cliente y confirmar que sincroniza contra una instancia real de PowerSync.
@@ -140,6 +157,9 @@ Alta de proveedores, creación de órdenes de compra, con aprobación humana sie
 
 Proveedor se simplificó a nombre + un solo campo de contacto libre (sin categoría/teléfono-correo separados/forma de pago, que no existían en la base). `ordenes_compra.estado` solo admite `borrador` → `aprobada` → `recibida` en el esquema real — no hay "rechazada": descartar un borrador simplemente lo elimina (cascada sobre sus items). Al marcar una orden "recibida", cada item suma a `inventario_sede` vía el mismo RPC atómico del Módulo 3, deja un movimiento `entrada`, y si el insumo es `por_lote` abre un lote nuevo pidiendo la fecha de vencimiento en ese momento (igual que al registrar un lote a mano). Verificado end-to-end contra Supabase real: borrador → aprobada → recibida con un insumo exacto y uno por lote, descarte de un borrador, y bloqueo de borrado de un proveedor con órdenes asociadas (`on delete` restrictivo).
 
+**Módulo 6 — Conteos físicos y conciliación** 🔲 *identificado en auditoría (2026-10-13), no construido*
+`arquitectura.md` §4.3 lo incluye explícitamente ("conteos físicos y conciliación") pero no tenía módulo propio en este roadmap, y no se construyó junto con el resto de la fase. Ya existe una función de servicio sin usar para esto (`actualizarStock` en `inventarioService.ts`, sobrescribe `cantidad_actual` directo) que nunca se conectó a ninguna pantalla. Falta una vista de "conteo físico" por sede que muestre el stock teórico vs. el contado y registre la diferencia como un movimiento (mismo patrón que el ajuste manual del Módulo 4), no un overwrite silencioso sin rastro.
+
 ---
 
 ## Fase 5 — Gerencia y reportes
@@ -150,8 +170,13 @@ Ventas, rentabilidad por plato, rotación de inventario — agregando sobre los 
 **Módulo 2 — Reportes por turno**
 Reporte de ventas y medios de pago al cierre del día, calculado sobre `pagos_cierre` (no necesariamente una tabla nueva, ver `modelo-de-datos.md`, sección 6).
 
+Nota (auditoría 2026-10-13): la matriz de roles de `arquitectura.md` §4.10 le da a "Supervisor de sala" acceso a "reportes del turno", pero `rolesPorModulo.ts` hoy no le da a `supervisor` ningún acceso a `/administracion` ni `/gerencia` — ese rol no puede ver ningún reporte todavía. Este módulo debería decidir cómo resolver eso (una vista reducida propia para supervisor, o ampliar su acceso a esta pantalla) antes de darse por terminado.
+
 **Módulo 3 — Vista multi-sede**
 Para cadenas: reportes consolidados de todas las sedes de un tenant, o filtrados por sede individual.
+
+**Módulo 4 — Alertas y excepciones** 🔲 *identificado en auditoría (2026-10-13), no construido*
+`arquitectura.md` §4.4 lo incluye explícitamente ("mermas anómalas, descuentos excesivos") pero no tenía módulo propio en este roadmap. Son las excepciones que gerencia necesita ver sin tener que salir a buscarlas activamente.
 
 ---
 

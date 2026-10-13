@@ -4,6 +4,28 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-13 — Limpieza: Reportes duplicado, código compartido, y auditoría del roadmap
+
+Rama: `feature/fase4-insumos`. Autor: Cesar (con Claude Code).
+
+### Para qué sirve
+
+Pedro (con su asistente de IA) estaba construyendo el dashboard real de KPIs de gerencia (Fase 5, Módulo 1) cuando notó que administración ya tenía una pantalla de "Reportes" mostrando las mismas métricas, con datos 100% inventados. Revisado contra `arquitectura.md` §4.4/§4.10: los reportes financieros son de Gerencia, no de Administración — esa pantalla no era trabajo pendiente, era una duplicada con el rol equivocado.
+
+### Qué se hizo
+
+- Se elimina por completo `ReportesPage.tsx` / `useReportes.ts` / `mockData/reportes.ts`, el link del sidebar, la ruta en `App.tsx`, y los tipos que solo ella usaba (`IndicadoresReporte`, `VentaSemanalReporte`, `HoraPico`, `VentaCategoria`).
+- `GerenciaPage.tsx` y `VentasPorDia.tsx` (de Pedro) importaban `ESTILOS_ADMIN`/`formatearMoneda`/`PanelCard` directo desde la carpeta de administración — acoplamiento cruzado que rompería gerencia ante cualquier cambio interno de administración. Se mueven a `src/views/components/ui/` (ya existía esa carpeta para piezas compartidas como `LoadingSpinner`/`ErrorMessage`) y los ~13 archivos de administración que ya los usaban pasan a importarlos desde ahí también.
+- **No se tocó** el Panel/home de administración (sigue en mock): nunca tuvo un módulo propio asignado en el roadmap, en ninguna fase — conectarlo es trabajo nuevo, no una limpieza de duplicado.
+- Se mergeó `main` (con el trabajo de Pedro ya integrado: dashboard de KPIs, migración `0010_kpis_ventas.sql`) dentro de la rama de Fase 4 antes de hacer la limpieza, sin conflictos de git — Pedro ya había renumerado su migración y no había colisión de tipos.
+- Se audita todo el proyecto (`arquitectura.md`, `modelo-de-datos.md`, el roadmap, y el código real) para encontrar más casos del mismo patrón — ver los hallazgos marcados 🔲 directamente en `Roadmap_Construccion_MVP.md`: discrepancia entre la tabla `permisos_rol` (diseñada, nunca conectada) y el mapa estático `rolesPorModulo.ts` real; conteos físicos y conciliación (Fase 4) sin módulo asignado; alertas y excepciones de gerencia (Fase 5) sin módulo asignado; el rol "Supervisor de sala" sin acceso a ningún reporte pese a que `arquitectura.md` se lo da. Se agrega además una tabla nueva al inicio del roadmap listando las 4 pantallas de administración que siguen en mock (Panel, Pedidos, Personal, Configuración) y a qué fase/módulo le toca conectar cada una — para que no se repita la confusión de "esto parece un bug" con ninguna de ellas.
+
+### Verificación
+
+`tsc --noEmit` + `oxlint` + `npm run build` limpios sobre todo `src/` después del merge y de la limpieza; sin referencias colgantes a las rutas de import viejas (verificado con grep). Fast-forward merge a `main` sin tocar el trabajo de Pedro.
+
+---
+
 ## 2026-10-12 — Fase 4 completa (administración e inventario real)
 
 Rama: `feature/fase4-insumos`. Autor: Cesar (con Claude Code). Reparto acordado: Cesar toma Fase 4 completa, Pedro la Fase 5 (ver `CONTRIBUTING.md`). Los 5 módulos de la fase (insumos, descuento automático, lotes, movimientos, proveedores/compras) se construyeron en el orden 1 → 3 → 2 → 4 → 5 por dependencia real (el descuento automático para insumos `por_lote` necesita que ya existan lotes).
