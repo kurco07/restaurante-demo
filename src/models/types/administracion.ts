@@ -76,21 +76,6 @@ export interface VentaCategoria {
   monto: number
 }
 
-// ---- Proveedores ----
-
-export interface Proveedor {
-  id: string
-  nombre: string
-  categoria: string
-  telefono: string
-  correo: string
-  entregaEstimada: string
-  formaPago: string
-  nota: string
-  insumos: string[]
-  activo: boolean
-}
-
 // ---- Personal ----
 
 export type PuestoEmpleado = 'mesonero' | 'cocinero' | 'administracion'
@@ -128,36 +113,6 @@ export interface PedidoAdmin {
   horaLabel: string
 }
 
-// ---- Movimientos de inventario ----
-
-export type TipoMovimiento = 'entrada' | 'salida' | 'merma'
-
-export interface MovimientoInventario {
-  id: string
-  tipo: TipoMovimiento
-  insumo: string
-  cantidadLabel: string
-  referencia: string
-  responsable: string
-  horaLabel: string
-}
-
-// ---- Inventario: insumos ----
-
-export interface InsumoAdmin {
-  id: string
-  nombre: string
-  iniciales: string
-  categoria: string
-  unidad: string
-  unidadCorta: string
-  stockActual: number
-  stockMinimo: number
-  costoUnitario: number
-  proveedor: string
-  activo: boolean
-  usadoEn: string[]
-}
 
 // ---- Configuración ----
 
@@ -184,44 +139,4 @@ export interface PreferenciaNotificacion {
   label: string
 }
 
-// ---- Inventario: órdenes de compra ----
 
-// Estados del mockup. Ojo: `ordenes_compra.estado` en 0002 solo admite
-// borrador / aprobada / recibida — "pendiente" y "rechazada" aún no existen en la BD.
-export type EstadoOrdenCompra = 'borrador' | 'pendiente' | 'aprobada' | 'rechazada' | 'recibida'
-
-export interface ItemOrdenCompra {
-  insumo: string
-  cantidad: number
-  unidad: string
-  costoUnitario: number
-}
-
-export interface OrdenCompra {
-  id: string
-  codigo: string
-  proveedor: string
-  solicitadaPor: string
-  estado: EstadoOrdenCompra
-  fecha: string
-  fechaSolicitud: string
-  entregaEstimada: string
-  items: ItemOrdenCompra[]
-}
-
-// ---- Inventario: lotes ----
-
-export type EstadoLote = 'por_vencer' | 'activo' | 'agotado'
-
-export interface LoteInsumo {
-  id: string
-  codigo: string
-  fechaIngreso: string
-  fechaVencimiento: string
-  cantidadRestante: number
-  cantidadInicial: number
-  costoUnitario: number
-  proveedor: string
-  estado: EstadoLote
-  usarPrimero: boolean
-}

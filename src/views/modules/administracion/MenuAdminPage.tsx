@@ -10,6 +10,7 @@ export default function MenuAdminPage() {
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+  if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
 
   return (
     <AdminLayout usuario={usuario}>
@@ -17,7 +18,7 @@ export default function MenuAdminPage() {
         <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Administración</div>
         <h1 className="mt-1 text-[27px] font-extrabold">Menú y recetas</h1>
       </header>
-      <MenuAdmin tenantId={usuario.tenant_id} />
+      <MenuAdmin tenantId={usuario.tenant_id} sedeId={usuario.sede_id} />
     </AdminLayout>
   )
 }

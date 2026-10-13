@@ -111,22 +111,34 @@ Riesgo conocido, sin resolver a propósito: si el mesonero abre la mesa sin inte
 
 ---
 
-## Fase 4 — Administración e inventario completos
+## Fase 4 — Administración e inventario completos ✅
 
-**Módulo 1 — Gestión de insumos**
+El esquema real resultó más simple que el mockup original — varios campos del prototipo (categoría/costo/proveedor directo en insumo, teléfono/correo separados en proveedor, estados "pendiente"/"rechazada" en órdenes de compra) no existían en la base y se decidió, módulo por módulo, cuáles se cortaban y cuáles justificaban una columna nueva (`stock_minimo`, `fecha_vencimiento`, `creado_por`, `creado_en` — migración `0008_inventario_fase4.sql`). Construido completo por Cesar.
+
+**Módulo 1 — Gestión de insumos** ✅
 Alta y edición de insumos, con su tipo: exacto, por lote, o estimado (ver `modelo-de-datos.md`).
 
-**Módulo 2 — Descuento automático de inventario**
+Crear un insumo también crea su fila en `inventario_sede` (en 0) — así el trigger de descuento del Módulo 2 siempre tiene dónde escribir. Editor simplificado a nombre/unidad/tipo/stock mínimo; eliminar propaga el error de Postgres si el insumo está en una receta (`on delete restrict`). Verificado contra Supabase real.
+
+**Módulo 2 — Descuento automático de inventario** ✅
 Al marcar un pedido como entregado, se descuentan automáticamente los insumos según la receta del plato vendido.
 
-**Módulo 3 — Lotes de insumo**
+Resuelto con un trigger de Postgres (`descontar_inventario_por_entrega`, migración `0008`) en vez de una llamada síncrona desde cocina — `inventario_sede`/`lotes_insumo`/`movimientos_inventario` son online-only (no están en el esquema de PowerSync), así que el trigger reacciona cuando la fila de `pedidos_items` llega al servidor, sea por escritura directa o por la cola offline de PowerSync. Insumos `estimado` no se descuentan (decisión ya tomada en `arquitectura.md`); insumos `por_lote` descuentan del lote FEFO (vencimiento más próximo). Verificado en vivo: marcar "Entregado" en cocina bajó el stock, creó un movimiento `salida`, y redujo el lote correcto.
+
+**Módulo 3 — Lotes de insumo** ✅
 Manejo de insumos que se preparan por lote (una salsa, por ejemplo): abrir un lote, ver cuánto rinde, cuánto queda.
 
-**Módulo 4 — Movimientos de inventario**
+Se agregó `fecha_vencimiento` a `lotes_insumo` (decisión confirmada con el usuario) para FEFO real, no solo por fecha de apertura. Registrar un lote suma al total de `inventario_sede` mediante un RPC atómico (`incrementar_inventario_sede`, migración `0009`) para evitar condiciones de carrera. Verificado: dos lotes del mismo insumo (uno con vencimiento, uno sin) suman correctamente, y el trigger del Módulo 2 descuenta primero del que vence antes.
+
+**Módulo 4 — Movimientos de inventario** ✅
 Historial de entradas, salidas, mermas y ajustes — la vista contable del stock.
 
-**Módulo 5 — Proveedores y órdenes de compra**
+Las entradas/salidas automáticas (trigger de entrega, compra recibida) solo se listan aquí; el formulario de "ajuste manual" (merma/corrección) es real, con `creado_por` = quien lo registra (nulo = automático en los demás casos). Verificado contra Supabase real: stock 10 → merma -3 → corrección +2 → stock final 9.
+
+**Módulo 5 — Proveedores y órdenes de compra** ✅
 Alta de proveedores, creación de órdenes de compra, con aprobación humana siempre requerida antes de considerarla confirmada.
+
+Proveedor se simplificó a nombre + un solo campo de contacto libre (sin categoría/teléfono-correo separados/forma de pago, que no existían en la base). `ordenes_compra.estado` solo admite `borrador` → `aprobada` → `recibida` en el esquema real — no hay "rechazada": descartar un borrador simplemente lo elimina (cascada sobre sus items). Al marcar una orden "recibida", cada item suma a `inventario_sede` vía el mismo RPC atómico del Módulo 3, deja un movimiento `entrada`, y si el insumo es `por_lote` abre un lote nuevo pidiendo la fecha de vencimiento en ese momento (igual que al registrar un lote a mano). Verificado end-to-end contra Supabase real: borrador → aprobada → recibida con un insumo exacto y uno por lote, descarte de un borrador, y bloqueo de borrado de un proveedor con órdenes asociadas (`on delete` restrictivo).
 
 ---
 

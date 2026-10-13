@@ -2,7 +2,9 @@ export type { Rol, Usuario } from './usuario'
 export type { CategoriaMenu, MenuItem, MenuItemSede } from './menu'
 export type { PedidoItem, Plato, ItemCarrito } from './pedido'
 export type { Mesa, SesionMesa } from './mesa'
-export type { Insumo, InventarioSede, Receta } from './inventario'
+export type { Insumo, InventarioSede, Receta, TipoMovimiento, MovimientoInventario } from './inventario'
+export type { LoteInsumo, EstadoLote } from './lote'
+export type { Proveedor, EstadoOrdenCompra } from './compra'
 export type {
   PeriodoPanel,
   IndicadoresPanel,
@@ -16,24 +18,15 @@ export type {
   VentaSemanalReporte,
   HoraPico,
   VentaCategoria,
-  Proveedor,
   PuestoEmpleado,
   Empleado,
   EstadoPedidoAdmin,
   ItemPedidoAdmin,
   PedidoAdmin,
-  TipoMovimiento,
-  MovimientoInventario,
-  InsumoAdmin,
-  EstadoLote,
-  LoteInsumo,
   DatosRestaurante,
   Facturacion,
   ColorMarca,
   PreferenciaNotificacion,
-  EstadoOrdenCompra,
-  ItemOrdenCompra,
-  OrdenCompra,
 } from './administracion'
 export type {
   CategoriaAutopedido,

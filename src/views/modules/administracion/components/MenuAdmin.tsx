@@ -22,9 +22,10 @@ import { PlatoDetallePanel } from './PlatoDetallePanel'
 
 interface MenuAdminProps {
   tenantId: string
+  sedeId: string
 }
 
-export function MenuAdmin({ tenantId }: MenuAdminProps) {
+export function MenuAdmin({ tenantId, sedeId }: MenuAdminProps) {
   const [categorias, setCategorias] = useState<CategoriaMenu[]>([])
   const [menuItems, setMenuItems] = useState<MenuItem[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
@@ -135,7 +136,7 @@ export function MenuAdmin({ tenantId }: MenuAdminProps) {
     let insumoId = linea.insumoId
 
     if (!insumoId && linea.insumoNuevo) {
-      const nuevoInsumo = await crearInsumo({ tenant_id: tenantId, ...linea.insumoNuevo })
+      const nuevoInsumo = await crearInsumo({ tenant_id: tenantId, sede_id: sedeId, ...linea.insumoNuevo })
       setInsumos((prev) => [...prev, nuevoInsumo])
       insumoId = nuevoInsumo.id
     }

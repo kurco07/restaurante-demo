@@ -35,10 +35,11 @@ export function BuscadorAdmin({ valor, onCambiar, placeholder }: BuscadorAdminPr
   )
 }
 
-export function BotonNuevo({ children }: { children: string }) {
+export function BotonNuevo({ children, onClick }: { children: string; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className="whitespace-nowrap rounded-full bg-[var(--orange)] px-5 py-[11px] text-[13.5px] font-bold text-white"
     >
       {children}

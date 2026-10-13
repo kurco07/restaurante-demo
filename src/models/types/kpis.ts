@@ -1,4 +1,4 @@
-// Forma de lo que devuelve la función kpis_ventas (migración 0008).
+// Forma de lo que devuelve la función kpis_ventas (migración 0010).
 // Los montos llegan como number (numeric de Postgres serializado en jsonb).
 
 export interface ResumenVentas {
