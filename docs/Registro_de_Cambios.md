@@ -4,6 +4,26 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-13 — Segunda ronda de auditoría: Fases 0-3 y decisiones que solo vivían en memoria privada
+
+Autor: Cesar (con Claude Code). Pedido explícito del usuario: revisar todas las fases anteriores (no solo 4/5) en busca de pendientes, mejoras, y funcionalidad simplificada a propósito para el MVP que nunca quedó escrita en ningún documento del repo.
+
+### Hallazgo más importante: decisiones de producto viviendo solo en memoria de Claude
+
+Dos decisiones ya confirmadas con el usuario en sesiones anteriores (personalización de plato diferida, 2026-10-07; delivery cobra primero, 2026-10-11) solo existían en el sistema de memoria local de Claude Code — invisibles para Pedro, para su IA, y para cualquiera que abra el repo sin esa memoria. Se trasladaron a `modelo-de-datos.md` (sección "Extensiones futuras") y `Roadmap_Construccion_MVP.md` (nota en Fase 2 Módulo 3, y la lista de "Funciones fuera de este plan").
+
+### Otros hallazgos agregados al roadmap
+
+- **Rol "Supervisor de sala" sin ninguna capacidad propia** (nuevo Módulo 7 de Fase 2): existe en el modelo de datos y en `rolesPorModulo.ts`, pero ninguna de las capacidades que le da `arquitectura.md` §4.10 por encima del mesonero está construida — anular un ítem ya enviado, transferir una mesa entre mesoneros, aplicar descuentos menores. Hoy solo hereda el acceso de mesonero/cocina, cero funcionalidad diferenciada.
+- **Descuentos de precio a una cuenta** — nunca construidos en ningún lado; `CierreCuentaModal.tsx` solo tiene propina, no descuento.
+- **Cliente de autopedido solo agrega, nunca edita/quita lo ya enviado** — pregunta abierta desde 2026-10-11, nunca resuelta ni agregada al roadmap como módulo.
+
+### Verificación
+
+Catálogo documental, sin cambios de código — no requiere `tsc`/`build`.
+
+---
+
 ## 2026-10-13 — Fase 4, Módulo 6 (conteos físicos y conciliación)
 
 Rama: `feature/fase4-insumos`. Autor: Cesar (con Claude Code). Último módulo pendiente de Fase 4, encontrado en la auditoría del roadmap del mismo día — `arquitectura.md` §4.3 ya lo pedía pero nunca tuvo módulo propio.

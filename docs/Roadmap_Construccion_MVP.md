@@ -80,6 +80,8 @@ El mesonero abre una mesa y agrega ítems del menú. El sistema completo de pers
 
 El menú (categorías y platos) se lee vía `powerSync.watch`, así que armar el pedido funciona sin internet. "Enviar a cocina" inserta de verdad en `pedidos_items` como escritura local PowerSync, uno por ítem, con `client_local_id` (clave de deduplicación ante reintentos offline). Verificado en vivo contra RLS real y end-to-end con cocina viendo el pedido sin recargar.
 
+Nota prometida arriba, completada en la auditoría del 2026-10-13: el mockup original (`docs/interfaces/mockup-personalizar-plato.html`) mostraba selección de proteína, quitar ingredientes y extras con precio — el modal real (`ModalPersonalizacion.tsx` en mesoneros, `HojaPersonalizacion.tsx` en autopedido) solo tiene cantidad + nota libre. Decisión confirmada con el usuario (2026-10-07): diferirlo a propósito hasta diseñar el modelo de datos (ej. una tabla de opciones de personalización por `menu_item`: proteínas disponibles, ingredientes quitables, extras con su propio precio) — no asumir una forma de datos sin retomar esa conversación primero. Ver también `modelo-de-datos.md`, sección "Extensiones futuras".
+
 **Módulo 4 — Sincronización de comandas**
 Verificar en la práctica que los pedidos creados offline se suben solos al reconectar, sin duplicarse ni perderse — usando el `client_local_id` ya definido en el modelo de datos. Este módulo es principalmente de pruebas dirigidas: forzar una desconexión real y confirmar el comportamiento.
 
@@ -94,6 +96,11 @@ Implementado vía `powerSync.watch` sobre `pedidos_items` (join con `menu_items`
 El mesonero calcula y cierra la cuenta de una mesa específica: método de pago, propina. Siempre lo hace un mesonero, nunca el cliente.
 
 Pantalla nueva (modal), inspirada en el mockup correspondiente — solo la vista mesonero, nunca la de cliente. Calcula el subtotal desde los `pedidos_items` reales de la sesión. `pagos_cierre` no está entre las tablas que PowerSync sincroniza offline (ni en el esquema del cliente ni en la publicación `powersync` de Postgres) — extenderlo requiere tocar las Sync Rules de la instancia PowerSync, así que por decisión explícita el pago se inserta online directo a Supabase (si falla, no se cierra la mesa); `sesiones_mesa`/`mesas` sí se actualizan vía escritura local PowerSync una vez el pago queda registrado. Verificado en vivo.
+
+Nota (auditoría 2026-10-13): no existe ningún campo de descuento en este modal, solo propina — "aplicar descuentos" (mesonero necesita un rol superior) y "descuentos menores" (supervisor) son capacidades que `arquitectura.md` §4.10 promete en la matriz de roles, nunca construidas. Ver Módulo 7 más abajo, que junta esta y otras capacidades de supervisor sin construir.
+
+**Módulo 7 — Capacidades propias de "Supervisor de sala"** 🔲 *identificado en auditoría (2026-10-13), no construido*
+El rol `supervisor` existe en el modelo de datos y en `rolesPorModulo.ts` (mismo acceso que mesonero a `/mesoneros`, y que cocina a `/cocina`), pero ninguna de las capacidades que `arquitectura.md` §4.10 le da por encima del mesonero está construida: anular un ítem ya enviado a cocina, transferir una mesa de un mesonero a otro, aplicar descuentos menores a una cuenta. Hoy el único rastro de "cancelar/anular" en todo el proyecto es un botón sin cablear en el mock de `PedidosAdminPage.tsx` (administración, no mesoneros) — el usuario ya había decidido explícitamente dejar "cancelar pedido" como una capacidad futura del admin, pero esa decisión tampoco estaba escrita en ningún documento hasta ahora. En resumen: el rol supervisor hoy no tiene ninguna funcionalidad propia en todo el código, solo hereda el acceso de mesonero/cocina.
 
 ---
 
@@ -110,6 +117,8 @@ El QR lleva el id de la mesa (`/autopedido/:mesaId`), que llama a la función `m
 El cliente no tiene cuenta de usuario, así que no debe escribir directo a `pedidos_items` vía RLS. Se construye una función de Postgres (RPC) o Edge Function que valide el identificador de la mesa incluido en el enlace del QR, y haga el insert con permisos elevados por dentro — ya señalado como pendiente en `supabase_schema.sql`.
 
 Función `security definer` `enviar_pedido_autopedido` (migración `0004_autopedido_enviar_pedido.sql`), mismo espíritu que `menu_publico_mesa` (Módulo 1) pero de escritura: el precio de cada ítem lo calcula el servidor desde `menu_items`/`menu_item_sede` — nunca se confía en el precio que el celular tenía cacheado. Si la mesa no tiene sesión abierta, el cliente abre una nueva con `origen = 'autopedido'` y `mesonero_id` nulo (ya contemplado en `modelo-de-datos.md`); si ya hay una abierta, el pedido se agrega ahí. `client_local_id` evita duplicar ante un reintento. La pantalla del cliente ya envía de verdad ("Enviar pedido a cocina") con su propio estado de carga/error y una confirmación.
+
+Nota (auditoría 2026-10-13): el cliente solo puede agregar ítems, nunca editar ni quitar lo que ya envió — quedó anotado en `Registro_de_Cambios.md` (2026-10-11) como "no estaba decidido en los documentos; se puede revisar", y sigue sin resolverse. Cambiar o cancelar algo que cocina ya recibió sigue siendo siempre decisión del mesonero.
 
 **Ajuste confirmado con el usuario tras el primer corte:** el pedido del cliente no pasa directo a `pendiente` — entra como un estado nuevo `por_aprobar` (migración `0005_autopedido_por_aprobar.sql`) hasta que cualquier mesonero disponible de la sede lo apruebe (confirmando con el cliente, evitando errores). Nuevo panel "Pedidos por aprobar" en el mapa de mesas (banner + modal, `usePorAprobar.ts`): cualquier mesonero de la sede ve las solicitudes, no una asignada. Al aprobar, los ítems pasan a `pendiente` (recién ahí cocina los ve — excluidos explícitamente de `useCocina.ts`) y, si la sesión no tenía mesonero asignado, queda el que aprueba — resuelve de paso el hueco de mesas de autopedido sin dueño en el mapa. Verificado el flujo completo contra Supabase real: entra como `por_aprobar`, el mesonero aprueba, pasa a `pendiente`, la sesión queda con mesonero asignado.
 
@@ -290,6 +299,7 @@ Estas ya están identificadas pero no forman parte de ninguna fase de arriba. Se
 - Servicios de escaneo 3D
 - Predicciones avanzadas de demanda
 - Integraciones con POS existentes, impresoras físicas, y pasarelas de pago adicionales a la principal
+- **Delivery** (pedidos a domicilio) — decisión ya confirmada con el usuario (2026-10-11) para cuando se construya: a diferencia del modelo dine-in de este MVP (se prepara primero, se cobra al cerrar la mesa), delivery debe **cobrar primero y preparar después**, como es estándar en ese tipo de pedido. No reusar el esquema de `pagos_cierre`/`sesiones_mesa` sin cuestionarlo — ese módulo necesita su propio flujo de cobro adelantado.
 - Cualquier otra función atractiva que surja con el tiempo y no esté ya cubierta arriba
 
 Este documento es vivo — se actualiza a medida que cada módulo se completa, y se le agrega una fase nueva cuando el negocio decida construir algo de esta lista.

@@ -130,4 +130,6 @@ Estas tablas o campos no se construyen ahora — se documentan aquí solo para q
 
 **Realidad aumentada (fase 3):** cuando se active, `menu_items` gana dos columnas nuevas — `modelo_ar_glb_url` y `modelo_ar_usdz_url` — nulas por defecto en los platos que no tengan modelo 3D. No hace falta ninguna tabla nueva ni tocar ninguna relación existente para agregarlas.
 
+**Personalización de plato (diferido desde Fase 2, Módulo 3):** el mockup original mostraba selección de proteína, quitar ingredientes y extras con precio — hoy `pedidos_items` solo tiene cantidad + nota libre, decisión confirmada con el usuario (2026-10-07) para no diseñar esto todavía. Cuando se retome, probablemente una tabla de opciones por `menu_item` (proteínas disponibles, ingredientes quitables, extras con su propio precio) referenciada desde `pedidos_items` — a diseñar en esa conversación, no asumir esta forma de antemano.
+
 Cualquier otra función que se sume más adelante (por ejemplo, algo relacionado con el marketplace de integraciones o servicios de escaneo 3D, mencionados como exploración futura en la estrategia comercial) sigue el mismo criterio: se añade como columnas nuevas o tablas nuevas cuando se construya de verdad, no se reserva espacio para ella en el esquema del MVP de antemano.
