@@ -37,3 +37,13 @@ export type {
   ItemPedidoCompartido,
   PedidoCompartidoMesa,
 } from './autopedido'
+export type {
+  ResumenVentas,
+  VentaPorDia,
+  VentaPorHora,
+  VentaPorMetodo,
+  VentaPorMesonero,
+  PlatoVendido,
+  CategoriaVendida,
+  KpisVentas,
+} from './kpis'

@@ -45,6 +45,52 @@ Ninguno dentro del alcance de esta fase. La prueba de red real de Fase 2 Módulo
 
 ---
 
+## 2026-10-11 — Fase 5, Módulo 1 (dashboard de KPIs — parte de ventas)
+
+Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code). Reparto: Pedro tiene la Fase 5 completa; César, la Fase 4.
+
+### Para qué sirve
+
+Gerencia ve en `/gerencia` cómo van las ventas del restaurante: cuánto se vendió, cuántas cuentas, ticket promedio, propinas, ventas por día, platos y categorías más vendidos, horas de más venta, medios de pago y ventas por mesonero. Se elige el período: hoy, últimos 7 días, últimos 30 días o este mes.
+
+### Cómo funciona
+
+- La función `kpis_ventas(desde, hasta, sede)` (migración `0010`) agrega todo en el servidor y devuelve un solo JSON. El navegador no baja las filas una por una.
+- Corre con los permisos de quien la llama (`security invoker`), así que RLS sigue separando restaurantes. Gerencia ve todas las sedes de su tenant; el parámetro de sede queda listo para el Módulo 3 (multi-sede). La gente sin sesión (anon) no puede llamarla.
+- Una venta es una cuenta cerrada en el período. `pagos_cierre` no guarda fecha, así que el período se toma de `sesiones_mesa.cerrada_en`. Días y horas se calculan en la zona horaria de cada sede.
+- "Ventas" es la suma de `pagos_cierre.monto` (subtotal, sin propina); las propinas van aparte.
+- Platos y categorías salen de `pedidos_items` de esas cuentas, a su precio congelado. Se excluyen los `por_aprobar` (un pedido por QR que nunca se confirmó no se vendió).
+- Los días sin ventas aparecen en cero en el gráfico, para que un día flojo se vea.
+
+### Decisiones tomadas
+
+| Decisión | Por qué / alternativa |
+| --- | --- |
+| El dashboard va en `/gerencia` | Estaba vacía y solo la ve gerencia. Administración → Reportes (diseño de César con datos de prueba) queda como está hasta decidir qué debe ver administración. |
+| Solo ventas por ahora | Rentabilidad por plato necesita el costo de los insumos y rotación necesita movimientos de inventario; los dos llegan con la Fase 4. El Módulo 1 no se marca ✅ hasta agregarlos. |
+| Agregar en una función SQL, no en el navegador | Un mes de pedidos son miles de filas; el servidor devuelve solo los totales. |
+| El mesonero de una venta es el asignado a la mesa | `sesiones_mesa.mesonero_id`, no quien cobró (`pagos_cierre.cerrado_por`). Las mesas por QR nunca aprobadas salen como "Sin mesonero". |
+| Gráficos con barras de CSS, sin librería | Mismo estilo que la pantalla de reportes de César y sin dependencias nuevas. |
+
+### Archivos
+
+| Archivo | Cambio |
+| --- | --- |
+| `supabase/migrations/0010_kpis_ventas.sql` | Nuevo — función `kpis_ventas` |
+| `src/models/types/kpis.ts`, `src/models/types/index.ts` | Tipos de los KPIs |
+| `src/models/services/kpisService.ts` | Nuevo — `fetchKpisVentas` |
+| `src/controllers/gerencia/useKpisVentas.ts` | Nuevo — período, carga y días completos |
+| `src/views/modules/gerencia/GerenciaPage.tsx` | Dashboard (antes era un título vacío) |
+| `src/views/modules/gerencia/components/ListaBarras.tsx`, `VentasPorDia.tsx` | Nuevos — gráficos de barras |
+
+### Pendiente
+
+- [x] Numeración: César ya había usado `0008` y `0009` en la Fase 4, así que esta migración quedó como `0010_kpis_ventas.sql`. El contenido es el mismo que Pedro aplicó en el SQL Editor el 2026-10-12.
+- [x] Verificado el 2026-10-12 con la cuenta de gerencia, últimos 30 días, comparando la función contra un cálculo directo de las tablas: 6 cuentas cerradas, $165.50 de ventas, $24.83 de propinas, ticket promedio $27.58, 19 unidades. Ventas por día, medio de pago, mesonero, categoría y top de platos suman exactamente $165.50. Sin sesión (anon), la función queda bloqueada. Pedro también lo revisó en `/gerencia`.
+- [ ] Agregar rentabilidad por plato y rotación de inventario cuando la Fase 4 esté en `main`; recién ahí marcar el Módulo 1 como ✅.
+
+---
+
 ## 2026-10-11 — Fase 3, Módulo 3 (sesión de mesa compartida)
 
 Rama: `feature/fase3-mesa-compartida`. Autor: Pedro (con Claude Code). Reparto acordado: César hizo Fase 3 Módulo 2 (`enviar_pedido_autopedido`, migración 0004) y tiene la prueba de Fase 2 Módulo 4; Pedro hace este módulo. Se mezcló con el ajuste de César de aprobación del mesonero (`por_aprobar`, migración 0005): por eso la migración de este módulo es la `0006`.
