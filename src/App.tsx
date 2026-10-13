@@ -17,6 +17,7 @@ import ProveedoresPage from './views/modules/administracion/ProveedoresPage'
 import PersonalPage from './views/modules/administracion/PersonalPage'
 import PedidosAdminPage from './views/modules/administracion/PedidosAdminPage'
 import MovimientosPage from './views/modules/administracion/MovimientosPage'
+import ConteoFisicoPage from './views/modules/administracion/ConteoFisicoPage'
 import MesasAdminPage from './views/modules/administracion/MesasAdminPage'
 import InsumosPage from './views/modules/administracion/InsumosPage'
 import LotesPage from './views/modules/administracion/LotesPage'
@@ -186,6 +187,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
                   <InsumosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/administracion/conteo-fisico"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                  <ConteoFisicoPage />
                 </ProtectedRoute>
               }
             />

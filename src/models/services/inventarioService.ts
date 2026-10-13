@@ -103,32 +103,6 @@ export async function actualizarStockMinimo(inventarioSedeId: string, stockMinim
   return data as InventarioSede
 }
 
-// Recuento manual completo (ej. conteo físico) — fija el total, a
-// diferencia de los movimientos de la Fase 4 Módulo 4 que suman/restan.
-export async function actualizarStock(params: {
-  tenantId: string
-  sedeId: string
-  insumoId: string
-  nuevaCantidad: number
-}) {
-  const { data, error } = await supabase
-    .from('inventario_sede')
-    .upsert(
-      {
-        tenant_id: params.tenantId,
-        sede_id: params.sedeId,
-        insumo_id: params.insumoId,
-        cantidad_actual: params.nuevaCantidad,
-      },
-      { onConflict: 'sede_id,insumo_id' },
-    )
-    .select()
-    .single()
-
-  if (error) throw error
-  return data
-}
-
 // Los últimos movimientos de la sede, con el nombre del insumo y de quien
 // lo registró (nulo = automático: el trigger de descuento o una compra
 // recibida) ya resueltos — se derivan uniendo, no hay columnas de texto

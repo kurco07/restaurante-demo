@@ -50,7 +50,13 @@ const enlaces: EnlaceSidebar[] = [
     // Aterriza en Insumos (primera pestaña) — desde ahí se navega a las
     // otras pestañas del inventario vía <InventarioTabs>.
     to: '/administracion/insumos',
-    activoEn: ['/administracion/insumos', '/administracion/movimientos', '/administracion/proveedores', '/administracion/compras'],
+    activoEn: [
+      '/administracion/insumos',
+      '/administracion/movimientos',
+      '/administracion/conteo-fisico',
+      '/administracion/proveedores',
+      '/administracion/compras',
+    ],
     icono: (
       <>
         <path d="M3 8l9-5 9 5-9 5-9-5z" />

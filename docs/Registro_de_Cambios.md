@@ -4,6 +4,24 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-13 — Fase 4, Módulo 6 (conteos físicos y conciliación)
+
+Rama: `feature/fase4-insumos`. Autor: Cesar (con Claude Code). Último módulo pendiente de Fase 4, encontrado en la auditoría del roadmap del mismo día — `arquitectura.md` §4.3 ya lo pedía pero nunca tuvo módulo propio.
+
+### Cómo funciona
+
+Nueva pestaña "Conteo físico" en Inventario: lista los insumos tipo `exacto` de la sede con su stock teórico, y un campo para anotar lo contado físicamente. Al registrar, por cada insumo con diferencia se llama a `registrarAjusteManual` (el mismo de Movimientos, Fase 4 Módulo 4) con motivo fijo "Conteo físico" — `ajuste` si sobró, `merma` si faltó — así queda en el historial de movimientos con el mismo rastro que cualquier otro ajuste, no un sobreescritura silenciosa. Se elimina `actualizarStock()` de `inventarioService.ts`: era exactamente ese overwrite sin rastro, nunca se había conectado a ninguna pantalla, y quedó reemplazada por este flujo.
+
+### Decisión de alcance
+
+Solo insumos tipo `exacto`. Los `por_lote` ya se reconcilian abriendo/cerrando lotes — un ajuste agregado aquí movería `inventario_sede` sin tocar ningún lote específico, desincronizando el total de la suma real de lotes abiertos. Los `estimado` no se rastrean con precisión por decisión ya tomada (`arquitectura.md` sección 5).
+
+### Verificación
+
+Contra Supabase real: insumo con stock teórico 20 kg, contado 17 kg → se registra un movimiento `merma` de 3 kg con referencia "Conteo físico — fecha: teórico 20 kg, contado 17 kg" y `creado_por` del usuario que hizo el conteo; stock final 17 kg. `tsc`/`oxlint`/`build` limpios.
+
+---
+
 ## 2026-10-13 — Limpieza: Reportes duplicado, código compartido, y auditoría del roadmap
 
 Rama: `feature/fase4-insumos`. Autor: Cesar (con Claude Code).
