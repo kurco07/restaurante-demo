@@ -3,7 +3,7 @@ import { useInsumosAdmin } from '../../../controllers/administracion/useInsumosA
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { AdminLayout } from './components/layout/AdminLayout'
-import { BotonNuevo, BuscadorAdmin, EncabezadoAdmin, TarjetasResumen } from './components/comunes'
+import { BotonNuevo, BuscadorAdmin, EncabezadoAdmin, ModalAdmin, TarjetasResumen } from './components/comunes'
 import { TablaInsumos } from './components/inventario/TablaInsumos'
 import { EditorInsumo } from './components/inventario/EditorInsumo'
 import { InventarioTabs } from './components/InventarioTabs'
@@ -16,6 +16,13 @@ export default function InsumosPage() {
   if (error) return <ErrorMessage message={error} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
   if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
+
+  const modalAbierto = inv.creando || inv.seleccionado !== null
+
+  function cerrarModal() {
+    inv.setCreando(false)
+    inv.seleccionar(null)
+  }
 
   return (
     <AdminLayout usuario={usuario}>
@@ -45,17 +52,19 @@ export default function InsumosPage() {
       {inv.loading ? (
         <LoadingSpinner message="Cargando insumos…" />
       ) : (
-        <div className="grid items-start gap-5 lg:grid-cols-[1.6fr_1fr]">
-          <TablaInsumos
-            insumos={inv.insumosFiltrados}
-            inventarioPorInsumo={inv.inventarioPorInsumo}
-            total={inv.resumen.registrados}
-            seleccionadoId={inv.seleccionado?.id}
-            onSeleccionar={(id) => {
-              inv.setCreando(false)
-              inv.seleccionar(id)
-            }}
-          />
+        <TablaInsumos
+          insumos={inv.insumosFiltrados}
+          inventarioPorInsumo={inv.inventarioPorInsumo}
+          total={inv.resumen.registrados}
+          onEditar={(id) => {
+            inv.setCreando(false)
+            inv.seleccionar(id)
+          }}
+        />
+      )}
+
+      {modalAbierto && (
+        <ModalAdmin titulo={inv.creando ? 'Nuevo insumo' : 'Editor de insumo'} onCerrar={cerrarModal}>
           <EditorInsumo
             insumo={inv.seleccionado}
             inventario={inv.seleccionado ? inv.inventarioPorInsumo.get(inv.seleccionado.id) : undefined}
@@ -65,9 +74,9 @@ export default function InsumosPage() {
             onGuardar={inv.guardar}
             onGuardarStockMinimo={inv.guardarStockMinimo}
             onEliminar={inv.eliminar}
-            onCancelar={() => inv.setCreando(false)}
+            onCancelar={cerrarModal}
           />
-        </div>
+        </ModalAdmin>
       )}
     </AdminLayout>
   )

@@ -37,6 +37,7 @@ export function useMovimientos() {
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState<FiltroMovimiento>('todos')
 
+  const [modalAbierto, setModalAbierto] = useState(false)
   const [insumoId, setInsumoId] = useState('')
   const [tipoAjuste, setTipoAjuste] = useState<'merma' | 'ajuste'>('merma')
   const [cantidad, setCantidad] = useState('')
@@ -92,6 +93,38 @@ export function useMovimientos() {
   const cantidadNumero = Number(cantidad) || 0
   const excedeStock = tipoAjuste === 'merma' && cantidadNumero > stockDisponible
 
+  function abrirNuevo() {
+    setInsumoId('')
+    setTipoAjuste('merma')
+    setCantidad('')
+    setMotivo(motivosAjuste[0])
+    setNota('')
+    setError(null)
+    setModalAbierto(true)
+  }
+
+  // Un movimiento no se edita (rompería la trazabilidad y desincronizaría
+  // inventario_sede del valor ya aplicado) — se revierte con el ajuste
+  // contrario, precargado para no tener que calcularlo a mano. Solo tiene
+  // sentido para merma/ajuste: entrada/salida son siempre automáticos
+  // (trigger de entrega, lote, o compra recibida) y revertirlos aquí
+  // desincronizaría lotes_insumo o la orden de compra de origen.
+  function revertir(mov: MovimientoConDetalle) {
+    setInsumoId(mov.insumo_id)
+    setTipoAjuste(mov.tipo === 'merma' ? 'ajuste' : 'merma')
+    setCantidad(String(mov.cantidad))
+    setMotivo('Error de conteo')
+    setNota(
+      `Revierte un ${mov.tipo === 'merma' ? 'merma' : 'ajuste'} de ${mov.cantidad} ${mov.unidad} del ${new Date(mov.fecha).toLocaleDateString('es-VE')}`,
+    )
+    setError(null)
+    setModalAbierto(true)
+  }
+
+  function cerrarModal() {
+    setModalAbierto(false)
+  }
+
   async function registrar() {
     if (!usuario?.sede_id || !insumoId || cantidadNumero <= 0 || excedeStock) return
     setGuardando(true)
@@ -111,8 +144,10 @@ export function useMovimientos() {
       setInsumoId('')
       setCantidad('')
       setNota('')
+      setModalAbierto(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo registrar el ajuste')
+      throw err
     } finally {
       setGuardando(false)
     }
@@ -134,6 +169,10 @@ export function useMovimientos() {
       mermas: movimientosHoy.filter((m) => m.tipo === 'merma').length,
     },
     insumos,
+    modalAbierto,
+    abrirNuevo,
+    revertir,
+    cerrarModal,
     insumoId,
     setInsumoId,
     tipoAjuste,

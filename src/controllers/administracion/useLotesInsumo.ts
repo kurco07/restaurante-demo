@@ -84,6 +84,7 @@ export function useLotesInsumo(insumoId: string | undefined) {
         tenant_id: usuario.tenant_id,
         sede_id: usuario.sede_id,
         insumo_id: insumoId,
+        creado_por: usuario.id,
         ...datos,
       })
       setLotes((prev) => [nuevo, ...prev])

@@ -65,12 +65,12 @@ export function useInsumosAdmin() {
     setGuardando(true)
     setError(null)
     try {
-      const nuevo = await crearInsumo({ tenant_id: usuario.tenant_id, sede_id: usuario.sede_id, ...datos })
+      await crearInsumo({ tenant_id: usuario.tenant_id, sede_id: usuario.sede_id, ...datos })
       await cargar()
-      setSeleccionadoId(nuevo.id)
       setCreando(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo crear el insumo')
+      throw err
     } finally {
       setGuardando(false)
     }
@@ -82,8 +82,10 @@ export function useInsumosAdmin() {
     try {
       const actualizado = await actualizarInsumo(id, datos)
       setInsumos((prev) => prev.map((i) => (i.id === id ? actualizado : i)))
+      setSeleccionadoId(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo guardar el insumo')
+      throw err
     } finally {
       setGuardando(false)
     }
@@ -112,6 +114,7 @@ export function useInsumosAdmin() {
       setSeleccionadoId((actual) => (actual === id ? null : actual))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo eliminar el insumo')
+      throw err
     } finally {
       setGuardando(false)
     }

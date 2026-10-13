@@ -21,6 +21,17 @@ const TIPOS: { value: Insumo['tipo']; label: string }[] = [
   { value: 'estimado', label: 'Estimado (ej. condimentos "al gusto")' },
 ]
 
+// Lista amplia a propósito (americana + europea + internacional) para no
+// atar al restaurante a un solo sistema de medidas — "Otra" cubre lo que
+// falte sin tener que mantener una tabla nueva en la base.
+const GRUPOS_UNIDADES: { grupo: string; unidades: string[] }[] = [
+  { grupo: 'Peso', unidades: ['g', 'kg', 'lb', 'oz'] },
+  { grupo: 'Volumen', unidades: ['ml', 'l', 'gal', 'fl oz'] },
+  { grupo: 'Unidad', unidades: ['unidad', 'docena', 'paquete', 'caja', 'bolsa'] },
+]
+const TODAS_UNIDADES = GRUPOS_UNIDADES.flatMap((g) => g.unidades)
+const OTRA = '__otra__'
+
 const FORM_VACIO = { nombre: '', unidad_de_medida: '', tipo: 'exacto' as Insumo['tipo'] }
 
 export function EditorInsumo({
@@ -39,6 +50,9 @@ export function EditorInsumo({
       ? { nombre: insumo.nombre, unidad_de_medida: insumo.unidad_de_medida, tipo: insumo.tipo }
       : FORM_VACIO,
   )
+  const [unidadEsOtra, setUnidadEsOtra] = useState(
+    () => Boolean(form.unidad_de_medida) && !TODAS_UNIDADES.includes(form.unidad_de_medida),
+  )
   const [stockMinimo, setStockMinimo] = useState(inventario?.stock_minimo?.toString() ?? '')
   const [platos, setPlatos] = useState<string[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -56,10 +70,18 @@ export function EditorInsumo({
 
   if (!insumo && !creando) {
     return (
-      <div className="flex min-h-[300px] items-center justify-center rounded-2xl border border-dashed border-[var(--border)] bg-[var(--surface)] p-6 text-center text-sm text-[var(--ink-soft)]">
-        Selecciona un insumo de la lista, o crea uno nuevo.
-      </div>
+      <p className="text-center text-sm text-[var(--ink-soft)]">Selecciona un insumo de la lista, o crea uno nuevo.</p>
     )
+  }
+
+  function handleCambiarUnidadSelect(valor: string) {
+    if (valor === OTRA) {
+      setUnidadEsOtra(true)
+      setForm((f) => ({ ...f, unidad_de_medida: '' }))
+    } else {
+      setUnidadEsOtra(false)
+      setForm((f) => ({ ...f, unidad_de_medida: valor }))
+    }
   }
 
   async function handleGuardar() {
@@ -97,9 +119,7 @@ export function EditorInsumo({
   }
 
   return (
-    <div className="h-fit rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
-      <p className="mb-4 text-base font-extrabold">{creando ? 'Nuevo insumo' : 'Editor de insumo'}</p>
-
+    <div>
       <div className="flex flex-col gap-3 text-[13px]">
         <label className="flex flex-col gap-1">
           <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">
@@ -116,12 +136,32 @@ export function EditorInsumo({
           <span className="text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">
             Unidad de medida
           </span>
-          <input
-            placeholder="ej. kg, litro, unidad"
-            value={form.unidad_de_medida}
-            onChange={(e) => setForm((f) => ({ ...f, unidad_de_medida: e.target.value }))}
+          <select
+            value={unidadEsOtra ? OTRA : form.unidad_de_medida}
+            onChange={(e) => handleCambiarUnidadSelect(e.target.value)}
             className="rounded-lg border border-[var(--border)] px-3 py-2"
-          />
+          >
+            <option value="">Seleccionar unidad…</option>
+            {GRUPOS_UNIDADES.map((g) => (
+              <optgroup key={g.grupo} label={g.grupo}>
+                {g.unidades.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+            <option value={OTRA}>Otra (especificar)…</option>
+          </select>
+          {unidadEsOtra && (
+            <input
+              autoFocus
+              placeholder="ej. bidón, saco, lata"
+              value={form.unidad_de_medida}
+              onChange={(e) => setForm((f) => ({ ...f, unidad_de_medida: e.target.value }))}
+              className="mt-1.5 rounded-lg border border-[var(--border)] px-3 py-2"
+            />
+          )}
         </label>
 
         <label className="flex flex-col gap-1">

@@ -12,3 +12,4 @@ export {
   EnlaceEliminar,
 } from './PanelLateral'
 export { TablaAdmin, FilaTabla } from './TablaAdmin'
+export { ModalAdmin } from './ModalAdmin'

@@ -7,6 +7,7 @@ export interface MovimientoConDetalle {
   cantidad: number
   referencia: string | null
   fecha: string
+  insumo_id: string
   insumo: string
   unidad: string
   responsable: string
@@ -135,7 +136,7 @@ export async function actualizarStock(params: {
 export async function fetchMovimientos(tenantId: string, sedeId: string) {
   const { data, error } = await supabase
     .from('movimientos_inventario')
-    .select('id, tipo, cantidad, referencia, fecha, insumos(nombre, unidad_de_medida), usuarios(nombre)')
+    .select('id, tipo, cantidad, referencia, fecha, insumo_id, insumos(nombre, unidad_de_medida), usuarios(nombre)')
     .eq('tenant_id', tenantId)
     .eq('sede_id', sedeId)
     .order('fecha', { ascending: false })
@@ -149,6 +150,7 @@ export async function fetchMovimientos(tenantId: string, sedeId: string) {
       cantidad: number
       referencia: string | null
       fecha: string
+      insumo_id: string
       insumos: { nombre: string; unidad_de_medida: string } | null
       usuarios: { nombre: string } | null
     }[]
@@ -159,6 +161,7 @@ export async function fetchMovimientos(tenantId: string, sedeId: string) {
       cantidad: fila.cantidad,
       referencia: fila.referencia,
       fecha: fila.fecha,
+      insumo_id: fila.insumo_id,
       insumo: fila.insumos?.nombre ?? '—',
       unidad: fila.insumos?.unidad_de_medida ?? '',
       responsable: fila.usuarios?.nombre ?? 'Sistema (automático)',
