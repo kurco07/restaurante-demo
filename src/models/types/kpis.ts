@@ -53,3 +53,19 @@ export interface KpisVentas {
   top_platos: PlatoVendido[]
   por_categoria: CategoriaVendida[]
 }
+
+// Una fila de kpis_inventario (migración 0011): rotación de un insumo en
+// el período, en sus propias unidades (no hay costo de insumos).
+export interface RotacionInsumo {
+  insumo_id: string
+  insumo: string
+  unidad: string
+  consumo: number
+  merma: number
+  entradas: number
+  stock_actual: number
+  stock_minimo: number | null
+  stock_promedio: number
+  rotacion: number | null
+  dias_alcanza: number | null
+}

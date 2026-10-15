@@ -4,6 +4,50 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-15 — Fase 5, Módulo 1 (rotación de inventario)
+
+Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code). Se apoya en el inventario real de la Fase 4 (César).
+
+### Para qué sirve
+
+Gerencia ve en `/gerencia`, debajo de las ventas y con el mismo selector de período, qué tan rápido se gasta cada insumo: cuánto se consumió en platos, cuánto se perdió por merma, cuánto queda, cuántas veces "rotó" el stock y para cuántos días alcanza lo que queda. Cada insumo lleva un estado: **Bajo el mínimo**, **Por agotarse**, **Rota lento**, **Sin movimiento** o **Normal**. Primero aparece lo que pide acción.
+
+### Cómo funciona
+
+- Función `kpis_inventario(desde, hasta, sede)` (migración `0011`), `security invoker` como `kpis_ventas`: RLS sigue separando restaurantes, anon no puede llamarla.
+- Sale de `movimientos_inventario` (cantidad siempre positiva; `entrada` y `ajuste` suman, `salida` y `merma` restan) e `inventario_sede`.
+- **Consumo** = salidas del período (el descuento automático por plato entregado). **Rotación** = (consumo + merma) / stock promedio del período. El stock al inicio y al final del período se reconstruye restando al stock actual los movimientos posteriores.
+- **Alcanza para** = stock actual / consumo diario del período.
+- Los insumos `estimado` no se incluyen: no se descuentan por receta (decisión de la Fase 4), siempre saldrían en cero.
+- El stock mínimo solo se muestra filtrando una sede; sumar mínimos de varias sedes no tiene sentido.
+
+### Decisiones tomadas
+
+| Decisión | Por qué / alternativa |
+| --- | --- |
+| En unidades del insumo, no en dinero | `insumos` no tiene costo. Valorizarla depende de la misma decisión que la rentabilidad por plato. |
+| Umbrales: por agotarse ≤ 3 días, lento > 30 días | Punto de partida razonable; son dos constantes en `TablaRotacion.tsx`, fáciles de cambiar si el restaurante prefiere otros. |
+| Se carga junto con las ventas | Un solo selector de período y una sola espera para todo el dashboard. |
+
+### Archivos
+
+| Archivo | Cambio |
+| --- | --- |
+| `supabase/migrations/0011_kpis_inventario.sql` | Nuevo — función `kpis_inventario` |
+| `src/models/types/kpis.ts`, `src/models/types/index.ts` | Tipo `RotacionInsumo` |
+| `src/models/services/kpisService.ts` | `fetchKpisInventario` |
+| `src/controllers/gerencia/useKpisVentas.ts` | Carga ventas y rotación del mismo período |
+| `src/views/modules/gerencia/components/TablaRotacion.tsx` | Nuevo — tabla con estado por insumo |
+| `src/views/modules/gerencia/GerenciaPage.tsx` | Sección "Rotación de inventario" |
+
+### Pendiente
+
+- [ ] Avisar a César y aplicar `0011_kpis_inventario.sql` en Supabase (SQL Editor).
+- [ ] Verificar los números contra los movimientos reales de las pruebas de la Fase 4.
+- [ ] Rentabilidad por plato: decidir de dónde sale el costo de un insumo (¿última compra? ¿promedio de las últimas compras?). Recién con eso se marca el Módulo 1 como ✅.
+
+---
+
 ## 2026-10-13 — Segunda ronda de auditoría: Fases 0-3 y decisiones que solo vivían en memoria privada
 
 Autor: Cesar (con Claude Code). Pedido explícito del usuario: revisar todas las fases anteriores (no solo 4/5) en busca de pendientes, mejoras, y funcionalidad simplificada a propósito para el MVP que nunca quedó escrita en ningún documento del repo.

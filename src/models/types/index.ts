@@ -42,4 +42,5 @@ export type {
   PlatoVendido,
   CategoriaVendida,
   KpisVentas,
+  RotacionInsumo,
 } from './kpis'

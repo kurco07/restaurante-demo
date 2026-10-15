@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { KpisVentas, VentaPorDia } from '../../models/types'
-import { fetchKpisVentas } from '../../models/services/kpisService'
+import type { KpisVentas, RotacionInsumo, VentaPorDia } from '../../models/types'
+import { fetchKpisInventario, fetchKpisVentas } from '../../models/services/kpisService'
 
 export type PeriodoKpi = 'hoy' | '7d' | '30d' | 'mes'
 
@@ -49,10 +49,13 @@ function completarDias(porDia: VentaPorDia[], desde: Date, hasta: Date): VentaPo
   return dias
 }
 
-// Dashboard de KPIs de gerencia (Fase 5, Módulo 1 — parte de ventas).
+// Dashboard de KPIs de gerencia (Fase 5, Módulo 1): ventas y rotación de
+// inventario del mismo período. Rentabilidad por plato queda pendiente
+// de decidir cómo se deriva el costo de un insumo.
 export function useKpisVentas() {
   const [periodo, setPeriodo] = useState<PeriodoKpi>('7d')
   const [datos, setDatos] = useState<KpisVentas | null>(null)
+  const [inventario, setInventario] = useState<RotacionInsumo[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -60,10 +63,11 @@ export function useKpisVentas() {
 
   useEffect(() => {
     let cancelado = false
-    fetchKpisVentas(rango.desde, rango.hasta)
-      .then((kpis) => {
+    Promise.all([fetchKpisVentas(rango.desde, rango.hasta), fetchKpisInventario(rango.desde, rango.hasta)])
+      .then(([kpis, rotacion]) => {
         if (cancelado) return
         setDatos(kpis)
+        setInventario(rotacion)
         setError(null)
       })
       .catch((e: unknown) => {
@@ -88,5 +92,5 @@ export function useKpisVentas() {
     setPeriodo(nuevo)
   }
 
-  return { periodo, setPeriodo: cambiarPeriodo, cargando, error, datos, porDia }
+  return { periodo, setPeriodo: cambiarPeriodo, cargando, error, datos, porDia, inventario }
 }

@@ -7,6 +7,7 @@ import { ESTILOS_ADMIN, formatearMoneda } from '../../components/ui/constants'
 import { PanelCard } from '../../components/ui/PanelCard'
 import { ListaBarras } from './components/ListaBarras'
 import { VentasPorDia } from './components/VentasPorDia'
+import { TablaRotacion } from './components/TablaRotacion'
 
 const ETIQUETA_METODO: Record<string, string> = {
   efectivo: 'Efectivo',
@@ -18,9 +19,9 @@ function cuentas(n: number) {
   return `${n} ${n === 1 ? 'cuenta' : 'cuentas'}`
 }
 
-// Dashboard de gerencia (Fase 5, Módulo 1). Por ahora solo ventas:
-// rentabilidad por plato y rotación de inventario llegan cuando la Fase 4
-// (inventario, costos) esté en main. Requiere conexión: los reportes no
+// Dashboard de gerencia (Fase 5, Módulo 1): ventas y rotación de
+// inventario. Rentabilidad por plato queda pendiente de decidir cómo se
+// deriva el costo de un insumo. Requiere conexión: los reportes no
 // son offline (arquitectura.md §1).
 export default function GerenciaPage() {
   const { usuario, loading, error } = useUsuario()
@@ -151,13 +152,20 @@ export default function GerenciaPage() {
                     }))}
                   />
                 </PanelCard>
-
-                <p className="px-1 text-[11.5px] text-[var(--ink-soft)]">
-                  Rentabilidad por plato y rotación de inventario se agregan cuando esté lista la Fase 4 (costos e
-                  inventario).
-                </p>
               </div>
             </div>
+
+            <PanelCard
+              titulo="Rotación de inventario"
+              subtitulo="Cuánto se gastó de cada insumo en el período y para cuántos días alcanza lo que queda · en unidades, sin costo"
+            >
+              <TablaRotacion filas={k.inventario} />
+            </PanelCard>
+
+            <p className="px-1 text-[11.5px] text-[var(--ink-soft)]">
+              Rentabilidad por plato queda pendiente: los insumos no tienen costo y falta decidir cómo derivarlo de las
+              compras.
+            </p>
           </div>
         )}
       </main>
