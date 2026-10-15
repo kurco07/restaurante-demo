@@ -46,6 +46,8 @@ const menu_items = new Table({
   descripcion: column.text,
   precio_base: column.real,
   imagen_url: column.text,
+  modelo_ar_glb_url: column.text,
+  modelo_ar_usdz_url: column.text,
 })
 
 const menu_item_sede = new Table({

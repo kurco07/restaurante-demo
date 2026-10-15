@@ -1,5 +1,11 @@
+import { lazy, Suspense } from 'react'
 import type { Plato } from '../../../../models/types'
 import { GRADIENTES_FOTO, FOTO_POR_DEFECTO } from './constants'
+
+// Carga diferida: @google/model-viewer trae su propio motor 3D (pesa
+// bastante) y la mayoría de los platos todavía no tienen modelo — que
+// no infle el bundle inicial de todos los que nunca ven RA.
+const VisorAR = lazy(() => import('../../../components/ui/VisorAR').then((m) => ({ default: m.VisorAR })))
 
 interface ModalPersonalizacionProps {
   plato: Plato | null
@@ -64,6 +70,14 @@ export function ModalPersonalizacion({
               ✕
             </button>
           </div>
+
+          {plato.modelo_ar_glb_url && (
+            <div className="mt-4">
+              <Suspense fallback={<div className="h-[220px] animate-pulse rounded-xl bg-[var(--surface-alt)]" />}>
+                <VisorAR glbUrl={plato.modelo_ar_glb_url} usdzUrl={plato.modelo_ar_usdz_url} nombre={plato.nombre} />
+              </Suspense>
+            </div>
+          )}
 
           <div className="mt-5 flex items-center justify-between">
             <span className="text-sm font-extrabold uppercase tracking-wide text-[var(--ink)]">

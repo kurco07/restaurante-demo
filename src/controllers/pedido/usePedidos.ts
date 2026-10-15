@@ -55,6 +55,7 @@ export function usePedidos(mesaId: string) {
   // criterio que el menú público del cliente (migración 0003).
   const platos = usePowerSyncWatch<Plato>(
     `select mi.id, mi.tenant_id, mi.categoria_id, mi.nombre, mi.descripcion, mi.imagen_url,
+            mi.modelo_ar_glb_url, mi.modelo_ar_usdz_url,
             coalesce(mis.precio_override, mi.precio_base) as precio_base
        from menu_items mi
        left join menu_item_sede mis on mis.menu_item_id = mi.id and mis.sede_id = ?

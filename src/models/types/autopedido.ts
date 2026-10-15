@@ -13,6 +13,8 @@ export interface PlatoAutopedido {
   descripcion: string | null
   precio: number
   imagen_url: string | null
+  modelo_ar_glb_url: string | null
+  modelo_ar_usdz_url: string | null
 }
 
 export interface MenuPublicoMesa {

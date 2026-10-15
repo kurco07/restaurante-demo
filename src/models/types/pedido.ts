@@ -22,6 +22,8 @@ export interface Plato {
   descripcion: string | null
   precio_base: number
   imagen_url: string | null
+  modelo_ar_glb_url: string | null
+  modelo_ar_usdz_url: string | null
 }
 
 // Carrito es un borrador local, en memoria — solo se vuelve real

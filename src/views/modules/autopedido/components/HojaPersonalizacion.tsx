@@ -1,5 +1,11 @@
+import { lazy, Suspense } from 'react'
 import type { PlatoAutopedido } from '../../../../models/types'
 import { fondoPlato } from './fondoPlato'
+
+// Carga diferida: @google/model-viewer trae su propio motor 3D (pesa
+// bastante) y la mayoría de los platos todavía no tienen modelo — que
+// no infle el bundle inicial de todos los clientes que nunca ven RA.
+const VisorAR = lazy(() => import('../../../components/ui/VisorAR').then((m) => ({ default: m.VisorAR })))
 
 interface HojaPersonalizacionProps {
   plato: PlatoAutopedido
@@ -44,6 +50,14 @@ export function HojaPersonalizacion(props: HojaPersonalizacionProps) {
                 ✕
               </button>
             </div>
+
+            {plato.modelo_ar_glb_url && (
+              <div className="mt-3.5">
+                <Suspense fallback={<div className="h-[220px] animate-pulse rounded-xl bg-gray-100" />}>
+                  <VisorAR glbUrl={plato.modelo_ar_glb_url} usdzUrl={plato.modelo_ar_usdz_url} nombre={plato.nombre} />
+                </Suspense>
+              </div>
+            )}
 
             <div className="mt-[22px] flex items-center justify-between">
               <span className="text-xs font-extrabold uppercase tracking-[0.05em] text-gray-900">Cantidad</span>
