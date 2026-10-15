@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import '@google/model-viewer'
 
 // @google/model-viewer declara el custom element para el DOM nativo
@@ -29,15 +30,25 @@ interface VisorARProps {
   nombre: string
 }
 
-// <model-viewer> ya trae su botón de RA nativo con `ar` — Scene Viewer
-// en Android, Quick Look en iPhone, sin instalar ninguna app. El botón
-// de aquí va en el slot "ar-button" para que se vea igual al resto de
-// los botones del proyecto, en vez del ícono genérico. Necesita una URL
-// pública real (no localhost): Quick Look/Scene Viewer son visores del
-// sistema operativo, abren la URL directo, no pueden mandar sesión.
+interface ModelViewerElement extends HTMLElement {
+  activateAR: () => Promise<void>
+}
+
+// <model-viewer> solo detecta el clic solo de SU botón interno por
+// defecto (busca `.ar-button` en su shadow DOM — el slot con nuestro
+// propio botón no cuenta como ese nodo, así que nunca lo ve). Por eso
+// se llama activateAR() a mano en el onClick — si no, el botón se ve
+// bien pero no hace nada y solo queda el visor 3D girando con el dedo,
+// nunca la cámara real. Scene Viewer en Android, Quick Look en iPhone
+// (si hay ios-src), sin instalar ninguna app. Necesita una URL pública
+// real (no localhost): son visores del sistema operativo, abren la URL
+// directo, no pueden mandar sesión.
 export function VisorAR({ glbUrl, usdzUrl, nombre }: VisorARProps) {
+  const visorRef = useRef<ModelViewerElement>(null)
+
   return (
     <model-viewer
+      ref={visorRef as never}
       src={glbUrl}
       ios-src={usdzUrl ?? undefined}
       alt={nombre}
@@ -56,6 +67,7 @@ export function VisorAR({ glbUrl, usdzUrl, nombre }: VisorARProps) {
       <button
         slot="ar-button"
         type="button"
+        onClick={() => visorRef.current?.activateAR()}
         className="mt-2 w-full rounded-xl bg-[var(--orange,#ff7a1a)] py-2.5 text-sm font-extrabold text-white"
       >
         Ver en RA
