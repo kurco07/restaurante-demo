@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import type { KpisVentas, RentabilidadPlato, RotacionInsumo } from '../types'
+import type { IngredienteCosteado, KpisVentas, RentabilidadPlato, RotacionInsumo } from '../types'
 
 // KPIs de ventas de un período, agregados en el servidor por la función
 // kpis_ventas (migración 0010). Corre con los permisos de quien llama:
@@ -60,4 +60,51 @@ export async function fetchInsumosSinCompra(menuItemIds: string[]) {
     ;(faltantes[r.menu_item_id] ??= []).push(r.insumos?.nombre ?? 'insumo')
   }
   return faltantes
+}
+
+// Receta de un plato, de solo lectura, para la ficha de rentabilidad de
+// gerencia: cada insumo con su costo. Mismo criterio que kpis_rentabilidad
+// sin sede filtrada: la compra recibida más reciente de cualquier sede.
+export async function fetchRecetaCosteada(menuItemId: string): Promise<IngredienteCosteado[]> {
+  const recetas = await supabase
+    .from('recetas')
+    .select('insumo_id, cantidad_requerida, unidad, insumos(nombre)')
+    .eq('menu_item_id', menuItemId)
+  if (recetas.error) throw recetas.error
+
+  const filas = recetas.data as unknown as {
+    insumo_id: string
+    cantidad_requerida: number
+    unidad: string
+    insumos: { nombre: string } | null
+  }[]
+  if (filas.length === 0) return []
+
+  const costos = await supabase
+    .from('costo_insumo_actual')
+    .select('insumo_id, costo_unitario, comprado_en')
+    .in('insumo_id', filas.map((f) => f.insumo_id))
+    .order('comprado_en', { ascending: false })
+  if (costos.error) throw costos.error
+
+  // Ordenado de más reciente a más vieja: la primera de cada insumo gana.
+  const costoPorInsumo = new Map<string, number>()
+  for (const c of costos.data as { insumo_id: string; costo_unitario: number }[]) {
+    if (!costoPorInsumo.has(c.insumo_id)) costoPorInsumo.set(c.insumo_id, Number(c.costo_unitario))
+  }
+
+  return filas
+    .map((f) => {
+      const costo = costoPorInsumo.get(f.insumo_id) ?? null
+      const cantidad = Number(f.cantidad_requerida)
+      return {
+        insumo_id: f.insumo_id,
+        insumo: f.insumos?.nombre ?? 'insumo',
+        cantidad,
+        unidad: f.unidad,
+        costo_unitario: costo,
+        subtotal: costo == null ? null : cantidad * costo,
+      }
+    })
+    .sort((a, b) => a.insumo.localeCompare(b.insumo, 'es'))
 }

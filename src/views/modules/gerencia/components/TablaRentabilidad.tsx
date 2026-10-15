@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import type { EstadoCostoPlato, RentabilidadPlato } from '../../../../models/types'
 import { formatearMoneda } from '../../../components/ui/constants'
 
@@ -14,9 +13,11 @@ const ESTADOS: Record<EstadoCostoPlato, { etiqueta: string; clase: string }> = {
 export function TablaRentabilidad({
   filas,
   insumosSinCompra,
+  onVerReceta,
 }: {
   filas: RentabilidadPlato[]
   insumosSinCompra: Record<string, string[]>
+  onVerReceta: (plato: RentabilidadPlato) => void
 }) {
   if (filas.length === 0) {
     return <p className="py-4 text-center text-[12.5px] text-[var(--ink-soft)]">Sin platos vendidos en el período.</p>
@@ -53,13 +54,16 @@ export function TablaRentabilidad({
             <tr key={f.menu_item_id} className="border-b border-[var(--border)] last:border-0">
               <td className="py-2.5 pr-3">
                 <div className="font-bold">{f.plato}</div>
-                {f.estado === 'sin_receta' && (
-                  <Link
-                    to={`/administracion/menu?plato=${f.menu_item_id}`}
+                {f.estado === 'sin_receta' ? (
+                  <div className="text-[11px] text-[var(--ink-soft)]">Administración debe cargar su receta</div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => onVerReceta(f)}
                     className="text-[11px] font-bold text-[var(--orange-dark)]"
                   >
-                    Cargar receta →
-                  </Link>
+                    Ver receta →
+                  </button>
                 )}
                 {f.estado === 'incompleto' && insumosSinCompra[f.menu_item_id] && (
                   <div className="text-[11px] text-[var(--orange-dark)]">

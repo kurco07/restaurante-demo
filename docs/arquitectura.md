@@ -152,10 +152,11 @@ Decidieron ampliar presupuesto/timeline de fase 1 en vez de recortar alcance o h
 | Cocina | Ver la cola de pedidos, marcar en preparación/listo, avisar demoras | Editar el contenido de un pedido, ver precios, entrar a otros módulos |
 | Supervisor de sala | Todo lo del mesonero + anular ítems, transferir mesas entre mesoneros, descuentos menores, reportes del turno | Tocar inventario/recetas, ver reportes financieros globales, configurar la cuenta del restaurante |
 | Administración | Inventario, compras, recetas (BOM), proveedores, conteos físicos | Anular cuentas ya cerradas, cambiar roles de usuarios |
-| Gerencia / Dueño | Todo lo anterior + reportes financieros completos, anular cuentas cerradas, gestionar usuarios y roles, ver todas las sedes de su restaurante | Administrar otros restaurantes (tenants) — eso es del super-admin |
+| Gerencia / Dueño | Su propio panel (`/gerencia`): reportes financieros completos, rentabilidad, rotación de inventario y recetas en solo lectura; acceso a Mesoneros y Cocina; anular cuentas cerradas, gestionar usuarios y roles, ver todas las sedes de su restaurante | Administrar otros restaurantes (tenants) — eso es del super-admin. **No entra al módulo de Administración** (ver nota abajo) |
 | Super-admin (equipo del SaaS) | Alta de restaurantes, ver uso/facturación agregada, soporte técnico | Ver el detalle operativo día a día de un restaurante, salvo soporte puntual autorizado |
 
-- 🔲 Pendiente: revisar esta tabla y ajustarla — es una propuesta basada en cómo suele jerarquizarse un restaurante real, no una decisión cerrada
+- ✅ **Decidido (2026-10-15, Pedro):** gerencia **no** entra al módulo de Administración. Tiene su propio panel con barra lateral (Ventas, Rentabilidad, Inventario, y luego Reportes por turno, Sedes y Alertas), donde ve la información de inventario y recetas en solo lectura. Motivo: un gerente de cadena puede tener `sede_id` nulo, y las pantallas de Administración trabajan sobre una sede; además, operar el inventario es tarea de administración, no de gerencia. Esto es solo el acceso del frontend (`rolesPorModulo.ts`): las políticas RLS siguen dejando que gerencia lea y escriba las tablas de inventario de su tenant
+- 🔲 Pendiente: revisar el resto de esta tabla y ajustarla — es una propuesta basada en cómo suele jerarquizarse un restaurante real, no una decisión cerrada
 
 ### 4.11 Arquitectura offline (PWA local-first)
 - ✅ **Decidido:** la operación debe seguir funcionando si se cae el internet del restaurante

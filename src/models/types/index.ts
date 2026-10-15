@@ -45,4 +45,5 @@ export type {
   RotacionInsumo,
   EstadoCostoPlato,
   RentabilidadPlato,
+  IngredienteCosteado,
 } from './kpis'

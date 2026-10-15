@@ -91,3 +91,15 @@ export interface RentabilidadPlato {
   margen_pct: number | null
   ganancia: number | null
 }
+
+// Un ingrediente de la receta de un plato, con el costo que usa la
+// rentabilidad (última compra recibida). costo_unitario null = el insumo
+// nunca se compró, así que su subtotal tampoco se conoce.
+export interface IngredienteCosteado {
+  insumo_id: string
+  insumo: string
+  cantidad: number
+  unidad: string
+  costo_unitario: number | null
+  subtotal: number | null
+}

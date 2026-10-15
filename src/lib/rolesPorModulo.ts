@@ -6,7 +6,9 @@ import type { Rol } from '../models/types/usuario'
 export const rolesPorModulo: Record<string, Rol[]> = {
   '/mesoneros': ['mesonero', 'supervisor', 'gerencia'],
   '/cocina': ['cocina', 'supervisor', 'gerencia'],
-  '/administracion': ['administracion', 'gerencia'],
+  // Gerencia no entra a administración: tiene su propio panel en /gerencia
+  // (decisión 2026-10-15, ver arquitectura.md §4.10).
+  '/administracion': ['administracion'],
   '/gerencia': ['gerencia'],
   '/super-admin': ['super_admin'],
 }

@@ -23,7 +23,10 @@ import InsumosPage from './views/modules/administracion/InsumosPage'
 import LotesPage from './views/modules/administracion/LotesPage'
 import ConfiguracionPage from './views/modules/administracion/ConfiguracionPage'
 import ComprasPage from './views/modules/administracion/ComprasPage'
-import GerenciaPage from './views/modules/gerencia/GerenciaPage'
+import GerenciaLayout from './views/modules/gerencia/GerenciaLayout'
+import VentasPage from './views/modules/gerencia/VentasPage'
+import RentabilidadPage from './views/modules/gerencia/RentabilidadPage'
+import InventarioGerenciaPage from './views/modules/gerencia/InventarioGerenciaPage'
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
 import ProximamentePage from './views/modules/proximamente/ProximamentePage'
@@ -230,14 +233,19 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Panel de gerencia: un layout con barra lateral y una sección por ruta */}
             <Route
               path="/gerencia"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/gerencia']}>
-                  <GerenciaPage />
+                  <GerenciaLayout />
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route index element={<VentasPage />} />
+              <Route path="rentabilidad" element={<RentabilidadPage />} />
+              <Route path="inventario" element={<InventarioGerenciaPage />} />
+            </Route>
             <Route
               path="/super-admin"
               element={

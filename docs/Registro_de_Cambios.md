@@ -4,6 +4,34 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-15 — Panel propio de gerencia; gerencia deja de entrar a Administración
+
+Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code).
+
+### Por qué
+
+Desde el dashboard, "Cargar receta →" y el botón "Administración →" daban **"Tu usuario no tiene una sede asignada."** El gerente tiene `sede_id` nulo (permitido para gerentes de cadena, `modelo-de-datos.md`), y todas las pantallas de Administración exigen una sede. Pedro decidió que el problema es de diseño: gerencia no debería entrar a Administración, sino tener su propio panel con barra lateral, como el de administración.
+
+### Qué cambió
+
+- **Panel de gerencia con barra lateral** (`GerenciaLayout.tsx`, rutas anidadas en `App.tsx`):
+  - `/gerencia`: Ventas (tarjetas, por día, platos, horas, categorías, medios de pago, mesoneros).
+  - `/gerencia/rentabilidad`: rentabilidad por plato.
+  - `/gerencia/inventario`: rotación de inventario.
+  - Reportes por turno, Sedes y Alertas (Fase 5, Módulos 2–4) llevan a `/proximamente`.
+  - Un solo `useKpisVentas` vive en el layout y llega a las secciones por `useOutletContext` (`useKpisGerencia`). El período elegido se mantiene al cambiar de sección y no se vuelve a pedir todo.
+  - El layout no pide sede.
+- **Barra lateral compartida** `src/views/components/layout/PanelSidebar.tsx`. `AdminSidebar` y `GerenciaSidebar` solo definen sus enlaces.
+- **Ficha de receta de solo lectura** (`FichaRecetaModal.tsx`, `fetchRecetaCosteada`): "Ver receta →" en los platos con receta muestra insumos, cantidades, costo de cada uno (última compra recibida de cualquier sede, igual que `kpis_rentabilidad` sin sede), costo total y margen. Los platos sin receta dicen "Administración debe cargar su receta".
+- **Se quitó el botón "Administración →"** del dashboard y `gerencia` de `rolesPorModulo['/administracion']`.
+- Gerencia sigue entrando a Mesoneros y Cocina (sin cambios).
+- `arquitectura.md` §4.10 registra la decisión.
+
+### Ojo
+
+- **Es solo el acceso del frontend.** Las políticas RLS (`0002`) siguen dejando a `gerencia` leer y escribir inventario, compras, recetas, etc. de su tenant. Leer hace falta para la ficha de receta y los KPIs. Si se quiere que la base también le impida escribir, hace falta una migración aparte.
+- Mesoneros y Cocina también exigen sede. Un gerente sin sede sigue sin poder usarlos.
+
 ## 2026-10-15 — Datos de demostración para el dashboard + pistas en "Rentabilidad por plato"
 
 Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code).

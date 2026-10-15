@@ -36,8 +36,8 @@ export function MenuAdmin({ tenantId, sedeId }: MenuAdminProps) {
 
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
-  // ?plato=<id> abre ese plato directo (lo usa "Cargar receta" del
-  // dashboard de gerencia para los platos sin receta).
+  // ?plato=<id> abre ese plato directo. Hoy nadie enlaza aquí: gerencia
+  // dejó de entrar a administración y ve las recetas en su propia ficha.
   const [searchParams] = useSearchParams()
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(() => searchParams.get('plato'))
   const [creando, setCreando] = useState(false)
