@@ -42,9 +42,9 @@ Solo 1 de 46 platos tiene receta y hay 1 compra registrada, así que casi todo s
 
 ### Pendiente
 
-- [ ] Avisar a César y aplicar `0012_rentabilidad.sql` en Supabase (SQL Editor).
-- [ ] Verificar contra un cálculo directo (costo de "por lote" = $30/kg).
-- [ ] Probado eso, marcar el Módulo 1 de la Fase 5 como ✅ en el roadmap.
+- [x] `0012_rentabilidad.sql` aplicada por Pedro en el SQL Editor (2026-10-15).
+- [x] Verificado contra un cálculo directo con la cuenta de gerencia: costo de "por lote" $30/kg (única compra recibida); valor en stock $1.080 (36 kg × $30); el plato "prueba" (precio $15, receta 1 kg) cerrado en la mesa 4 da costo $30, margen −$15 (−100 %) y ganancia −$30 por 2 vendidos; los otros 8 platos vendidos salen "Sin receta". Sin sesión, la función y la vista quedan bloqueadas.
+- [x] Fase 5, Módulo 1 marcado ✅ en el roadmap.
 
 ---
 
@@ -86,9 +86,8 @@ Gerencia ve en `/gerencia`, debajo de las ventas y con el mismo selector de per�
 
 ### Pendiente
 
-- [ ] Avisar a César y aplicar `0011_kpis_inventario.sql` en Supabase (SQL Editor).
-- [ ] Verificar los números contra los movimientos reales de las pruebas de la Fase 4.
-- [ ] Rentabilidad por plato: decidir de dónde sale el costo de un insumo (¿última compra? ¿promedio de las últimas compras?). Recién con eso se marca el Módulo 1 como ✅.
+- [x] `0011` aplicada y verificada (2026-10-15): 40 kg de entradas, 2 kg consumidos, 2 kg de merma, 36 kg de stock, rotación 0,22×, coincide con los movimientos reales.
+- [x] Rentabilidad por plato: resuelto en la entrada de arriba (costo = última compra recibida).
 
 ---
 

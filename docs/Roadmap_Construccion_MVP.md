@@ -175,8 +175,10 @@ Pantalla nueva (`ConteoFisicoPage.tsx` / `useConteoFisico.ts`, quinta pestaña d
 
 ## Fase 5 — Gerencia y reportes
 
-**Módulo 1 — Dashboard de KPIs**
+**Módulo 1 — Dashboard de KPIs** ✅
 Ventas, rentabilidad por plato, rotación de inventario — agregando sobre los datos ya generados por las fases anteriores.
+
+Construido por Pedro en `/gerencia` (detalle en `docs/Registro_de_Cambios.md`). Todo se agrega en el servidor con funciones `security invoker` (RLS sigue separando restaurantes; anon bloqueado), con un solo selector de período: **ventas** (`kpis_ventas`, migración `0010`), **rotación de inventario** en unidades con valor en stock (`kpis_inventario`, `0011`/`0012`) y **rentabilidad por plato** (`kpis_rentabilidad`, `0012`). Decisión confirmada con el usuario: el costo de un insumo es el de su **última compra recibida** (vista `costo_insumo_actual`), porque `insumos` no tiene costo propio. Platos sin receta o con insumos nunca comprados se marcan aparte, nunca con costo 0. Verificado contra cálculos directos sobre Supabase real: ventas ($165.50 en 6 cuentas), rotación (36 kg, 0,22×) y rentabilidad del plato de prueba ($15 de precio, $30 de costo, −$30 de ganancia en 2 vendidos).
 
 **Módulo 2 — Reportes por turno**
 Reporte de ventas y medios de pago al cierre del día, calculado sobre `pagos_cierre` (no necesariamente una tabla nueva, ver `modelo-de-datos.md`, sección 6).
