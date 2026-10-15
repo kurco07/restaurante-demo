@@ -4,6 +4,40 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-15 — Datos de demostración para el dashboard + pistas en "Rentabilidad por plato"
+
+Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code).
+
+### Por qué
+
+Con el menú real cargado pero sin recetas (solo 1 de 46 platos tenía), casi todo salía "Sin receta" y no se podía ver la rentabilidad con datos realistas. Pedro propuso cargar insumos ficticios como migración. Se acordó hacerlo **como script de datos de demostración, no como migración**: `supabase/migrations/` es el historial del esquema y se aplicaría también en una base nueva o en producción, y el menú es el real del cliente piloto, así que las recetas inventadas tienen que poder distinguirse y borrarse.
+
+### Qué se agregó
+
+- **`supabase/seeds/demo_recetas.sql`** (se corre a mano en el SQL Editor, una vez; si ya están cargados no hace nada):
+  - 32 insumos "Demo · …" con precios aproximados en dólares por unidad.
+  - Un proveedor demo y una orden de compra **recibida**, con su entrada de inventario y su movimiento `entrada`, igual que si se recibiera desde Administración → Compras. Así el costo, el stock, la rotación y el valor en stock son coherentes.
+  - Recetas para 41 platos, deducidas de la descripción de cada plato en el menú (las cantidades son inventadas). No pisa ninguna receta real ni toca platos, precios, ventas, el insumo "por lote" ni el plato "prueba".
+  - Los tres estados quedan a la vista. **Costo incompleto:** Cheese miel, Queso spicy y Monster crispy usan un insumo demo que nunca se compró. **Sin receta:** Marquesa de chocolate, Pie, Mixto (Filadelfia) y Plato fit de pollo.
+- **`supabase/seeds/demo_recetas_borrar.sql`**: borra todo lo que lleva "Demo · " (recetas, insumos con su inventario/lotes/movimientos, la orden y el proveedor demo) y deja la base como estaba.
+- **Dashboard**:
+  - Los platos "Sin receta" llevan un enlace **"Cargar receta →"** que abre ese plato en Administración → Menú (`?plato=<id>`, nuevo en `MenuAdmin.tsx`).
+  - Los platos con "Costo incompleto" dicen **qué insumo falta comprar** (`fetchInsumosSinCompra`).
+
+### Ojo
+
+- Con recetas cargadas, cada plato que cocina marca como entregado descuenta estos insumos del stock (trigger de la `0008`). Para pruebas está bien.
+- La base es compartida: César también va a ver los insumos y la compra demo en sus pantallas de inventario. Hay que avisarle antes de correr el script.
+- `MenuAdmin.tsx` es de César: el cambio es solo leer `?plato=` para preseleccionar un plato.
+
+### Pendiente
+
+- [ ] Avisar a César y correr `demo_recetas.sql` en el SQL Editor.
+- [ ] Verificar los costos de algunos platos contra la receta × precio demo.
+- [ ] Cuando el restaurante cargue sus recetas reales, correr `demo_recetas_borrar.sql`.
+
+---
+
 ## 2026-10-15 — Fase 5, Módulo 1 (rentabilidad por plato y valor del inventario)
 
 Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code). Con esto el dashboard de gerencia cubre las tres métricas del Módulo 1: ventas, rotación y rentabilidad.

@@ -177,7 +177,7 @@ export default function GerenciaPage() {
                     ` · ${k.resumenRentabilidad.platosSinCosto} sin receta o con insumos sin compra registrada no entran`}
                 </p>
               </div>
-              <TablaRentabilidad filas={k.rentabilidad} />
+              <TablaRentabilidad filas={k.rentabilidad} insumosSinCompra={k.insumosSinCompra} />
             </PanelCard>
 
             <PanelCard

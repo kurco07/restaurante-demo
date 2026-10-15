@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import type { CategoriaMenu, Insumo, MenuItem, Receta } from '../../../../models/types'
 import {
   actualizarCategoria,
@@ -35,7 +36,10 @@ export function MenuAdmin({ tenantId, sedeId }: MenuAdminProps) {
 
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas')
   const [busqueda, setBusqueda] = useState('')
-  const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null)
+  // ?plato=<id> abre ese plato directo (lo usa "Cargar receta" del
+  // dashboard de gerencia para los platos sin receta).
+  const [searchParams] = useSearchParams()
+  const [seleccionadoId, setSeleccionadoId] = useState<string | null>(() => searchParams.get('plato'))
   const [creando, setCreando] = useState(false)
 
   useEffect(() => {

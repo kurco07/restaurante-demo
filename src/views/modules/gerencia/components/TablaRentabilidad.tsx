@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { EstadoCostoPlato, RentabilidadPlato } from '../../../../models/types'
 import { formatearMoneda } from '../../../components/ui/constants'
 
@@ -10,7 +11,13 @@ const ESTADOS: Record<EstadoCostoPlato, { etiqueta: string; clase: string }> = {
 // Rentabilidad por plato (Fase 5, Módulo 1). Costo = receta × última
 // compra recibida de cada insumo (migración 0012). Primero los que más
 // ganancia dejan; los que no tienen costo completo, al final.
-export function TablaRentabilidad({ filas }: { filas: RentabilidadPlato[] }) {
+export function TablaRentabilidad({
+  filas,
+  insumosSinCompra,
+}: {
+  filas: RentabilidadPlato[]
+  insumosSinCompra: Record<string, string[]>
+}) {
   if (filas.length === 0) {
     return <p className="py-4 text-center text-[12.5px] text-[var(--ink-soft)]">Sin platos vendidos en el período.</p>
   }
@@ -44,7 +51,22 @@ export function TablaRentabilidad({ filas }: { filas: RentabilidadPlato[] }) {
         <tbody>
           {ordenadas.map((f) => (
             <tr key={f.menu_item_id} className="border-b border-[var(--border)] last:border-0">
-              <td className="py-2.5 pr-3 font-bold">{f.plato}</td>
+              <td className="py-2.5 pr-3">
+                <div className="font-bold">{f.plato}</div>
+                {f.estado === 'sin_receta' && (
+                  <Link
+                    to={`/administracion/menu?plato=${f.menu_item_id}`}
+                    className="text-[11px] font-bold text-[var(--orange-dark)]"
+                  >
+                    Cargar receta →
+                  </Link>
+                )}
+                {f.estado === 'incompleto' && insumosSinCompra[f.menu_item_id] && (
+                  <div className="text-[11px] text-[var(--orange-dark)]">
+                    Falta registrar una compra de: {insumosSinCompra[f.menu_item_id].join(', ')}
+                  </div>
+                )}
+              </td>
               <td className="py-2.5 pr-3 text-right">{f.vendidos}</td>
               <td className="py-2.5 pr-3 text-right">{formatearMoneda(Number(f.precio_promedio))}</td>
               <td className="py-2.5 pr-3 text-right">

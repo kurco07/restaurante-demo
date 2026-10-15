@@ -39,3 +39,25 @@ export async function fetchKpisRentabilidad(desde: Date, hasta: Date, sedeId?: s
   if (error) throw error
   return data as RentabilidadPlato[]
 }
+
+// Para los platos con "Costo incompleto": qué insumos de su receta nunca
+// tuvieron una compra recibida (no aparecen en costo_insumo_actual).
+// Devuelve { menu_item_id: [nombres de insumo] }.
+export async function fetchInsumosSinCompra(menuItemIds: string[]) {
+  if (menuItemIds.length === 0) return {}
+
+  const [recetas, costos] = await Promise.all([
+    supabase.from('recetas').select('menu_item_id, insumo_id, insumos(nombre)').in('menu_item_id', menuItemIds),
+    supabase.from('costo_insumo_actual').select('insumo_id'),
+  ])
+  if (recetas.error) throw recetas.error
+  if (costos.error) throw costos.error
+
+  const conCosto = new Set((costos.data as { insumo_id: string }[]).map((c) => c.insumo_id))
+  const faltantes: Record<string, string[]> = {}
+  for (const r of recetas.data as unknown as { menu_item_id: string; insumo_id: string; insumos: { nombre: string } | null }[]) {
+    if (conCosto.has(r.insumo_id)) continue
+    ;(faltantes[r.menu_item_id] ??= []).push(r.insumos?.nombre ?? 'insumo')
+  }
+  return faltantes
+}

@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { KpisVentas, RentabilidadPlato, RotacionInsumo, VentaPorDia } from '../../models/types'
-import { fetchKpisInventario, fetchKpisRentabilidad, fetchKpisVentas } from '../../models/services/kpisService'
+import {
+  fetchInsumosSinCompra,
+  fetchKpisInventario,
+  fetchKpisRentabilidad,
+  fetchKpisVentas,
+} from '../../models/services/kpisService'
 
 export type PeriodoKpi = 'hoy' | '7d' | '30d' | 'mes'
 
@@ -56,6 +61,8 @@ export function useKpisVentas() {
   const [datos, setDatos] = useState<KpisVentas | null>(null)
   const [inventario, setInventario] = useState<RotacionInsumo[]>([])
   const [rentabilidad, setRentabilidad] = useState<RentabilidadPlato[]>([])
+  // menu_item_id → insumos de su receta que nunca se compraron
+  const [insumosSinCompra, setInsumosSinCompra] = useState<Record<string, string[]>>({})
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -68,11 +75,14 @@ export function useKpisVentas() {
       fetchKpisInventario(rango.desde, rango.hasta),
       fetchKpisRentabilidad(rango.desde, rango.hasta),
     ])
-      .then(([kpis, rotacion, platos]) => {
+      .then(async ([kpis, rotacion, platos]) => {
+        const incompletos = platos.filter((p) => p.estado === 'incompleto').map((p) => p.menu_item_id)
+        const faltantes = await fetchInsumosSinCompra(incompletos)
         if (cancelado) return
         setDatos(kpis)
         setInventario(rotacion)
         setRentabilidad(platos)
+        setInsumosSinCompra(faltantes)
         setError(null)
       })
       .catch((e: unknown) => {
@@ -112,5 +122,5 @@ export function useKpisVentas() {
     setPeriodo(nuevo)
   }
 
-  return { periodo, setPeriodo: cambiarPeriodo, cargando, error, datos, porDia, inventario, rentabilidad, resumenRentabilidad }
+  return { periodo, setPeriodo: cambiarPeriodo, cargando, error, datos, porDia, inventario, rentabilidad, resumenRentabilidad, insumosSinCompra }
 }
