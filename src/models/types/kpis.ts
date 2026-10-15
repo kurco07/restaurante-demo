@@ -68,4 +68,26 @@ export interface RotacionInsumo {
   stock_promedio: number
   rotacion: number | null
   dias_alcanza: number | null
+  // Costo de la última compra recibida (migración 0012); null si el insumo
+  // nunca se compró.
+  costo_unitario: number | null
+  valor_stock: number | null
+}
+
+// Una fila de kpis_rentabilidad (migración 0012): un plato vendido en el
+// período. El costo sale de su receta × la última compra recibida de cada
+// insumo. Margen y ganancia solo cuando el costo está completo ('ok').
+export type EstadoCostoPlato = 'ok' | 'incompleto' | 'sin_receta'
+
+export interface RentabilidadPlato {
+  menu_item_id: string
+  plato: string
+  vendidos: number
+  importe: number
+  precio_promedio: number
+  costo_unitario: number | null
+  estado: EstadoCostoPlato
+  margen_unitario: number | null
+  margen_pct: number | null
+  ganancia: number | null
 }

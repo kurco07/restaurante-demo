@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import type { KpisVentas, RotacionInsumo } from '../types'
+import type { KpisVentas, RentabilidadPlato, RotacionInsumo } from '../types'
 
 // KPIs de ventas de un período, agregados en el servidor por la función
 // kpis_ventas (migración 0010). Corre con los permisos de quien llama:
@@ -26,4 +26,16 @@ export async function fetchKpisInventario(desde: Date, hasta: Date, sedeId?: str
   })
   if (error) throw error
   return data as RotacionInsumo[]
+}
+
+// Rentabilidad por plato del período (migración 0012): costo de la receta
+// con la última compra recibida de cada insumo, contra el precio cobrado.
+export async function fetchKpisRentabilidad(desde: Date, hasta: Date, sedeId?: string) {
+  const { data, error } = await supabase.rpc('kpis_rentabilidad', {
+    p_desde: desde.toISOString(),
+    p_hasta: hasta.toISOString(),
+    p_sede_id: sedeId ?? null,
+  })
+  if (error) throw error
+  return data as RentabilidadPlato[]
 }

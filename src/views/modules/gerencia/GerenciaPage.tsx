@@ -8,6 +8,7 @@ import { PanelCard } from '../../components/ui/PanelCard'
 import { ListaBarras } from './components/ListaBarras'
 import { VentasPorDia } from './components/VentasPorDia'
 import { TablaRotacion } from './components/TablaRotacion'
+import { TablaRentabilidad } from './components/TablaRentabilidad'
 
 const ETIQUETA_METODO: Record<string, string> = {
   efectivo: 'Efectivo',
@@ -19,9 +20,8 @@ function cuentas(n: number) {
   return `${n} ${n === 1 ? 'cuenta' : 'cuentas'}`
 }
 
-// Dashboard de gerencia (Fase 5, Módulo 1): ventas y rotación de
-// inventario. Rentabilidad por plato queda pendiente de decidir cómo se
-// deriva el costo de un insumo. Requiere conexión: los reportes no
+// Dashboard de gerencia (Fase 5, Módulo 1): ventas, rentabilidad por
+// plato y rotación de inventario. Requiere conexión: los reportes no
 // son offline (arquitectura.md §1).
 export default function GerenciaPage() {
   const { usuario, loading, error } = useUsuario()
@@ -156,16 +156,37 @@ export default function GerenciaPage() {
             </div>
 
             <PanelCard
+              titulo="Rentabilidad por plato"
+              subtitulo="Precio cobrado contra el costo de su receta, con la última compra recibida de cada insumo"
+            >
+              <div className="mb-4 flex flex-wrap items-baseline gap-x-6 gap-y-1 rounded-xl bg-[var(--surface-alt)] px-4 py-3">
+                <div>
+                  <span className="text-[19px] font-extrabold">{formatearMoneda(k.resumenRentabilidad.ganancia)}</span>
+                  <span className="ml-1.5 text-xs text-[var(--ink-soft)]">ganancia bruta</span>
+                </div>
+                <div>
+                  <span className="text-[19px] font-extrabold">
+                    {k.resumenRentabilidad.margenPct != null ? `${k.resumenRentabilidad.margenPct.toFixed(1)}%` : '—'}
+                  </span>
+                  <span className="ml-1.5 text-xs text-[var(--ink-soft)]">margen</span>
+                </div>
+                <p className="text-[11.5px] text-[var(--ink-soft)]">
+                  Sobre {k.resumenRentabilidad.platosConCosto} plato
+                  {k.resumenRentabilidad.platosConCosto === 1 ? '' : 's'} con costo completo
+                  {k.resumenRentabilidad.platosSinCosto > 0 &&
+                    ` · ${k.resumenRentabilidad.platosSinCosto} sin receta o con insumos sin compra registrada no entran`}
+                </p>
+              </div>
+              <TablaRentabilidad filas={k.rentabilidad} />
+            </PanelCard>
+
+            <PanelCard
               titulo="Rotación de inventario"
-              subtitulo="Cuánto se gastó de cada insumo en el período y para cuántos días alcanza lo que queda · en unidades, sin costo"
+              subtitulo="Cuánto se gastó de cada insumo en el período, para cuántos días alcanza lo que queda y cuánto dinero hay en stock"
             >
               <TablaRotacion filas={k.inventario} />
             </PanelCard>
 
-            <p className="px-1 text-[11.5px] text-[var(--ink-soft)]">
-              Rentabilidad por plato queda pendiente: los insumos no tienen costo y falta decidir cómo derivarlo de las
-              compras.
-            </p>
           </div>
         )}
       </main>

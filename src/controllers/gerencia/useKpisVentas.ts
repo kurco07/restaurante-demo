@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { KpisVentas, RotacionInsumo, VentaPorDia } from '../../models/types'
-import { fetchKpisInventario, fetchKpisVentas } from '../../models/services/kpisService'
+import type { KpisVentas, RentabilidadPlato, RotacionInsumo, VentaPorDia } from '../../models/types'
+import { fetchKpisInventario, fetchKpisRentabilidad, fetchKpisVentas } from '../../models/services/kpisService'
 
 export type PeriodoKpi = 'hoy' | '7d' | '30d' | 'mes'
 
@@ -49,13 +49,13 @@ function completarDias(porDia: VentaPorDia[], desde: Date, hasta: Date): VentaPo
   return dias
 }
 
-// Dashboard de KPIs de gerencia (Fase 5, Módulo 1): ventas y rotación de
-// inventario del mismo período. Rentabilidad por plato queda pendiente
-// de decidir cómo se deriva el costo de un insumo.
+// Dashboard de KPIs de gerencia (Fase 5, Módulo 1): ventas, rotación de
+// inventario y rentabilidad por plato del mismo período.
 export function useKpisVentas() {
   const [periodo, setPeriodo] = useState<PeriodoKpi>('7d')
   const [datos, setDatos] = useState<KpisVentas | null>(null)
   const [inventario, setInventario] = useState<RotacionInsumo[]>([])
+  const [rentabilidad, setRentabilidad] = useState<RentabilidadPlato[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -63,11 +63,16 @@ export function useKpisVentas() {
 
   useEffect(() => {
     let cancelado = false
-    Promise.all([fetchKpisVentas(rango.desde, rango.hasta), fetchKpisInventario(rango.desde, rango.hasta)])
-      .then(([kpis, rotacion]) => {
+    Promise.all([
+      fetchKpisVentas(rango.desde, rango.hasta),
+      fetchKpisInventario(rango.desde, rango.hasta),
+      fetchKpisRentabilidad(rango.desde, rango.hasta),
+    ])
+      .then(([kpis, rotacion, platos]) => {
         if (cancelado) return
         setDatos(kpis)
         setInventario(rotacion)
+        setRentabilidad(platos)
         setError(null)
       })
       .catch((e: unknown) => {
@@ -86,11 +91,26 @@ export function useKpisVentas() {
     [datos, rango],
   )
 
+  // Margen bruto del período, solo sobre platos con costo completo: un
+  // plato sin receta o con un insumo nunca comprado no entra, porque
+  // asumirle costo cero inflaría el margen.
+  const resumenRentabilidad = useMemo(() => {
+    const completos = rentabilidad.filter((f) => f.estado === 'ok')
+    const ventas = completos.reduce((s, f) => s + Number(f.importe), 0)
+    const ganancia = completos.reduce((s, f) => s + Number(f.ganancia ?? 0), 0)
+    return {
+      ganancia,
+      margenPct: ventas > 0 ? (ganancia / ventas) * 100 : null,
+      platosConCosto: completos.length,
+      platosSinCosto: rentabilidad.length - completos.length,
+    }
+  }, [rentabilidad])
+
   function cambiarPeriodo(nuevo: PeriodoKpi) {
     if (nuevo === periodo) return
     setCargando(true)
     setPeriodo(nuevo)
   }
 
-  return { periodo, setPeriodo: cambiarPeriodo, cargando, error, datos, porDia, inventario }
+  return { periodo, setPeriodo: cambiarPeriodo, cargando, error, datos, porDia, inventario, rentabilidad, resumenRentabilidad }
 }

@@ -43,4 +43,6 @@ export type {
   CategoriaVendida,
   KpisVentas,
   RotacionInsumo,
+  EstadoCostoPlato,
+  RentabilidadPlato,
 } from './kpis'

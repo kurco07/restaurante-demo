@@ -1,4 +1,5 @@
 import type { RotacionInsumo } from '../../../../models/types'
+import { formatearMoneda } from '../../../components/ui/constants'
 
 type EstadoRotacion = 'bajo_minimo' | 'por_agotarse' | 'lento' | 'sin_movimiento' | 'normal'
 
@@ -46,13 +47,16 @@ export function TablaRotacion({ filas }: { filas: RotacionInsumo[] }) {
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] text-left text-[12.5px]">
+      <table className="w-full min-w-[760px] text-left text-[12.5px]">
         <thead>
           <tr className="border-b border-[var(--border)] text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">
             <th className="py-2 pr-3">Insumo</th>
             <th className="py-2 pr-3 text-right">Consumido</th>
             <th className="py-2 pr-3 text-right">Merma</th>
             <th className="py-2 pr-3 text-right">Stock actual</th>
+            <th className="py-2 pr-3 text-right" title="Stock actual × costo de la última compra recibida">
+              Valor en stock
+            </th>
             <th className="py-2 pr-3 text-right" title="Veces que se gastó el stock promedio en el período">
               Rotación
             </th>
@@ -74,6 +78,14 @@ export function TablaRotacion({ filas }: { filas: RotacionInsumo[] }) {
                 {cantidad(f.stock_actual, f.unidad)}
                 {f.stock_minimo != null && (
                   <div className="text-[10.5px] text-[var(--ink-soft)]">mín. {cantidad(f.stock_minimo, f.unidad)}</div>
+                )}
+              </td>
+              <td className="py-2.5 pr-3 text-right">
+                {f.valor_stock != null ? formatearMoneda(Number(f.valor_stock)) : '—'}
+                {f.costo_unitario != null && (
+                  <div className="text-[10.5px] text-[var(--ink-soft)]">
+                    {formatearMoneda(Number(f.costo_unitario))}/{f.unidad}
+                  </div>
                 )}
               </td>
               <td className="py-2.5 pr-3 text-right">{f.rotacion != null ? `${f.rotacion}×` : '—'}</td>

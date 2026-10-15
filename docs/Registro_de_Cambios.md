@@ -4,6 +4,50 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-15 — Fase 5, Módulo 1 (rentabilidad por plato y valor del inventario)
+
+Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code). Con esto el dashboard de gerencia cubre las tres métricas del Módulo 1: ventas, rotación y rentabilidad.
+
+### Decisión de producto (confirmada por Pedro)
+
+`insumos` no tiene costo (decisión de la Fase 4). **El costo de un insumo es el de su última compra recibida.** Con precios que cambian rápido es lo que cuesta hoy reponerlo; un promedio de compras viejas mostraría márgenes mejores de lo que son. Se descartaron el promedio de las últimas compras y el promedio de todo el historial.
+
+### Cómo funciona
+
+- Vista `costo_insumo_actual` (migración `0012`, `security_invoker`): por sede e insumo, `costo_estimado` del ítem de la orden **recibida** más reciente (`costo_estimado` es por unidad del insumo). Borradores y órdenes aprobadas no cuentan. Queda reutilizable para la Fase 6 (sugerencias de compra).
+- Función `kpis_rentabilidad(desde, hasta, sede)`: por cada plato vendido en el período (mismas cuentas que `kpis_ventas`), precio real cobrado contra **costo = receta × costo de cada insumo**. Sin sede filtrada, se usa la compra más reciente de cualquier sede.
+- Estados: **Costo completo**; **Costo incompleto** (algún insumo de la receta nunca se compró: se muestra el costo parcial como "≥", sin margen); **Sin receta**. Nunca se asume costo 0.
+- Arriba de la tabla: ganancia bruta y margen % del período, **solo sobre platos con costo completo**, diciendo cuántos quedaron fuera.
+- `kpis_inventario` se redefine en la misma `0012` (no se edita la `0011`, ya aplicada) con `costo_unitario` y `valor_stock`. La tabla de rotación suma la columna **"Valor en stock"**: stock × costo, o "—" si el insumo nunca se compró.
+
+### Ojo con los datos de hoy
+
+Solo 1 de 46 platos tiene receta y hay 1 compra registrada, así que casi todo sale "Sin receta". El cálculo está listo; se va llenando a medida que se carguen recetas (Administración → Menú) y se reciban compras.
+
+### Idea para César (Fase 4, no se tocó)
+
+`costo_estimado` es el precio estimado al crear la orden, no el de la factura. Si al marcar una orden como "recibida" se confirmara el costo real, la rentabilidad sería exacta.
+
+### Archivos
+
+| Archivo | Cambio |
+| --- | --- |
+| `supabase/migrations/0012_rentabilidad.sql` | Nuevo — vista `costo_insumo_actual`, función `kpis_rentabilidad`, `kpis_inventario` con valor en stock |
+| `src/models/types/kpis.ts`, `src/models/types/index.ts` | `RentabilidadPlato`, `EstadoCostoPlato`; costo y valor en `RotacionInsumo` |
+| `src/models/services/kpisService.ts` | `fetchKpisRentabilidad` |
+| `src/controllers/gerencia/useKpisVentas.ts` | Carga la rentabilidad y calcula el resumen de margen |
+| `src/views/modules/gerencia/components/TablaRentabilidad.tsx` | Nuevo — tabla por plato |
+| `src/views/modules/gerencia/components/TablaRotacion.tsx` | Columna "Valor en stock" |
+| `src/views/modules/gerencia/GerenciaPage.tsx` | Sección "Rentabilidad por plato" |
+
+### Pendiente
+
+- [ ] Avisar a César y aplicar `0012_rentabilidad.sql` en Supabase (SQL Editor).
+- [ ] Verificar contra un cálculo directo (costo de "por lote" = $30/kg).
+- [ ] Probado eso, marcar el Módulo 1 de la Fase 5 como ✅ en el roadmap.
+
+---
+
 ## 2026-10-15 — Fase 5, Módulo 1 (rotación de inventario)
 
 Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code). Se apoya en el inventario real de la Fase 4 (César).
