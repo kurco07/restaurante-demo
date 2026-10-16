@@ -74,8 +74,20 @@ export function VisorARMarcador({
   rotacion = '0 0 0',
 }: VisorARMarcadorProps) {
   const markerRef = useRef<HTMLElement>(null)
+  const contenedorRef = useRef<HTMLDivElement>(null)
   const [marcadorDetectado, setMarcadorDetectado] = useState(false)
   const [mostrarAyuda, setMostrarAyuda] = useState(false)
+
+  // Pantalla completa real (sin barra de direcciones/UI del navegador) —
+  // además de ser mejor para el video de marketing, evita que la barra
+  // del navegador aparezca/desaparezca y dispare resizes que AR.js
+  // interpreta como cambio de tamaño de cámara a mitad de sesión.
+  useEffect(() => {
+    contenedorRef.current?.requestFullscreen?.().catch(() => {})
+    return () => {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
+    }
+  }, [])
 
   useEffect(() => {
     const marcador = markerRef.current
@@ -122,14 +134,20 @@ export function VisorARMarcador({
     //    Confirmado con un dump en consola del elemento real:
     //    {display:'block', zIndex:'-2', ...} — procesaba cuadros bien
     //    pero nunca se veía por esto.
-    <div className="fixed inset-0 z-[200]">
+    <div ref={contenedorRef} className="fixed inset-0 z-[200]">
       <style>{`
         #arjs-video { display: block !important; z-index: 1 !important; }
         .a-canvas { z-index: 2 !important; }
       `}</style>
       <a-scene
         embedded
-        arjs="sourceType: webcam; trackingMethod: best; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        // sourceWidth/sourceHeight fuerzan la resolución de captura en vez
+        // de dejar que AR.js la auto-detecte del layout de la página — sin
+        // esto, en el celular se detectó un tamaño de fuente absurdo
+        // (444x1859, claramente mal calculado) que dejaba la cámara
+        // desalineada; 640x480 es la resolución para la que ya viene
+        // calibrado el archivo de cámara por defecto de ARToolkit.
+        arjs="sourceType: webcam; sourceWidth: 640; sourceHeight: 480; trackingMethod: best; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
         vr-mode-ui="enabled: false"
         renderer="logarithmicDepthBuffer: true;"
         style={{ width: '100%', height: '100%' }}
