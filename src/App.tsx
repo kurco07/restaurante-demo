@@ -33,6 +33,7 @@ import InventarioGerenciaPage from './views/modules/gerencia/InventarioGerenciaP
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
 import ProximamentePage from './views/modules/proximamente/ProximamentePage'
+import VistaARPage from './views/modules/ar/VistaARPage'
 
 export default function App() {
   return (
@@ -49,6 +50,9 @@ export default function App() {
                 Sin :mesaId muestra "QR no válido". */}
             <Route path="/autopedido" element={<AutopedidoPage />} />
             <Route path="/autopedido/:mesaId" element={<AutopedidoPage />} />
+            {/* Pestaña dedicada para "Ver en RA" (se abre con window.open),
+                aislada del resto de la app — ver VistaARPage.tsx */}
+            <Route path="/ar" element={<VistaARPage />} />
             {/* /inicio y /proximamente también son públicas: prototipo navegable
                 de interfaces (Pedro + Cesar), sin funcionalidad todavía */}
             <Route path="/inicio" element={<InicioPage />} />
