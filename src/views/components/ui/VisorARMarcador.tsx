@@ -131,6 +131,21 @@ export function VisorARMarcador({
     return () => window.removeEventListener('popstate', alPresionarAtras)
   }, [])
 
+  // En Android, con pantalla completa activa, el PRIMER botón atrás solo
+  // le avisa al navegador que salga de pantalla completa — no llega a
+  // disparar "popstate" (ese es el comportamiento nativo del navegador,
+  // no algo que controlemos). Por eso "sale de la cámara" pero el
+  // componente nunca se desmontaba. Cerrar también ante cualquier salida
+  // de pantalla completa (sea por el botón atrás, un gesto del sistema,
+  // o nuestro propio exitFullscreen() de arriba) cubre ese caso.
+  useEffect(() => {
+    function alCambiarFullscreen() {
+      if (!document.fullscreenElement) onCerrarRef.current()
+    }
+    document.addEventListener('fullscreenchange', alCambiarFullscreen)
+    return () => document.removeEventListener('fullscreenchange', alCambiarFullscreen)
+  }, [])
+
   useEffect(() => {
     const marcador = markerRef.current
     if (!marcador) return
@@ -241,7 +256,14 @@ export function VisorARMarcador({
         <a-entity camera />
       </a-scene>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center p-4">
+      {/* z-index muy alto (más que el z-index:1000 forzado arriba en
+          .a-canvas): el canvas WebGL de A-Frame no crea su propio
+          contexto de apilamiento (no tiene position/z-index propios), así
+          que su z-index "se escapa" hacia este mismo nivel en vez de
+          quedar atrapado dentro de <a-scene> — con un z-index menor acá,
+          el canvas terminaba ganándole al botón para efectos de clic
+          (se veía encima pero no se podía presionar). */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-[1100] flex justify-center p-4">
         <p className="rounded-full bg-black/60 px-4 py-2 text-center text-[13px] font-semibold text-white">
           {marcadorDetectado
             ? nombre
@@ -250,7 +272,7 @@ export function VisorARMarcador({
       </div>
 
       {mostrarAyuda && !marcadorDetectado && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-24 z-10 flex justify-center px-6">
+        <div className="pointer-events-none absolute inset-x-0 bottom-24 z-[1100] flex justify-center px-6">
           <p className="rounded-xl bg-black/60 px-4 py-2.5 text-center text-xs text-white">
             No se detecta el marcador — verifica que haya buena luz y que se vea completo en la cámara.
           </p>
@@ -261,7 +283,7 @@ export function VisorARMarcador({
         type="button"
         onClick={() => history.back()}
         aria-label="Cerrar"
-        className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-lg text-white"
+        className="absolute right-4 top-4 z-[1100] flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-lg text-white"
       >
         ✕
       </button>
