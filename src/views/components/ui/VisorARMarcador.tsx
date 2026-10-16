@@ -83,16 +83,15 @@ export function VisorARMarcador({
   const onCerrarRef = useRef(onCerrar)
   onCerrarRef.current = onCerrar
 
-  // Pantalla completa sobre documentElement (el <html>), NO sobre nuestro
-  // propio div — AR.js inyecta su <video>/<canvas> como hijos directos de
-  // <body>, fuera de este componente. Si se pone en fullscreen nuestro div,
-  // el navegador oculta todo lo que no sea descendiente de él (lo manda a
-  // una "capa" aparte) y la cámara, aunque sigue corriendo, deja de verse
-  // — pantalla negra. Sobre documentElement, body (y sus hijos directos)
-  // siguen siendo descendientes, así que se ven con normalidad.
-  useEffect(() => {
-    document.documentElement.requestFullscreen?.().catch(() => {})
-  }, [])
+  // NO se usa la Fullscreen API real (document.requestFullscreen) a
+  // propósito — se probó y en Android/Chrome, tras salir de pantalla
+  // completa, el navegador se queda reportando window.innerWidth/
+  // innerHeight corruptos (crecientes, confirmado con capturas reales:
+  // un elemento pasó de 989x742 a 3493x2620 de un ciclo a otro) — un bug
+  // del navegador, no de este código, que solo se arregla recargando la
+  // página. Evitamos la categoría completa de bug no pidiendo fullscreen
+  // real: este wrapper ya cubre toda la pantalla por CSS (fixed inset-0),
+  // a cambio de que la barra de direcciones quede visible durante la RA.
 
   // AR.js inyecta <video id="arjs-video"> y <canvas class="a-canvas">
   // como hijos directos de <body> (no de <a-scene>, que es lo único que
@@ -112,61 +111,16 @@ export function VisorARMarcador({
     }
   }, [])
 
-  // Cerrar de verdad significa esperar a que el navegador TERMINE de
-  // salir de pantalla completa antes de desmontar — salir de fullscreen
-  // es una transición animada, no algo instantáneo. Desmontar de una vez
-  // (como se hacía antes) mostraba el resto de la app a mitad de esa
-  // transición, con el viewport todavía sin asentar — se veía "recortado"
-  // con un zoom raro. Este listener de "fullscreenchange" es el único
-  // lugar que de verdad cierra (onCerrar), disparado solo cuando el
-  // navegador confirma que ya salió.
-  //
-  // Además: en Android/Chrome es un bug conocido que, tras salir de la
-  // Fullscreen API, el navegador se queda calculando el viewport con las
-  // medidas de cuando estaba en pantalla completa (más ancho que la
-  // pantalla real) — se veía la app "recortada" a la izquierda con un
-  // hueco del color de fondo normal (#f3ede4, el que centra el contenido
-  // en pantallas anchas) ocupando el resto. El truco estándar para
-  // forzar que el navegador recalcule el viewport es re-aplicar el
-  // <meta name="viewport"> (quitarlo y volver a ponerlo fuerza un
-  // reflow completo del layout contra las medidas reales de pantalla).
-  useEffect(() => {
-    function refrescarViewport() {
-      const meta = document.querySelector('meta[name="viewport"]')
-      const contenido = meta?.getAttribute('content')
-      if (!meta || !contenido) return
-      meta.setAttribute('content', contenido + ', user-scalable=yes')
-      requestAnimationFrame(() => meta.setAttribute('content', contenido))
-    }
-    function alCambiarFullscreen() {
-      if (!document.fullscreenElement) {
-        refrescarViewport()
-        onCerrarRef.current()
-      }
-    }
-    document.addEventListener('fullscreenchange', alCambiarFullscreen)
-    return () => document.removeEventListener('fullscreenchange', alCambiarFullscreen)
-  }, [])
-
   // El botón atrás del celular no estaba conectado a nada de esto —
   // navegaba la app por detrás mientras la cámara se quedaba pegada
   // encima. Se empuja una entrada de historial al abrir y se escucha
-  // "popstate" (el botón ✕ dispara history.back(), así las dos vías
-  // quedan sincronizadas). Si hay pantalla completa activa, primero hay
-  // que salir de ahí — el listener de arriba se encarga de cerrar de
-  // verdad una vez el navegador confirme la salida. En Android, con
-  // fullscreen activo, el PRIMER botón atrás solo le avisa al navegador
-  // que salga de pantalla completa (no llega a disparar "popstate" —
-  // comportamiento nativo, no nuestro), pero eso también dispara el
-  // mismo "fullscreenchange" de arriba, así que igual cierra bien.
+  // "popstate" para cerrar (el botón ✕ dispara history.back(), así las
+  // dos vías quedan sincronizadas y no se acumula una entrada de
+  // historial de más).
   useEffect(() => {
     history.pushState({ vistaAR: true }, '')
     function alPresionarAtras() {
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => onCerrarRef.current())
-      } else {
-        onCerrarRef.current()
-      }
+      onCerrarRef.current()
     }
     window.addEventListener('popstate', alPresionarAtras)
     return () => window.removeEventListener('popstate', alPresionarAtras)
