@@ -27,6 +27,10 @@ declare module 'react' {
         type?: string
         url?: string
         emitevents?: string
+        smooth?: string
+        smoothCount?: string
+        smoothTolerance?: string
+        smoothThreshold?: string
       }
       'a-entity': DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement> & {
         camera?: boolean
@@ -69,13 +73,15 @@ export function VisorARMarcador({
   markerPreset = 'hiro',
   markerType,
   markerUrl,
-  escala = '0.05 0.05 0.05',
+  escala = '0.08 0.08 0.08',
   posicion = '0 0 0',
   rotacion = '0 0 0',
 }: VisorARMarcadorProps) {
   const markerRef = useRef<HTMLElement>(null)
   const [marcadorDetectado, setMarcadorDetectado] = useState(false)
   const [mostrarAyuda, setMostrarAyuda] = useState(false)
+  const onCerrarRef = useRef(onCerrar)
+  onCerrarRef.current = onCerrar
 
   // Pantalla completa sobre documentElement (el <html>), NO sobre nuestro
   // propio div — AR.js inyecta su <video>/<canvas> como hijos directos de
@@ -89,6 +95,40 @@ export function VisorARMarcador({
     return () => {
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
     }
+  }, [])
+
+  // AR.js inyecta <video id="arjs-video"> y <canvas class="a-canvas">
+  // como hijos directos de <body> (no de <a-scene>, que es lo único que
+  // React/A-Frame sí desmontan solos) — nada los limpia automáticamente
+  // al desmontar este componente, así que quedan "pegados" en pantalla
+  // con la cámara todavía encendida (el botón de cerrar parecía no
+  // hacer nada, y el botón atrás del celular dejaba la cámara trabada).
+  // Se apaga el stream de la cámara y se quitan los nodos a mano.
+  useEffect(() => {
+    return () => {
+      const video = document.querySelector<HTMLVideoElement>('#arjs-video')
+      if (video) {
+        const stream = video.srcObject as MediaStream | null
+        stream?.getTracks().forEach((track) => track.stop())
+        video.remove()
+      }
+      document.querySelector('.a-canvas')?.remove()
+    }
+  }, [])
+
+  // El botón atrás del celular no estaba conectado a nada de esto —
+  // navegaba la app por detrás mientras la cámara se quedaba pegada
+  // encima. Se empuja una entrada de historial al abrir y se escucha
+  // "popstate" para cerrar igual que el botón ✕ (que ahora dispara
+  // history.back() en vez de cerrar directo, así las dos vías quedan
+  // sincronizadas y no se acumula una entrada de historial de más).
+  useEffect(() => {
+    history.pushState({ vistaAR: true }, '')
+    function alPresionarAtras() {
+      onCerrarRef.current()
+    }
+    window.addEventListener('popstate', alPresionarAtras)
+    return () => window.removeEventListener('popstate', alPresionarAtras)
   }, [])
 
   useEffect(() => {
@@ -191,6 +231,10 @@ export function VisorARMarcador({
           type={markerType}
           url={markerUrl}
           emitevents="true"
+          smooth="true"
+          smoothCount="10"
+          smoothTolerance="0.01"
+          smoothThreshold="5"
         >
           <a-entity gltf-model={`url(${glbUrl})`} scale={escala} position={posicion} rotation={rotacion} />
         </a-marker>
@@ -215,7 +259,7 @@ export function VisorARMarcador({
 
       <button
         type="button"
-        onClick={onCerrar}
+        onClick={() => history.back()}
         aria-label="Cerrar"
         className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-lg text-white"
       >
