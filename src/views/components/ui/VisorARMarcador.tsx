@@ -142,18 +142,32 @@ export function VisorARMarcador({
     //    valores altos para ganarle a cualquier overlay existente hoy.
     <div className="fixed inset-0 z-[1001]">
       <style>{`
-        /* Ojo: NO forzar width/height/position acá. AR.js ya calcula bien
-           el tamaño del video para cubrir toda la pantalla por su cuenta
-           (lo agranda más que el viewport y lo centra con un margin-left
-           negativo, su propia versión manual de "cover") — forzar
-           width:100vw por CSS pisaba ese ancho pero no el margin-left
-           que AR.js calculó para ESE ancho más grande, así que el recorte
-           de centrado quedaba desalineado y la cámara se veía cortada a
-           la derecha. Solo hace falta mostrarlo y ganarle el z-index.
-           Confirmado con un dump del elemento real:
-           {inlineStyle: "width: 1084px; ...; margin-left: -236.5px"}. */
-        #arjs-video { display: block !important; z-index: 999 !important; }
-        .a-canvas { z-index: 1000 !important; }
+        /* AR.js calcula su propio tamaño de "cover" a mano: agranda el
+           video más que el viewport y lo centra con margin negativo. En
+           desktop ese cálculo dio bien, pero en el celular real volvió a
+           dar un tamaño chico (como si no hubiera recalculado contra el
+           viewport correcto en fullscreen) — dejarlo sin tocar vuelve al
+           mismo "rectángulo chico" original. Y forzar solo width/height
+           (intento anterior) tampoco alcanza: el margin-left/margin-top
+           que AR.js ya había calculado para SU tamaño queda desalineado
+           contra el nuestro y corta la imagen de lado.
+           Solución: forzar tamaño Y resetear el margen a la vez, y dejar
+           que object-fit: cover haga el recorte sin depender de ningún
+           cálculo de márgenes de AR.js. */
+        #arjs-video {
+          display: block !important;
+          z-index: 999 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          margin: 0 !important;
+          object-fit: cover !important;
+        }
+        .a-canvas {
+          z-index: 1000 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          margin: 0 !important;
+        }
         /* vr-mode-ui="enabled: false" no está suprimiendo el botón de
            A-Frame para "entrar en VR" — se oculta a la fuerza por CSS. */
         .a-enter-vr { display: none !important; }
