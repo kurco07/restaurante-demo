@@ -60,14 +60,16 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const subtotal = useMemo(() => items.reduce((sum, i) => sum + i.cantidad * i.precioUnitario, 0), [items])
+  // Lo que anuló el supervisor no se cobra (migración 0015)
+  const cobrables = useMemo(() => items.filter((i) => i.estado !== 'anulado'), [items])
+  const subtotal = useMemo(() => cobrables.reduce((sum, i) => sum + i.cantidad * i.precioUnitario, 0), [cobrables])
   const propina = propinaPct === 'otro' ? Number(propinaManual) || 0 : subtotal * propinaPct
   const total = subtotal + propina
 
   // No se puede cerrar con comida que cocina todavía no marcó como lista
   // — decisión confirmada con el usuario: en mesas se prepara primero y
   // se paga al final (distinto de delivery, donde sería al revés).
-  const itemsSinTerminar = items.filter((i) => !ESTADOS_LISTOS.has(i.estado))
+  const itemsSinTerminar = cobrables.filter((i) => !ESTADOS_LISTOS.has(i.estado))
 
   async function confirmar() {
     if (!sesion || !usuario.sede_id || itemsSinTerminar.length > 0) return
@@ -118,11 +120,15 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           ) : (
             items.map((item) => (
               <div key={item.id} className="flex justify-between border-b border-orange-100 py-2.5 text-[13.5px]">
-                <span className="font-semibold text-gray-800">
+                <span className={`font-semibold ${item.estado === 'anulado' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
                   <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
                   {item.nombre}
                 </span>
-                <span>${(item.cantidad * item.precioUnitario).toFixed(2)}</span>
+                {item.estado === 'anulado' ? (
+                  <span className="text-xs font-bold text-red-600">Anulado</span>
+                ) : (
+                  <span>${(item.cantidad * item.precioUnitario).toFixed(2)}</span>
+                )}
               </div>
             ))
           )}
@@ -215,7 +221,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           <button
             type="button"
             onClick={confirmar}
-            disabled={enviando || items.length === 0 || !sesion || itemsSinTerminar.length > 0}
+            disabled={enviando || cobrables.length === 0 || !sesion || itemsSinTerminar.length > 0}
             className="flex-[1.4] rounded-xl bg-orange-500 py-3 text-sm font-bold text-white disabled:opacity-50"
           >
             {enviando ? 'Cerrando…' : 'Confirmar y cerrar mesa'}

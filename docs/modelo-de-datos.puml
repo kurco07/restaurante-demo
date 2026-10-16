@@ -81,6 +81,11 @@ entity "pedidos_items" as pedidos_items {
   estado : text
   client_local_id : uuid
   sincronizado_en : timestamp
+  anulado_por : uuid <<FK>>
+  anulado_en : timestamp
+  motivo_anulacion : text
+  anulado_desde : text
+  anulacion_vista_en : timestamp
 }
 
 entity "pagos_cierre" as pagos_cierre {

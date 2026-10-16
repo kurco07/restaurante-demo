@@ -1,15 +1,7 @@
-import { useUsuario } from '../../../controllers/usuario/useUsuario'
-import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
-import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { TableroCocina } from './components/TableroCocina'
 
+// Sección "Pedidos" de cocina: el tablero. El usuario y la sede ya los
+// valida CocinaLayout.
 export default function CocinaPage() {
-  const { usuario, loading, error } = useUsuario()
-
-  if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
-  if (error) return <ErrorMessage message={error} />
-  if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
-  if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
-
   return <TableroCocina />
 }

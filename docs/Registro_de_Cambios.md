@@ -4,6 +4,151 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-16 — Supervisor de sala: anular platos y transferir mesas (Fase 2, Módulo 7)
+
+Rama: `feature/navegacion-mesonero`. Autor: Pedro (con Claude Code). Migración `0015_supervisor_anular_transferir.sql` **aplicada en Supabase por Pedro (2026-10-16)**.
+
+### Por qué
+
+Hasta ahora el rol `supervisor` era un mesonero con otro nombre: ninguna de sus capacidades de §4.10 estaba construida.
+
+### Decisiones (Pedro, 2026-10-16)
+
+- **Se construyen** anular un plato y transferir una mesa.
+- **Descuentos menores: fuera por ahora.**
+- **Reportes del turno:** se hacen con la Fase 5, Módulo 2, ya con acceso para el supervisor.
+- **Anular:**
+  - Se puede en espera, en preparación o listo. Nunca entregado: eso sería una devolución o un descuento.
+  - El motivo es obligatorio.
+  - Si el plato ya se estaba preparando o estaba listo, sus ingredientes se registran como **merma**. Si estaba en espera, no se descuenta nada.
+  - Cocina lo ve **tachado en su ticket** hasta que toca "Entendido".
+- Gerencia también puede anular y transferir, porque §4.10 le da "todo lo anterior".
+
+### Qué cambió
+
+**Base de datos (migración `0015`):**
+- `pedidos_items` acepta el estado `anulado`, con nuevas columnas: `anulado_por`, `anulado_en`, `motivo_anulacion`, `anulado_desde` y `anulacion_vista_en`.
+- **Triggers que hacen cumplir las reglas,** aunque el cambio llegue desde la cola offline de PowerSync. RLS deja a cualquiera de la sede escribir esas tablas, así que la barrera real tiene que estar en la base:
+  - Solo `supervisor` o `gerencia` puede anular o transferir.
+  - No se puede anular lo entregado, ni hacerlo sin motivo, ni "des-anular".
+  - Quién anuló y desde qué estado los pone el servidor.
+  - Tomar una mesa sin mesonero (QR) sigue siendo de cualquiera. Cambiarle el mesonero a una mesa que ya tiene uno es transferirla, y solo puede hacerlo el supervisor.
+- **Merma por anulación:** la lógica de descontar una receta (lotes, insumos estimados) se extrajo de `descontar_inventario_por_entrega` (0008) a `descontar_receta_de_item`. La usan la entrega (`salida`, igual que antes) y la anulación (`merma`).
+- **`kpis_ventas`, `kpis_rentabilidad` y `pedido_publico_mesa`** excluyen lo anulado. Son copias exactas de 0010, 0012 y 0006 con ese único cambio.
+
+**Sincronización (`powerSyncClient.ts`):**
+- Las columnas nuevas se agregaron al esquema local.
+- **El conector descarta los cambios que la base rechaza por regla de negocio** (errcode `P0001`), en vez de reintentarlos para siempre. Antes, un rechazo así trababa la cola de subida del dispositivo y nada más subía. Ejemplo: el supervisor anula sin conexión un plato que cocina entregó mientras tanto. El cambio descartado se corrige solo con la siguiente sincronización.
+
+**Mesonero (solo con rol supervisor o gerencia):**
+- En el pedido de una mesa, cada plato enviado y no entregado tiene un botón **Anular**. Abre un modal con motivos rápidos o texto libre, y avisa si habrá merma.
+- En el mapa:
+  - Las mesas de otro mesonero ofrecen **Ver pedido (anular platos)** y **Transferir mesa**.
+  - Las mesas propias también ofrecen **Transferir mesa**.
+  - El modal de transferencia lista los mesoneros y supervisores de la sede.
+- Lo anulado se ve tachado para todos: en el pedido, en Mis pedidos y en el cierre de cuenta.
+- **El cierre de cuenta no cobra lo anulado** y no espera a que cocina lo termine.
+- La barra superior muestra el rol real (Mesonero, Supervisor o Gerencia), en vez de "Mesonero" fijo.
+
+**Cocina:**
+- El plato anulado aparece tachado con **ANULADO** y el motivo, en el ticket del estado en que estaba.
+- **"Entendido, quitar anulados"** lo saca del tablero.
+- Si el ticket quedó todo anulado, no ofrece avanzar de estado.
+- Lo anulado no cuenta en el "Resumen global".
+
+### Para dejarlo funcionando
+
+1. ~~Aplicar `supabase/migrations/0015_supervisor_anular_transferir.sql` en Supabase.~~ Hecho (2026-10-16).
+2. **Sync Rules de PowerSync:** si la regla de `pedidos_items` lista columnas en vez de `select *`, hay que agregar las cinco nuevas. Si no, no llegan a los dispositivos y cocina no verá el motivo ni sabrá en qué ticket va lo anulado.
+
+## 2026-10-16 — Navegación de cocina: barra superior, entregados, recetas y alertas de demora
+
+Rama: `feature/navegacion-mesonero` (sigue a la navegación del mesonero). Autor: Pedro (con Claude Code).
+
+### Decisiones (Pedro, 2026-10-16)
+
+- **La barra de cocina es ligera.** El tablero sigue siendo la pantalla principal (§4.2, "una pantalla general"). Tiene tres secciones:
+  - **Pedidos**: el tablero.
+  - **Entregados del turno**.
+  - **Recetas**.
+- **Agotados queda fuera por ahora.** Que cocina marque un plato agotado sería una decisión nueva: hoy eso solo lo hace administración y necesita internet.
+- **A la derecha de la barra:** estado de conexión, reloj y usuario con "Cerrar sesión".
+- **Alertas de demora con umbral fijo:** ámbar a los 10 min y rojo a los 20.
+
+### Qué cambió
+
+- **Rutas anidadas** bajo `CocinaLayout`: `/cocina` (tablero), `/cocina/entregados` y `/cocina/recetas`.
+- **Piezas compartidas con el mesonero** (`src/views/components/layout/`):
+  - `BarraSuperior`: pestañas con contador.
+  - `MenuUsuario`: nombre y "Cerrar sesión".
+  - `IndicadorConexion`: lee `powerSync.currentStatus` con `useEstadoConexion`. Muestra "En línea", "Sincronizando…" o "Sin conexión".
+  - `BarraMesonero` ahora usa las dos primeras.
+- **`useAhora`**: un reloj que se refresca solo. Los minutos de cada ticket y las alertas avanzan sin que nadie toque la pantalla; antes solo cambiaban si algo se volvía a dibujar.
+- **Tablero:**
+  - Un ticket en espera o en preparación se pinta ámbar desde los 10 min y rojo desde los 20, contando desde el plato más antiguo.
+  - Los "listos" no se marcan, porque ya salieron de los fogones.
+  - La pestaña Pedidos cuenta los tickets en espera.
+- **Entregados hoy** (`useEntregados`):
+  - Lo que salió de cocina hoy, por mesa, con buscador.
+  - La hora que se muestra es la del pedido, porque `pedidos_items` no guarda cuándo se entregó.
+  - Es solo consulta.
+- **Recetas:**
+  - Todos los platos del menú con buscador y filtro por categoría. Avisa los que no tienen receta.
+  - Al tocar uno se abre la misma `RecetaModal` del tablero.
+  - Sin precios, porque cocina no los ve (§4.10).
+- **Bug corregido:** `useCocina` guardaba el ticket "actualizando" con una clave distinta a la que compara el tablero. Por eso el botón nunca se desactivaba ni mostraba "Actualizando…", y se podía tocar dos veces.
+
+### Pendiente
+
+- **Agotados desde cocina:** falta decidir si se permite y cómo funcionaría sin internet.
+- **Entregados del turno depende de las Sync Rules de PowerSync.** Si no bajan al dispositivo los ítems entregados de mesas ya cerradas, solo se verán los de mesas abiertas.
+
+## 2026-10-16 — Navegación del mesonero: barra superior, menú primero y borradores por mesa
+
+Rama: `feature/navegacion-mesonero`. Autor: Pedro (con Claude Code).
+
+### Por qué
+
+Pedro pidió que la navegación de la app sea completamente funcional, empezando por el mesonero. Había tres problemas:
+- El carrito vivía dentro de la página de pedido: salir sin enviar lo borraba.
+- No había forma de cerrar sesión (el único botón estaba en la página de inicio, que ya no existe).
+- Solo se podía anotar después de abrir la mesa, y en la práctica el mesonero muchas veces anota primero.
+
+### Decisiones (Pedro, 2026-10-16)
+
+- **Los dos flujos conviven.** "Mesa primero" (mapa → mesa → tomar pedido) y "menú primero" (Menú → anotar → elegir la mesa al enviar). En ambos se puede cambiar la mesa **antes** de enviar. Después de enviar, no: cocina necesita saber a qué mesa va cada plato.
+- **Barra superior** con Mesas · Menú · Mis pedidos, más el nombre del mesonero y "Cerrar sesión".
+
+### Qué cambió
+
+- **Rutas anidadas** bajo `MesoneroLayout` (`App.tsx`):
+  - `/mesoneros`: mapa de mesas.
+  - `/mesoneros/menu`: menú sin mesa.
+  - `/mesoneros/menu/:mesaId`: menú de una mesa. Reemplaza `/mesoneros/pedidos/:mesaId`.
+  - `/mesoneros/pedidos`: Mis pedidos.
+- **`BarraMesonero`**:
+  - Menú muestra cuántos platos hay anotados sin enviar.
+  - Mis pedidos muestra en verde cuántos platos están **listos para llevar**.
+  - En el celular las pestañas quedan solo con ícono y contador.
+- **Borradores por mesa** (`CarritoProvider`, `carritoContext.ts`, `useCarritos`):
+  - Un borrador por mesa (más uno "sin mesa"), así ir de una mesa a otra no mezcla platos.
+  - Viven en el layout y se guardan en `localStorage` (`carritos:<usuario.id>`), así que sobreviven a la navegación y a una recarga sin internet.
+  - Son locales: cocina ve un plato recién cuando se envía.
+- **"Cambiar mesa" / "Elegir mesa"** (`SelectorMesaModal`): solo ofrece mesas que aceptan pedido. Son las propias, las libres (se abren al enviar) y las pedidas por QR sin atender (pasan a ser del mesonero al enviar). Las de otro mesonero y las por limpiar no aparecen, igual que en el mapa.
+- **Enviar a cocina** (`usePedidos.enviarACocina(mesa)`) resuelve la sesión antes de enviar con `abrirMesa` / `atenderMesa` (`sesionMesaService.ts`). Todo son escrituras locales PowerSync: funciona sin internet.
+- **`useMesasSede`**: el cálculo del estado de cada mesa salió de `MapaMesas` para compartirlo con el selector.
+- **Mis pedidos** (`MisPedidosPage`, `useMisPedidos`):
+  - Muestra lo enviado en las mesas abiertas del mesonero, agrupado por mesa, con "Listo para llevar" primero.
+  - Avisa de las mesas con platos sin enviar y de lo anotado sin mesa.
+  - Es solo lectura: cobrar sigue siendo desde el mapa.
+- Si la mesa de la URL pasó a otro mesonero o se cerró, el borrador no se pierde: se avisa y se ofrece moverlo.
+
+### Pendiente
+
+- ~~Cocina, Administración y Gerencia tampoco tienen "Cerrar sesión".~~ Resuelto el mismo día: cocina lo tiene en su barra superior, y Administración y Gerencia al pie de su barra lateral (`PanelSidebar`).
+- **`ProtectedRoute`** manda a `/` cuando el rol no corresponde, y eso termina en `/login` aunque haya sesión.
+- **Cerrar sesión sin internet:** `supabase.auth.signOut()` necesita conexión para invalidar la sesión. Sin internet, la sesión puede quedar abierta en el dispositivo.
+
 ## 2026-10-15 — Panel propio de gerencia; gerencia deja de entrar a Administración
 
 Rama: `feature/fase5-dashboard-kpis`. Autor: Pedro (con Claude Code).

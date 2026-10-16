@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { useState, type ReactNode } from 'react'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../controllers/auth/useAuth'
 import type { Rol } from '../../../models/types'
 
 export interface EnlaceSidebar {
@@ -22,9 +23,23 @@ const etiquetaRol: Partial<Record<Rol, string>> = {
 }
 
 // Barra lateral oscura compartida por los paneles de administración y
-// gerencia: cada módulo pasa sus propios enlaces.
+// gerencia: cada módulo pasa sus propios enlaces. Abajo, el usuario con
+// "Cerrar sesión".
 export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
   const { pathname } = useLocation()
+  const { signOut } = useAuth()
+  const navigate = useNavigate()
+  const [saliendo, setSaliendo] = useState(false)
+
+  async function cerrarSesion() {
+    setSaliendo(true)
+    try {
+      await signOut()
+    } finally {
+      setSaliendo(false)
+      navigate('/login', { replace: true })
+    }
+  }
 
   return (
     <aside className="flex flex-col bg-[var(--ink)] px-4 py-[22px] text-white">
@@ -66,6 +81,17 @@ export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
           <div className="text-[11px] text-[#a89d8d]">{etiquetaRol[rol] ?? rol}</div>
         </div>
       </div>
+      <button
+        type="button"
+        onClick={cerrarSesion}
+        disabled={saliendo}
+        className="mt-2 flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13.5px] font-semibold text-[#cfc6ba] hover:bg-white/5 hover:text-white disabled:opacity-50"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-[17px] w-[17px] shrink-0">
+          <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11" />
+        </svg>
+        {saliendo ? 'Cerrando sesión…' : 'Cerrar sesión'}
+      </button>
     </aside>
   )
 }

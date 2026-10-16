@@ -46,7 +46,9 @@ id, sede_id (FK), nombre o número, posición_x, posición_y (para el editor de 
 id, mesa_id (FK), mesonero_id (FK, puede ser nulo si el cliente inició por QR antes de que un mesonero se asigne), estado, origen (mesonero, autopedido, híbrido), abierta_en, cerrada_en
 
 **pedidos_items** — cada línea de pedido dentro de una sesión de mesa
-id, sesion_id (FK), menu_item_id (FK), cantidad, notas o modificadores, agregado_por (mesonero_id o "cliente"), estado (pendiente, en preparación, listo, entregado), client_local_id (UUID generado en el dispositivo), sincronizado_en
+id, sesion_id (FK), menu_item_id (FK), cantidad, notas o modificadores, agregado_por (mesonero_id o "cliente"), estado (por aprobar, pendiente, en preparación, listo, entregado, anulado), client_local_id (UUID generado en el dispositivo), sincronizado_en
+
+Anulación por el supervisor (migración `0015`, 2026-10-16): anulado_por (FK a usuarios), anulado_en, motivo_anulacion (obligatorio), anulado_desde (el estado en que estaba), anulacion_vista_en (cuándo cocina confirmó que lo vio). Se puede anular en espera, en preparación o listo, nunca entregado. Lo anulado no se cobra ni cuenta como venta. Si ya se estaba preparando o estaba listo, sus ingredientes entran como merma.
 
 **pagos_cierre** — el cierre de cuenta de una mesa
 id, sesion_id (FK), método_de_pago, monto, propina, cerrado_por (FK a usuarios, siempre un mesonero, según lo ya decidido)

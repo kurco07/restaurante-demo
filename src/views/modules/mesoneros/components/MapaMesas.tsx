@@ -1,48 +1,17 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { usePowerSyncWatch } from '../../../../controllers/usePowerSyncWatch'
 import { usePorAprobar } from '../../../../controllers/pedido/usePorAprobar'
-import { abrirMesa, atenderMesa, marcarMesaLibre } from '../../../../models/services/sesionMesaService'
+import { useMesasSede, type MesaVista } from '../../../../controllers/mesonero/useMesasSede'
+import { abrirMesa, atenderMesa, marcarMesaLibre, transferirMesa } from '../../../../models/services/sesionMesaService'
+import { puedeSupervisar } from '../../../../lib/permisos'
 import type { Usuario } from '../../../../models/types'
 import { MesaCard } from './MesaCard'
 import { DetalleMesaPanel } from './DetalleMesaPanel'
 import { CierreCuentaModal } from './CierreCuentaModal'
 import { SolicitudesAutopedidoModal } from './SolicitudesAutopedidoModal'
+import { TransferirMesaModal } from './TransferirMesaModal'
 
-export interface MesaVista {
-  id: string
-  numero: string
-  // sin_atender = la abrió el cliente con el QR y ningún mesonero la tomó
-  estado: 'libre' | 'mia' | 'otro' | 'sin_atender' | 'por_limpiar'
-  sesionId?: string
-  mesero?: string
-  tiempoLabel?: string
-}
-
-interface MesaRow {
-  id: string
-  nombre_numero: string
-  posicion_x: number | null
-  posicion_y: number | null
-  estado: 'libre' | 'ocupada' | 'por_limpiar'
-}
-
-interface SesionRow {
-  id: string
-  mesa_id: string
-  mesonero_id: string | null
-  abierta_en: string
-}
-
-interface UsuarioRow {
-  id: string
-  nombre: string
-}
-
-function etiquetaTiempo(abiertaEnIso: string) {
-  const minutos = Math.max(0, Math.round((Date.now() - new Date(abiertaEnIso).getTime()) / 60000))
-  return `${minutos} min`
-}
+export type { MesaVista }
 
 type Filtro = 'todas' | 'mias' | 'qr' | 'libres' | 'otro' | 'limpiar'
 
@@ -74,42 +43,10 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
   const [filtro, setFiltro] = useState<Filtro>('todas')
   const [mesaCierreId, setMesaCierreId] = useState<string | null>(null)
   const [verSolicitudes, setVerSolicitudes] = useState(false)
+  const [mesaTransferirId, setMesaTransferirId] = useState<string | null>(null)
   const { tickets: solicitudesPorAprobar, aprobar, aprobandoId } = usePorAprobar()
 
-  const mesasRaw = usePowerSyncWatch<MesaRow>('select * from mesas where sede_id = ?', [usuario.sede_id])
-  const sesiones = usePowerSyncWatch<SesionRow>(
-    "select * from sesiones_mesa where sede_id = ? and estado = 'abierta'",
-    [usuario.sede_id],
-  )
-  const usuariosSede = usePowerSyncWatch<UsuarioRow>('select id, nombre from usuarios where tenant_id = ?', [
-    usuario.tenant_id,
-  ])
-
-  const mesas: (MesaVista & { posicionX: number; posicionY: number })[] = mesasRaw.map((mesa) => {
-    const sesion = sesiones.find((s) => s.mesa_id === mesa.id)
-
-    // Una sesión abierta manda sobre mesas.estado: el cliente puede abrir
-    // la mesa por QR aunque siga marcada "por limpiar" (0004 solo la pasa a
-    // ocupada si estaba libre).
-    let estado: MesaVista['estado']
-    if (sesion) {
-      if (sesion.mesonero_id === null) estado = 'sin_atender'
-      else estado = sesion.mesonero_id === usuario.id ? 'mia' : 'otro'
-    } else if (mesa.estado === 'por_limpiar') estado = 'por_limpiar'
-    else if (mesa.estado === 'libre') estado = 'libre'
-    else estado = 'otro'
-
-    return {
-      id: mesa.id,
-      numero: mesa.nombre_numero,
-      estado,
-      sesionId: sesion?.id,
-      mesero: sesion ? usuariosSede.find((u) => u.id === sesion.mesonero_id)?.nombre : undefined,
-      tiempoLabel: sesion ? etiquetaTiempo(sesion.abierta_en) : undefined,
-      posicionX: mesa.posicion_x ?? 50,
-      posicionY: mesa.posicion_y ?? 50,
-    }
-  })
+  const mesas = useMesasSede(usuario)
 
   const contador = (f: Filtro) => mesas.filter((m) => coincideFiltro(m, f)).length
 
@@ -119,11 +56,11 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
     // sesión en vez de abrir una segunda.
     if (mesa.sesionId) {
       await atenderMesa(mesa.sesionId, usuario.id)
-      navigate(`/mesoneros/pedidos/${mesa.id}`)
+      navigate(`/mesoneros/menu/${mesa.id}`)
       return
     }
     await abrirMesa({ id: mesa.id, tenant_id: usuario.tenant_id, sede_id: usuario.sede_id }, usuario.id)
-    navigate(`/mesoneros/pedidos/${mesa.id}`)
+    navigate(`/mesoneros/menu/${mesa.id}`)
   }
 
   async function marcarLibre(mesa: MesaVista) {
@@ -132,6 +69,7 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
   }
 
   const mesaCierre = mesas.find((m) => m.id === mesaCierreId) ?? null
+  const mesaTransferir = mesas.find((m) => m.id === mesaTransferirId) ?? null
 
   return (
     <div>
@@ -262,8 +200,9 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
           aprobandoId={aprobandoId}
           onAprobar={aprobar}
           onMarcarLibre={marcarLibre}
-          onVerPedido={(mesa) => navigate(`/mesoneros/pedidos/${mesa.id}`)}
+          onVerPedido={(mesa) => navigate(`/mesoneros/menu/${mesa.id}`)}
           onCobrarYCerrar={(mesa) => setMesaCierreId(mesa.id)}
+          onTransferir={puedeSupervisar(usuario.rol) ? (mesa) => setMesaTransferirId(mesa.id) : undefined}
         />
       </div>
 
@@ -276,6 +215,19 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
             setMesaCierreId(null)
             setSeleccionada(null)
           }}
+        />
+      )}
+
+      {mesaTransferir?.sesionId && (
+        <TransferirMesaModal
+          mesa={mesaTransferir}
+          usuario={usuario}
+          onTransferir={async (mesoneroId) => {
+            if (!mesaTransferir.sesionId) return
+            await transferirMesa(mesaTransferir.sesionId, mesoneroId)
+            setMesaTransferirId(null)
+          }}
+          onCerrar={() => setMesaTransferirId(null)}
         />
       )}
 

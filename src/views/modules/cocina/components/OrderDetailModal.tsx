@@ -16,9 +16,21 @@ interface OrderDetailModalProps {
   onCerrar: () => void
   onVerReceta: (item: ItemCocina) => void
   onAvanzarEstado: () => void
+  // Cocina confirma que vio los platos que anuló el supervisor
+  onConfirmarAnulados: () => void
 }
 
-export function OrderDetailModal({ ticket, avanzando, onCerrar, onVerReceta, onAvanzarEstado }: OrderDetailModalProps) {
+export function OrderDetailModal({
+  ticket,
+  avanzando,
+  onCerrar,
+  onVerReceta,
+  onAvanzarEstado,
+  onConfirmarAnulados,
+}: OrderDetailModalProps) {
+  const hayAnulados = ticket.items.some((i) => i.anulado)
+  const todoAnulado = ticket.items.every((i) => i.anulado)
+
   return (
     <div
       className="fixed inset-0 z-100 flex items-center justify-center bg-gray-900/40 p-4"
@@ -57,9 +69,14 @@ export function OrderDetailModal({ ticket, avanzando, onCerrar, onVerReceta, onA
             {ticket.items.map((item) => (
               <div key={item.id} className="flex items-center justify-between gap-3 border-b border-gray-100 py-3.5">
                 <div className="min-w-0">
-                  <div className="text-sm font-bold text-gray-900">
+                  <div className={`text-sm font-bold ${item.anulado ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
                     {item.cantidad}× {item.plato}
                   </div>
+                  {item.anulado && (
+                    <div className="mt-0.5 text-xs font-bold text-red-600">
+                      ANULADO{item.motivoAnulacion ? ` · ${item.motivoAnulacion}` : ''}
+                    </div>
+                  )}
                   {item.notas && <div className="mt-0.5 text-xs italic text-gray-500">{item.notas}</div>}
                 </div>
                 <button
@@ -73,6 +90,16 @@ export function OrderDetailModal({ ticket, avanzando, onCerrar, onVerReceta, onA
             ))}
           </div>
 
+          {hayAnulados && (
+            <button
+              type="button"
+              onClick={onConfirmarAnulados}
+              className="mt-5 w-full rounded-xl border border-red-300 bg-red-50 py-2.5 text-sm font-bold text-red-700"
+            >
+              Entendido, quitar anulados
+            </button>
+          )}
+
           <div className="mt-5 flex gap-2.5">
             <button
               type="button"
@@ -81,14 +108,16 @@ export function OrderDetailModal({ ticket, avanzando, onCerrar, onVerReceta, onA
             >
               Cerrar
             </button>
-            <button
-              type="button"
-              onClick={onAvanzarEstado}
-              disabled={avanzando}
-              className="flex-1 rounded-xl bg-orange-500 py-2.5 text-sm font-bold text-white disabled:opacity-50"
-            >
-              {avanzando ? 'Actualizando…' : ACCION_SEGUN_ESTADO[ticket.estado]}
-            </button>
+            {!todoAnulado && (
+              <button
+                type="button"
+                onClick={onAvanzarEstado}
+                disabled={avanzando}
+                className="flex-1 rounded-xl bg-orange-500 py-2.5 text-sm font-bold text-white disabled:opacity-50"
+              >
+                {avanzando ? 'Actualizando…' : ACCION_SEGUN_ESTADO[ticket.estado]}
+              </button>
+            )}
           </div>
         </div>
       </div>

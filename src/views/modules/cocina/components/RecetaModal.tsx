@@ -10,7 +10,8 @@ interface IngredienteRow {
 interface RecetaModalProps {
   menuItemId: string
   plato: string
-  onVolver: () => void
+  // Solo cuando se abre desde un pedido: vuelve al detalle del ticket
+  onVolver?: () => void
   onCerrar: () => void
 }
 
@@ -40,9 +41,13 @@ export function RecetaModal({ menuItemId, plato, onVolver, onCerrar }: RecetaMod
     >
       <div className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-[22px] bg-white p-6 shadow-2xl">
         <div className="mb-4 flex items-center justify-between">
-          <button type="button" onClick={onVolver} className="text-xs font-bold text-gray-500">
-            ← Volver al pedido
-          </button>
+          {onVolver ? (
+            <button type="button" onClick={onVolver} className="text-xs font-bold text-gray-500">
+              ← Volver al pedido
+            </button>
+          ) : (
+            <span />
+          )}
           <button type="button" onClick={onCerrar} className="text-lg text-gray-400 hover:text-gray-600">
             ✕
           </button>

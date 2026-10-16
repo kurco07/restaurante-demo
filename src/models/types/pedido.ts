@@ -8,10 +8,16 @@ export interface PedidoItem {
   precio_unitario: number
   notas: string | null
   agregado_por: string | null
-  estado: 'pendiente' | 'en_preparacion' | 'listo' | 'entregado'
+  estado: 'por_aprobar' | 'pendiente' | 'en_preparacion' | 'listo' | 'entregado' | 'anulado'
   client_local_id: string
   sincronizado_en: string | null
   creado_en: string
+  // Anulación por el supervisor (migración 0015)
+  anulado_por: string | null
+  anulado_en: string | null
+  motivo_anulacion: string | null
+  anulado_desde: string | null
+  anulacion_vista_en: string | null
 }
 
 export interface Plato {

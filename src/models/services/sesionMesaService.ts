@@ -42,3 +42,10 @@ export async function atenderMesa(sesionId: string, mesoneroId: string) {
     sesionId,
   ])
 }
+
+// Pasa una mesa abierta a otro mesonero (solo supervisor, Fase 2 Módulo
+// 7). Escritura local PowerSync; la base valida el rol al subir
+// (migración 0015).
+export async function transferirMesa(sesionId: string, mesoneroId: string) {
+  await powerSync.execute(`update sesiones_mesa set mesonero_id = ? where id = ?`, [mesoneroId, sesionId])
+}

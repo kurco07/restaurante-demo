@@ -150,7 +150,7 @@ Decidieron ampliar presupuesto/timeline de fase 1 en vez de recortar alcance o h
 |---|---|---|
 | Mesonero | Tomar/editar pedidos de sus mesas, marcar mesa libre/ocupada, solicitar cierre de cuenta | Anular ítems ya enviados a cocina, aplicar descuentos, ver costos/inventario/reportes |
 | Cocina | Ver la cola de pedidos, marcar en preparación/listo, avisar demoras | Editar el contenido de un pedido, ver precios, entrar a otros módulos |
-| Supervisor de sala | Todo lo del mesonero + anular ítems, transferir mesas entre mesoneros, descuentos menores, reportes del turno | Tocar inventario/recetas, ver reportes financieros globales, configurar la cuenta del restaurante |
+| Supervisor de sala | Todo lo del mesonero + anular ítems (construido, 2026-10-16), transferir mesas entre mesoneros (construido, 2026-10-16), reportes del turno (con la Fase 5, Módulo 2). Descuentos menores: fuera por ahora, decisión de Pedro (2026-10-16) | Tocar inventario/recetas, ver reportes financieros globales, configurar la cuenta del restaurante |
 | Administración | Inventario, compras, recetas (BOM), proveedores, conteos físicos | Anular cuentas ya cerradas, cambiar roles de usuarios |
 | Gerencia / Dueño | Su propio panel (`/gerencia`): reportes financieros completos, rentabilidad, rotación de inventario y recetas en solo lectura; acceso a Mesoneros y Cocina; anular cuentas cerradas, gestionar usuarios y roles, ver todas las sedes de su restaurante | Administrar otros restaurantes (tenants) — eso es del super-admin. **No entra al módulo de Administración** (ver nota abajo) |
 | Super-admin (equipo del SaaS) | Alta de restaurantes, ver uso/facturación agregada, soporte técnico | Ver el detalle operativo día a día de un restaurante, salvo soporte puntual autorizado |

@@ -68,3 +68,26 @@ export async function avanzarItemsDeSesion(
     estadoActual,
   ])
 }
+
+// Anula un plato ya enviado a cocina (solo supervisor, Fase 2 Módulo 7).
+// Escritura local PowerSync: funciona sin internet. La base valida al
+// subir (migración 0015): rol, estado (nunca entregado) y motivo; pone
+// quién y desde qué estado, y registra merma si ya se estaba preparando.
+export async function anularItem(itemId: string, motivo: string) {
+  await powerSync.execute(
+    `update pedidos_items
+        set estado = 'anulado', anulado_desde = estado, motivo_anulacion = ?, anulado_en = ?
+      where id = ? and estado in ('pendiente', 'en_preparacion', 'listo')`,
+    [motivo.trim(), new Date().toISOString(), itemId],
+  )
+}
+
+// Cocina confirma que vio las anulaciones de un ticket: dejan de verse
+// tachadas en el tablero.
+export async function confirmarAnulaciones(itemIds: string[]) {
+  if (itemIds.length === 0) return
+  await powerSync.execute(
+    `update pedidos_items set anulacion_vista_en = ? where id in (${itemIds.map(() => '?').join(', ')})`,
+    [new Date().toISOString(), ...itemIds],
+  )
+}

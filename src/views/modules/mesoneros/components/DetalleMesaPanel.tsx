@@ -13,6 +13,8 @@ interface DetalleMesaPanelProps {
   onMarcarLibre: (mesa: MesaVista) => void
   onVerPedido: (mesa: MesaVista) => void
   onCobrarYCerrar: (mesa: MesaVista) => void
+  // Solo supervisor (Fase 2, Módulo 7): pasar la mesa a otro mesonero
+  onTransferir?: (mesa: MesaVista) => void
 }
 
 export function DetalleMesaPanel({
@@ -27,6 +29,7 @@ export function DetalleMesaPanel({
   onMarcarLibre,
   onVerPedido,
   onCobrarYCerrar,
+  onTransferir,
 }: DetalleMesaPanelProps) {
   const mesa = mesas.find((m) => m.id === seleccionada)
 
@@ -119,9 +122,28 @@ export function DetalleMesaPanel({
               <div className="rounded-lg bg-orange-50/60 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
             </div>
           </div>
-          <div className="rounded-lg border border-dashed border-gray-200 bg-orange-50/40 p-3 text-xs text-gray-500">
-            Esta mesa la está atendiendo otro mesonero — no puedes tomar su pedido desde aquí.
-          </div>
+          {onTransferir ? (
+            <>
+              <button
+                type="button"
+                onClick={() => onVerPedido(mesa)}
+                className="w-full rounded-xl border border-gray-200 py-3 text-center text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Ver pedido (anular platos)
+              </button>
+              <button
+                type="button"
+                onClick={() => onTransferir(mesa)}
+                className="w-full rounded-xl border border-orange-300 bg-orange-50 py-3 text-center text-sm font-bold text-orange-700 hover:bg-orange-100 transition-colors"
+              >
+                Transferir mesa
+              </button>
+            </>
+          ) : (
+            <div className="rounded-lg border border-dashed border-gray-200 bg-orange-50/40 p-3 text-xs text-gray-500">
+              Esta mesa la está atendiendo otro mesonero — no puedes tomar su pedido desde aquí.
+            </div>
+          )}
         </div>
       )}
 
@@ -145,6 +167,15 @@ export function DetalleMesaPanel({
           >
             Cobrar y cerrar cuenta
           </button>
+          {onTransferir && (
+            <button
+              type="button"
+              onClick={() => onTransferir(mesa)}
+              className="w-full rounded-xl border border-orange-300 bg-orange-50 py-3 text-center text-sm font-bold text-orange-700 hover:bg-orange-100 transition-colors"
+            >
+              Transferir mesa
+            </button>
+          )}
         </div>
       )}
     </div>

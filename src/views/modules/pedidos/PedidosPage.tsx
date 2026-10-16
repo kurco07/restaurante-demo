@@ -1,8 +1,15 @@
-import { Link, useParams } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { usePedidos } from '../../../controllers/pedido/usePedidos'
+import { aceptaPedido, useMesasSede, type MesaVista } from '../../../controllers/mesonero/useMesasSede'
+import { anularItem } from '../../../models/services/pedidoService'
+import { puedeSupervisar } from '../../../lib/permisos'
+import type { Usuario } from '../../../models/types'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
-import { ErrorMessage } from '../../components/ui/ErrorMessage'
+import { SelectorMesaModal } from '../mesoneros/components/SelectorMesaModal'
+import { AnularItemModal } from '../mesoneros/components/AnularItemModal'
+import type { ItemEnviado } from './components/ResumenPedido'
 import {
   HeaderMesa,
   BuscadorPlatos,
@@ -11,117 +18,132 @@ import {
   ResumenPedido,
   ModalPersonalizacion,
 } from './components'
-import { ESTILOS_CSS } from './components/constants'
 
+const AVISO_MESA_SUPERVISOR =
+  'Esta mesa la atiende otro mesonero. Como supervisor puedes anular sus platos; para tomarle pedido, transfiérela desde el mapa.'
+
+const AVISO_MESA: Partial<Record<MesaVista['estado'], string>> = {
+  otro: 'Esta mesa ahora la atiende otro mesonero. Lo que anotaste sigue aquí: cámbialo a otra mesa para enviarlo.',
+  por_limpiar: 'Esta mesa se cerró y está por limpiar. Lo que anotaste sigue aquí: elige una mesa para enviarlo.',
+}
+
+// Menú y pedido del mesonero. Dos entradas: /mesoneros/menu/:mesaId (desde
+// el mapa, "mesa primero") y /mesoneros/menu (anotar primero y elegir la
+// mesa al enviar). El usuario y la sede ya los valida MesoneroLayout.
 export default function PedidosPage() {
+  const { usuario } = useUsuario()
+  if (!usuario) return null
+  return <TomaDePedido usuario={usuario} />
+}
+
+function TomaDePedido({ usuario }: { usuario: Usuario }) {
   const { mesaId } = useParams<{ mesaId: string }>()
-  const { usuario, loading: loadingUsuario, error: errorUsuario } = useUsuario()
+  const navigate = useNavigate()
+  const mesas = useMesasSede(usuario)
+  const [selector, setSelector] = useState<'enviar' | 'mover' | null>(null)
+  const [itemAnular, setItemAnular] = useState<ItemEnviado | null>(null)
+  const esSupervisor = puedeSupervisar(usuario.rol)
 
-  const {
-    mesa,
-    sesion,
-    categorias,
-    platosFiltrados,
-    categoriaActiva,
-    setCategoriaActiva,
-    busqueda,
-    setBusqueda,
-    carrito,
-    itemsEnviados,
-    modalAbierto,
-    platoModal,
-    cantidad,
-    setCantidad,
-    notaItem,
-    setNotaItem,
-    enviando,
-    abrirModal,
-    cerrarModal,
-    calcularPrecioItem,
-    agregarAlCarrito,
-    actualizarCantidadCarrito,
-    eliminarDelCarrito,
-    calcularSubtotal,
-    enviarACocina,
-  } = usePedidos(mesaId ?? '')
+  const p = usePedidos(mesaId)
+  const subtotal = p.calcularSubtotal()
 
-  const subtotal = calcularSubtotal()
-  const precioModal = calcularPrecioItem()
+  const mesa = mesaId ? mesas.find((m) => m.id === mesaId) : undefined
+  // La mesa sale de la SQLite local; mientras carga, no hay nada que mostrar
+  if (mesaId && !mesa) return <LoadingSpinner message="Cargando mesa…" />
 
-  if (loadingUsuario) return <LoadingSpinner message="Cargando tu perfil…" />
-  if (errorUsuario) return <ErrorMessage message={errorUsuario} />
-  if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+  const mesaValida = mesa && aceptaPedido(mesa) ? mesa : undefined
 
-  if (!mesa) {
-    return (
-      <div className="flex h-screen items-center justify-center" style={ESTILOS_CSS}>
-        <LoadingSpinner message="Cargando mesa…" />
-      </div>
-    )
+  async function enviarA(destino: MesaVista) {
+    setSelector(null)
+    const enviadaA = await p.enviarACocina(destino)
+    if (enviadaA && enviadaA !== mesaId) navigate(`/mesoneros/menu/${enviadaA}`)
   }
 
-  if (!sesion) {
-    return (
-      <div className="flex h-screen flex-col items-center justify-center gap-3" style={ESTILOS_CSS}>
-        <p className="text-[var(--ink-soft)]">Esta mesa no tiene una sesión abierta.</p>
-        <Link to="/mesoneros" className="font-bold text-[var(--orange-dark)]">
-          ← Volver al mapa de mesas
-        </Link>
-      </div>
-    )
+  function elegirMesa(destino: MesaVista) {
+    if (selector === 'enviar') {
+      void enviarA(destino)
+      return
+    }
+    p.moverBorradorA(destino.id)
+    setSelector(null)
+    navigate(`/mesoneros/menu/${destino.id}`)
   }
 
   return (
-    <div className="min-h-screen p-7" style={ESTILOS_CSS}>
-      <div className="mx-auto max-w-[1220px]">
-        <Link to="/mesoneros" className="flex items-center gap-2 mb-4 text-sm font-bold text-[var(--ink-soft)] hover:text-[var(--ink)]">
-          ← Volver al mapa de mesas
-        </Link>
+    <div className="mx-auto max-w-[1220px]">
+      <HeaderMesa
+        mesaNombre={mesa?.numero}
+        aviso={
+          mesa ? (esSupervisor && mesa.estado === 'otro' ? AVISO_MESA_SUPERVISOR : AVISO_MESA[mesa.estado]) : undefined
+        }
+        onCambiarMesa={() => setSelector('mover')}
+      />
 
-        <HeaderMesa mesaNombre={mesa.nombre_numero} nombreUsuario={usuario.nombre} />
-
-        <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-          <section>
-            <BuscadorPlatos value={busqueda} onChange={setBusqueda} />
-            <CategoriaPills categorias={categorias} categoriaActiva={categoriaActiva} onCambiarCategoria={setCategoriaActiva} />
-
-            <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-              {platosFiltrados.length === 0 ? (
-                <div className="col-span-3 text-center py-12 text-[var(--ink-soft)]">
-                  No hay platos en esta categoría
-                </div>
-              ) : (
-                platosFiltrados.map((plato) => (
-                  <PlatoCard key={plato.id} plato={plato} onClick={() => abrirModal(plato)} />
-                ))
-              )}
-            </div>
-          </section>
-
-          <ResumenPedido
-            carrito={carrito}
-            itemsEnviados={itemsEnviados}
-            mesaNombre={mesa.nombre_numero}
-            onActualizarCantidad={actualizarCantidadCarrito}
-            onEliminar={eliminarDelCarrito}
-            onEnviarACocina={enviarACocina}
-            enviando={enviando}
-            subtotal={subtotal}
+      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
+        <section>
+          <BuscadorPlatos value={p.busqueda} onChange={p.setBusqueda} />
+          <CategoriaPills
+            categorias={p.categorias}
+            categoriaActiva={p.categoriaActiva}
+            onCambiarCategoria={p.setCategoriaActiva}
           />
-        </div>
+
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+            {p.platosFiltrados.length === 0 ? (
+              <div className="col-span-full py-12 text-center text-[var(--ink-soft)]">No hay platos en esta categoría</div>
+            ) : (
+              p.platosFiltrados.map((plato) => (
+                <PlatoCard key={plato.id} plato={plato} onClick={() => p.abrirModal(plato)} />
+              ))
+            )}
+          </div>
+        </section>
+
+        <ResumenPedido
+          carrito={p.carrito}
+          itemsEnviados={p.itemsEnviados}
+          mesaNombre={mesaValida?.numero}
+          onActualizarCantidad={p.actualizarCantidadCarrito}
+          onEliminar={p.eliminarDelCarrito}
+          onEnviarACocina={() => (mesaValida ? void enviarA(mesaValida) : setSelector('enviar'))}
+          enviando={p.enviando}
+          subtotal={subtotal}
+          onAnular={esSupervisor ? setItemAnular : undefined}
+        />
       </div>
 
       <ModalPersonalizacion
-        plato={platoModal}
-        isOpen={modalAbierto}
-        onClose={cerrarModal}
-        cantidad={cantidad}
-        onCantidadChange={setCantidad}
-        notaItem={notaItem}
-        onNotaItemChange={setNotaItem}
-        onAgregar={agregarAlCarrito}
-        precioTotal={precioModal}
+        plato={p.platoModal}
+        isOpen={p.modalAbierto}
+        onClose={p.cerrarModal}
+        cantidad={p.cantidad}
+        onCantidadChange={p.setCantidad}
+        notaItem={p.notaItem}
+        onNotaItemChange={p.setNotaItem}
+        onAgregar={p.agregarAlCarrito}
+        precioTotal={p.calcularPrecioItem()}
       />
+
+      {itemAnular && (
+        <AnularItemModal
+          item={itemAnular}
+          onConfirmar={async (motivo) => {
+            await anularItem(itemAnular.id, motivo)
+            setItemAnular(null)
+          }}
+          onCerrar={() => setItemAnular(null)}
+        />
+      )}
+
+      {selector && (
+        <SelectorMesaModal
+          titulo={selector === 'enviar' ? '¿A qué mesa va este pedido?' : 'Mover el pedido a otra mesa'}
+          mesas={mesas}
+          mesaActualId={mesaId}
+          onElegir={elegirMesa}
+          onCerrar={() => setSelector(null)}
+        />
+      )}
     </div>
   )
 }

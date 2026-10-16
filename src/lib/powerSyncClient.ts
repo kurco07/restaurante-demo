@@ -91,6 +91,12 @@ const pedidos_items = new Table({
   client_local_id: column.text,
   sincronizado_en: column.text,
   creado_en: column.text,
+  // Anulación por el supervisor (migración 0015)
+  anulado_por: column.text,
+  anulado_en: column.text,
+  motivo_anulacion: column.text,
+  anulado_desde: column.text,
+  anulacion_vista_en: column.text,
 })
 
 // Catálogo por tenant (0002): ya no guarda cantidad, eso vive en
@@ -152,16 +158,30 @@ class SupabaseConnector implements PowerSyncBackendConnector {
 
     for (const op of transaction.crud) {
       const table = supabase.from(op.table)
-      switch (op.op) {
-        case UpdateType.PUT:
-          await table.upsert({ ...op.opData, id: op.id }).throwOnError()
-          break
-        case UpdateType.PATCH:
-          await table.update(op.opData ?? {}).eq('id', op.id).throwOnError()
-          break
-        case UpdateType.DELETE:
-          await table.delete().eq('id', op.id).throwOnError()
-          break
+      try {
+        switch (op.op) {
+          case UpdateType.PUT:
+            await table.upsert({ ...op.opData, id: op.id }).throwOnError()
+            break
+          case UpdateType.PATCH:
+            await table.update(op.opData ?? {}).eq('id', op.id).throwOnError()
+            break
+          case UpdateType.DELETE:
+            await table.delete().eq('id', op.id).throwOnError()
+            break
+        }
+      } catch (error) {
+        // Una regla de negocio de la base rechazó el cambio (triggers con
+        // errcode P0001, p. ej. anular un plato que ya se entregó mientras
+        // el supervisor estaba sin conexión). Reintentarlo nunca va a
+        // funcionar y trabaría la cola de subida de este dispositivo, así
+        // que se descarta: la próxima sincronización trae lo que quedó en
+        // el servidor. Cualquier otro error (red, etc.) se reintenta.
+        if ((error as { code?: string }).code === 'P0001') {
+          console.warn('[PowerSync] cambio rechazado por la base, se descarta:', op.table, op.id, error)
+          continue
+        }
+        throw error
       }
     }
 

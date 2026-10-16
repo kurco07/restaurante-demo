@@ -80,6 +80,8 @@ El mesonero abre una mesa y agrega ítems del menú. El sistema completo de pers
 
 El menú (categorías y platos) se lee vía `powerSync.watch`, así que armar el pedido funciona sin internet. "Enviar a cocina" inserta de verdad en `pedidos_items` como escritura local PowerSync, uno por ítem, con `client_local_id` (clave de deduplicación ante reintentos offline). Verificado en vivo contra RLS real y end-to-end con cocina viendo el pedido sin recargar.
 
+Ampliación de navegación (2026-10-16, ver `Registro_de_Cambios.md`): el mesonero tiene barra superior (Mesas · Menú · Mis pedidos · Cerrar sesión). Hay dos flujos: **mesa primero** (`/mesoneros/menu/:mesaId`, desde el mapa) y **menú primero** (`/mesoneros/menu`, se anota sin mesa y se elige al enviar). El borrador es uno **por mesa**: sobrevive a la navegación y a una recarga (se guarda en el dispositivo), y se puede mover a otra mesa antes de enviarlo.
+
 Nota prometida arriba, completada en la auditoría del 2026-10-13: el mockup original (`docs/interfaces/mockup-personalizar-plato.html`) mostraba selección de proteína, quitar ingredientes y extras con precio — el modal real (`ModalPersonalizacion.tsx` en mesoneros, `HojaPersonalizacion.tsx` en autopedido) solo tiene cantidad + nota libre. Decisión confirmada con el usuario (2026-10-07): diferirlo a propósito hasta diseñar el modelo de datos (ej. una tabla de opciones de personalización por `menu_item`: proteínas disponibles, ingredientes quitables, extras con su propio precio) — no asumir una forma de datos sin retomar esa conversación primero. Ver también `modelo-de-datos.md`, sección "Extensiones futuras".
 
 **Módulo 4 — Sincronización de comandas**
@@ -92,6 +94,8 @@ Una sola pantalla que muestra los pedidos entrantes y permite marcar estado: pen
 
 Implementado vía `powerSync.watch` sobre `pedidos_items` (join con `menu_items`/`sesiones_mesa`/`mesas`/`usuarios` para contexto) en vez de Supabase Realtime directo — PowerSync ya cubre tiempo real + offline con un solo mecanismo de reactividad, así que no hace falta uno adicional. Los ítems de una misma mesa que comparten estado se agrupan en una sola tarjeta (un "ticket"), y "Iniciar preparación"/"Marcar listo"/"Entregar" avanza todos esos ítems juntos con un solo `update`, sin abrir el modal de detalle (el modal solo se abre al tocar el resto de la tarjeta, no el botón de acción). La ficha de receta lee `recetas`+`insumos` real por `menu_item_id`, sin el indicador de disponible/agotado (inventario real llega en Fase 4). Verificado en vivo con dos pestañas reales: mesonero envía pedido → aparece en cocina sin recargar.
 
+Ampliación de navegación (2026-10-16, ver `Registro_de_Cambios.md`): cocina tiene barra superior (Pedidos · Entregados · Recetas, más estado de conexión, reloj y cerrar sesión). También hay **alertas de demora** en el tablero (§4.2): un ticket se pone ámbar a los 10 min y rojo a los 20.
+
 **Módulo 6 — Cierre de cuenta por mesa** ✅
 El mesonero calcula y cierra la cuenta de una mesa específica: método de pago, propina. Siempre lo hace un mesonero, nunca el cliente.
 
@@ -99,7 +103,15 @@ Pantalla nueva (modal), inspirada en el mockup correspondiente — solo la vista
 
 Nota (auditoría 2026-10-13): no existe ningún campo de descuento en este modal, solo propina — "aplicar descuentos" (mesonero necesita un rol superior) y "descuentos menores" (supervisor) son capacidades que `arquitectura.md` §4.10 promete en la matriz de roles, nunca construidas. Ver Módulo 7 más abajo, que junta esta y otras capacidades de supervisor sin construir.
 
-**Módulo 7 — Capacidades propias de "Supervisor de sala"** 🔲 *identificado en auditoría (2026-10-13), no construido*
+**Módulo 7 — Capacidades propias de "Supervisor de sala"** 🟡 *parcial (2026-10-16): anular plato y transferir mesa construidos; reportes del turno van con la Fase 5, Módulo 2; descuentos fuera por ahora*
+
+Construido (migración `0015`, detalle en `Registro_de_Cambios.md`):
+- **Anular un plato** ya enviado a cocina (en espera, en preparación o listo; nunca entregado), con motivo obligatorio. Cocina lo ve tachado hasta tocar "Entendido". No se cobra ni cuenta como venta. Si ya se preparaba, sus ingredientes entran como merma.
+- **Transferir una mesa** a otro mesonero de la sede.
+- Las dos reglas las impone la base con triggers, no solo la pantalla.
+
+Lo que sigue es la nota original de la auditoría:
+
 El rol `supervisor` existe en el modelo de datos y en `rolesPorModulo.ts` (mismo acceso que mesonero a `/mesoneros`, y que cocina a `/cocina`), pero ninguna de las capacidades que `arquitectura.md` §4.10 le da por encima del mesonero está construida: anular un ítem ya enviado a cocina, transferir una mesa de un mesonero a otro, aplicar descuentos menores a una cuenta. Hoy el único rastro de "cancelar/anular" en todo el proyecto es un botón sin cablear en el mock de `PedidosAdminPage.tsx` (administración, no mesoneros) — el usuario ya había decidido explícitamente dejar "cancelar pedido" como una capacidad futura del admin, pero esa decisión tampoco estaba escrita en ningún documento hasta ahora. En resumen: el rol supervisor hoy no tiene ninguna funcionalidad propia en todo el código, solo hereda el acceso de mesonero/cocina.
 
 ---

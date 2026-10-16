@@ -5,9 +5,14 @@ import { ProtectedRoute } from './controllers/auth/ProtectedRoute'
 import LoginPage from './views/modules/login/LoginPage'
 import RegistroPage from './views/modules/registro/RegistroPage'
 import { rolesPorModulo } from './lib/rolesPorModulo'
+import MesoneroLayout from './views/modules/mesoneros/MesoneroLayout'
 import MesonerosPage from './views/modules/mesoneros/MesonerosPage'
+import MisPedidosPage from './views/modules/mesoneros/MisPedidosPage'
 import PedidosPage from './views/modules/pedidos/PedidosPage'
+import CocinaLayout from './views/modules/cocina/CocinaLayout'
 import CocinaPage from './views/modules/cocina/CocinaPage'
+import EntregadosPage from './views/modules/cocina/EntregadosPage'
+import RecetasCocinaPage from './views/modules/cocina/RecetasCocinaPage'
 import AutopedidoPage from './views/modules/autopedido/AutopedidoPage'
 import AdministracionPage from './views/modules/administracion/AdministracionPage'
 import MenuAdminPage from './views/modules/administracion/MenuAdminPage'
@@ -48,30 +53,34 @@ export default function App() {
                 de interfaces (Pedro + Cesar), sin funcionalidad todavía */}
             <Route path="/inicio" element={<InicioPage />} />
             <Route path="/proximamente" element={<ProximamentePage />} />
+            {/* Módulo del mesonero: barra superior y una sección por ruta.
+                /menu sin mesa = anotar primero y elegir la mesa al enviar. */}
             <Route
               path="/mesoneros"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/mesoneros']}>
-                  <MesonerosPage />
+                  <MesoneroLayout />
                 </ProtectedRoute>
               }
-            />
-            <Route
-              path="/mesoneros/pedidos/:mesaId"
-              element={
-                <ProtectedRoute allowedRoles={rolesPorModulo['/mesoneros']}>
-                  <PedidosPage />
-                </ProtectedRoute>
-              }
-            />
+            >
+              <Route index element={<MesonerosPage />} />
+              <Route path="menu" element={<PedidosPage />} />
+              <Route path="menu/:mesaId" element={<PedidosPage />} />
+              <Route path="pedidos" element={<MisPedidosPage />} />
+            </Route>
+            {/* Cocina: barra superior con el tablero, entregados y recetas */}
             <Route
               path="/cocina"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/cocina']}>
-                  <CocinaPage />
+                  <CocinaLayout />
                 </ProtectedRoute>
               }
-            />
+            >
+              <Route index element={<CocinaPage />} />
+              <Route path="entregados" element={<EntregadosPage />} />
+              <Route path="recetas" element={<RecetasCocinaPage />} />
+            </Route>
             <Route
               path="/administracion"
               element={

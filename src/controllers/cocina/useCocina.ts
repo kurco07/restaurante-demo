@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import { usePowerSyncWatch } from '../usePowerSyncWatch'
-import { avanzarItemsDeSesion } from '../../models/services/pedidoService'
+import { avanzarItemsDeSesion, confirmarAnulaciones } from '../../models/services/pedidoService'
 
 export type EstadoItemCocina = 'pendiente' | 'en_preparacion' | 'listo'
 
@@ -16,6 +16,10 @@ export interface ItemCocina {
   sesionId: string
   mesa: string
   mesonero: string | null
+  // Anulado por el supervisor y cocina todavía no lo confirmó: se ve
+  // tachado en el ticket del estado en que estaba (Fase 2, Módulo 7)
+  anulado: boolean
+  motivoAnulacion: string | null
 }
 
 export interface TicketCocina {
@@ -34,13 +38,17 @@ export interface TicketCocina {
 // distintos estados (unos en espera, otros en preparación), aparece en
 // más de una columna — eso sí es real. "entregado" no se muestra: ya
 // salió de cocina. "por_aprobar" tampoco: es un pedido de autopedido que
-// todavía no confirmó ningún mesonero, cocina no debe verlo aún.
+// todavía no confirmó ningún mesonero, cocina no debe verlo aún. Un
+// "anulado" se muestra en el estado en que estaba (anulado_desde) hasta que
+// cocina toca "Entendido" (anulacion_vista_en).
 const SQL = `
   select
     pi.id as id,
     pi.cantidad as cantidad,
     pi.notas as notas,
-    pi.estado as estado,
+    case when pi.estado = 'anulado' then pi.anulado_desde else pi.estado end as estado,
+    pi.estado = 'anulado' as anulado,
+    pi.motivo_anulacion as motivoAnulacion,
     pi.creado_en as creadoEn,
     pi.menu_item_id as menuItemId,
     mi.nombre as plato,
@@ -52,7 +60,12 @@ const SQL = `
   join sesiones_mesa sm on sm.id = pi.sesion_id
   join mesas m on m.id = sm.mesa_id
   left join usuarios u on u.id = sm.mesonero_id
-  where pi.tenant_id = ? and pi.sede_id = ? and pi.estado not in ('por_aprobar', 'entregado')
+  where pi.tenant_id = ? and pi.sede_id = ?
+    and (
+      pi.estado in ('pendiente', 'en_preparacion', 'listo')
+      or (pi.estado = 'anulado' and pi.anulacion_vista_en is null
+          and pi.anulado_desde in ('pendiente', 'en_preparacion', 'listo'))
+    )
   order by pi.creado_en
 `
 
@@ -100,7 +113,9 @@ function agruparEnTickets(items: ItemCocina[]): TicketCocina[] {
 
 export function useCocina() {
   const { usuario } = useUsuario()
-  const items = usePowerSyncWatch<ItemCocina>(SQL, [usuario?.tenant_id ?? '', usuario?.sede_id ?? ''])
+  const filas = usePowerSyncWatch<ItemCocina>(SQL, [usuario?.tenant_id ?? '', usuario?.sede_id ?? ''])
+  // SQLite devuelve el booleano como 0/1
+  const items = useMemo(() => filas.map((f) => ({ ...f, anulado: Boolean(f.anulado) })), [filas])
   const [filtro, setFiltro] = useState<Filtro>('todos')
   const [avanzandoId, setAvanzandoId] = useState<string | null>(null)
 
@@ -116,13 +131,16 @@ export function useCocina() {
   const resumen = useMemo(() => {
     const totales = new Map<string, number>()
     for (const item of items) {
+      if (item.anulado) continue
       totales.set(item.plato, (totales.get(item.plato) ?? 0) + item.cantidad)
     }
     return [...totales.entries()].sort((a, b) => b[1] - a[1])
   }, [items])
 
   async function avanzarEstado(ticket: TicketCocina) {
-    setAvanzandoId(ticket.sesionId + ticket.estado)
+    // Misma clave que ticketKey() en TableroCocina, para que el botón se
+    // desactive mientras se actualiza
+    setAvanzandoId(`${ticket.sesionId}::${ticket.estado}`)
     try {
       await avanzarItemsDeSesion(ticket.sesionId, ticket.estado, SIGUIENTE_ESTADO[ticket.estado])
     } finally {
@@ -130,5 +148,19 @@ export function useCocina() {
     }
   }
 
-  return { tickets: ticketsFiltrados, filtro, setFiltro, contador, resumen, avanzarEstado, avanzandoId }
+  // "Entendido": las anulaciones del ticket dejan de verse en el tablero
+  async function confirmarAnulados(ticket: TicketCocina) {
+    await confirmarAnulaciones(ticket.items.filter((i) => i.anulado).map((i) => i.id))
+  }
+
+  return {
+    tickets: ticketsFiltrados,
+    filtro,
+    setFiltro,
+    contador,
+    resumen,
+    avanzarEstado,
+    avanzandoId,
+    confirmarAnulados,
+  }
 }
