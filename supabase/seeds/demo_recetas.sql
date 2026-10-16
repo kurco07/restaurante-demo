@@ -330,3 +330,13 @@ begin
       where r.tenant_id = v_tenant and i.nombre like 'Demo · %');
 end;
 $$;
+
+-- El SQL Editor de Supabase no muestra los "notice" de arriba: esta
+-- consulta deja a la vista qué quedó cargado (32 insumos si todo salió bien).
+select
+  (select count(*) from insumos i join tenants t on t.id = i.tenant_id
+    where t.nombre = 'Restaurante prueba' and i.nombre like 'Demo · %') as insumos_demo,
+  (select count(*) from recetas r join insumos i on i.id = r.insumo_id
+    where i.nombre like 'Demo · %') as lineas_receta_demo,
+  (select count(*) from movimientos_inventario
+    where referencia = 'Demo · Orden de compra recibida') as entradas_demo;
