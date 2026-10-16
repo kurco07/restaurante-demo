@@ -1,5 +1,4 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 
 interface Slide {
   badge: string
@@ -65,7 +64,12 @@ const slides: Slide[] = [
   },
 ]
 
-export function HeroCarousel() {
+interface HeroCarouselProps {
+  onVerMenu: () => void
+  sedeNombre?: string
+}
+
+export function HeroCarousel({ onVerMenu, sedeNombre }: HeroCarouselProps) {
   const [indice, setIndice] = useState(0)
 
   useEffect(() => {
@@ -85,10 +89,14 @@ export function HeroCarousel() {
           <h1 className="mb-3 text-4xl font-extrabold leading-[1.05] text-gray-900 md:text-5xl">{slide.heading}</h1>
           <p className="mb-6 max-w-sm text-sm text-gray-600">{slide.texto}</p>
           <div className="flex flex-wrap items-center gap-4">
-            <Link to="/proximamente" className="rounded-full bg-orange-500 px-7 py-3.5 text-sm font-bold text-white">
+            <button
+              type="button"
+              onClick={onVerMenu}
+              className="rounded-full bg-orange-500 px-7 py-3.5 text-sm font-bold text-white"
+            >
               {slide.ctaLabel}
-            </Link>
-            <span className="text-sm font-semibold text-gray-500">📍 Sede única, centro de la ciudad</span>
+            </button>
+            {sedeNombre && <span className="text-sm font-semibold text-gray-500">📍 {sedeNombre}</span>}
           </div>
         </div>
         <div className={`flex h-70 items-center justify-center rounded-[20px] bg-linear-to-br ${slide.gradiente}`}>
