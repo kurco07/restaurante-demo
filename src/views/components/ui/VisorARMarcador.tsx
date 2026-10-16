@@ -108,14 +108,25 @@ export function VisorARMarcador({
     // Sin fondo propio a propósito, para no tapar el video de la cámara
     // que AR.js inyecta (id="arjs-video") detrás del canvas 3D.
     //
-    // El <style> de abajo es necesario porque el CSS por defecto de
-    // A-Frame (aframe.css) trae esta regla: "a-scene video { display:
-    // none }" — pensada para videos usados como textura de assets, pero
-    // también esconde el video de la cámara de AR.js si queda como
-    // descendiente de <a-scene>. Por eso la cámara procesaba cuadros
-    // perfectamente bien (confirmado en consola) pero nunca se veía.
+    // El <style> de abajo corrige dos cosas que hace A-Frame/AR.js por
+    // su cuenta, pensando que la página no tiene nada más:
+    // 1) aframe.css trae "a-scene video { display: none }" (pensada
+    //    para videos-textura de assets) que también esconde el video
+    //    de la cámara si queda como descendiente de <a-scene>.
+    // 2) AR.js inyecta el <video id="arjs-video"> con z-index: -2 y el
+    //    <canvas class="a-canvas"> con z-index negativo también,
+    //    directo como hijos de <body> (no de este wrapper) — un
+    //    z-index negativo los manda detrás del #root de la SPA (que
+    //    tiene fondo opaco y z-index normal), así que aunque el video
+    //    ya esté "visible" queda tapado por el fondo de la app entera.
+    //    Confirmado con un dump en consola del elemento real:
+    //    {display:'block', zIndex:'-2', ...} — procesaba cuadros bien
+    //    pero nunca se veía por esto.
     <div className="fixed inset-0 z-[200]">
-      <style>{'#arjs-video { display: block !important; }'}</style>
+      <style>{`
+        #arjs-video { display: block !important; z-index: 1 !important; }
+        .a-canvas { z-index: 2 !important; }
+      `}</style>
       <a-scene
         embedded
         arjs="sourceType: webcam; trackingMethod: best; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
