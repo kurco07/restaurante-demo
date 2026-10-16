@@ -92,18 +92,14 @@ export function VisorARMarcador({
   // siguen siendo descendientes, así que se ven con normalidad.
   useEffect(() => {
     document.documentElement.requestFullscreen?.().catch(() => {})
-    return () => {
-      if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
-    }
   }, [])
 
   // AR.js inyecta <video id="arjs-video"> y <canvas class="a-canvas">
   // como hijos directos de <body> (no de <a-scene>, que es lo único que
   // React/A-Frame sí desmontan solos) — nada los limpia automáticamente
   // al desmontar este componente, así que quedan "pegados" en pantalla
-  // con la cámara todavía encendida (el botón de cerrar parecía no
-  // hacer nada, y el botón atrás del celular dejaba la cámara trabada).
-  // Se apaga el stream de la cámara y se quitan los nodos a mano.
+  // con la cámara todavía encendida. Se apaga el stream de la cámara y
+  // se quitan los nodos a mano.
   useEffect(() => {
     return () => {
       const video = document.querySelector<HTMLVideoElement>('#arjs-video')
@@ -116,34 +112,44 @@ export function VisorARMarcador({
     }
   }, [])
 
-  // El botón atrás del celular no estaba conectado a nada de esto —
-  // navegaba la app por detrás mientras la cámara se quedaba pegada
-  // encima. Se empuja una entrada de historial al abrir y se escucha
-  // "popstate" para cerrar igual que el botón ✕ (que ahora dispara
-  // history.back() en vez de cerrar directo, así las dos vías quedan
-  // sincronizadas y no se acumula una entrada de historial de más).
-  useEffect(() => {
-    history.pushState({ vistaAR: true }, '')
-    function alPresionarAtras() {
-      onCerrarRef.current()
-    }
-    window.addEventListener('popstate', alPresionarAtras)
-    return () => window.removeEventListener('popstate', alPresionarAtras)
-  }, [])
-
-  // En Android, con pantalla completa activa, el PRIMER botón atrás solo
-  // le avisa al navegador que salga de pantalla completa — no llega a
-  // disparar "popstate" (ese es el comportamiento nativo del navegador,
-  // no algo que controlemos). Por eso "sale de la cámara" pero el
-  // componente nunca se desmontaba. Cerrar también ante cualquier salida
-  // de pantalla completa (sea por el botón atrás, un gesto del sistema,
-  // o nuestro propio exitFullscreen() de arriba) cubre ese caso.
+  // Cerrar de verdad significa esperar a que el navegador TERMINE de
+  // salir de pantalla completa antes de desmontar — salir de fullscreen
+  // es una transición animada, no algo instantáneo. Desmontar de una vez
+  // (como se hacía antes) mostraba el resto de la app a mitad de esa
+  // transición, con el viewport todavía sin asentar — se veía "recortado"
+  // con un zoom raro. Este listener de "fullscreenchange" es el único
+  // lugar que de verdad cierra (onCerrar), disparado solo cuando el
+  // navegador confirma que ya salió.
   useEffect(() => {
     function alCambiarFullscreen() {
       if (!document.fullscreenElement) onCerrarRef.current()
     }
     document.addEventListener('fullscreenchange', alCambiarFullscreen)
     return () => document.removeEventListener('fullscreenchange', alCambiarFullscreen)
+  }, [])
+
+  // El botón atrás del celular no estaba conectado a nada de esto —
+  // navegaba la app por detrás mientras la cámara se quedaba pegada
+  // encima. Se empuja una entrada de historial al abrir y se escucha
+  // "popstate" (el botón ✕ dispara history.back(), así las dos vías
+  // quedan sincronizadas). Si hay pantalla completa activa, primero hay
+  // que salir de ahí — el listener de arriba se encarga de cerrar de
+  // verdad una vez el navegador confirme la salida. En Android, con
+  // fullscreen activo, el PRIMER botón atrás solo le avisa al navegador
+  // que salga de pantalla completa (no llega a disparar "popstate" —
+  // comportamiento nativo, no nuestro), pero eso también dispara el
+  // mismo "fullscreenchange" de arriba, así que igual cierra bien.
+  useEffect(() => {
+    history.pushState({ vistaAR: true }, '')
+    function alPresionarAtras() {
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => onCerrarRef.current())
+      } else {
+        onCerrarRef.current()
+      }
+    }
+    window.addEventListener('popstate', alPresionarAtras)
+    return () => window.removeEventListener('popstate', alPresionarAtras)
   }, [])
 
   useEffect(() => {
