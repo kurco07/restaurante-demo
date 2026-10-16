@@ -82,6 +82,19 @@ export async function anularItem(itemId: string, motivo: string) {
   )
 }
 
+// Anula de una vez todos los platos activos de una mesa (solo supervisor)
+// en vez de uno por uno — mismo motivo para todos. Igual que anularItem,
+// la base valida cada fila al subir (migración 0015) y, si no queda nada
+// activo, libera la mesa sola (migración 0016).
+export async function anularSesionCompleta(sesionId: string, motivo: string) {
+  await powerSync.execute(
+    `update pedidos_items
+        set estado = 'anulado', anulado_desde = estado, motivo_anulacion = ?, anulado_en = ?
+      where sesion_id = ? and estado in ('pendiente', 'en_preparacion', 'listo')`,
+    [motivo.trim(), new Date().toISOString(), sesionId],
+  )
+}
+
 // Cocina confirma que vio las anulaciones de un ticket: dejan de verse
 // tachadas en el tablero.
 export async function confirmarAnulaciones(itemIds: string[]) {

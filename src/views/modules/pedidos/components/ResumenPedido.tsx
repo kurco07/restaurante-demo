@@ -20,7 +20,7 @@ const ETIQUETA_ESTADO_ITEM: Record<string, string> = {
 }
 
 // Lo que el supervisor puede anular: ya en cocina y todavía no entregado
-const ESTADOS_ANULABLES = new Set(['pendiente', 'en_preparacion', 'listo'])
+export const ESTADOS_ANULABLES = new Set(['pendiente', 'en_preparacion', 'listo'])
 
 interface ResumenPedidoProps {
   carrito: ItemCarrito[]
@@ -34,6 +34,8 @@ interface ResumenPedidoProps {
   subtotal: number
   // Solo para supervisor (Fase 2, Módulo 7): anular un plato ya enviado
   onAnular?: (item: ItemEnviado) => void
+  // Mismo permiso: anular todos los platos activos de la mesa de una vez
+  onAnularTodo?: () => void
 }
 
 export function ResumenPedido({
@@ -46,7 +48,9 @@ export function ResumenPedido({
   enviando,
   subtotal,
   onAnular,
+  onAnularTodo,
 }: ResumenPedidoProps) {
+  const hayAnulables = itemsEnviados.some((item) => ESTADOS_ANULABLES.has(item.estado))
   return (
     <aside className="flex flex-col gap-4" aria-label="Resumen del pedido">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
@@ -62,9 +66,20 @@ export function ResumenPedido({
 
         {itemsEnviados.length > 0 && (
           <div className="mb-3 rounded-lg bg-[var(--surface-alt)] p-3">
-            <p className="mb-2 text-xs font-extrabold uppercase tracking-wide text-[var(--ink-soft)]">
-              Ya enviado a cocina
-            </p>
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <p className="text-xs font-extrabold uppercase tracking-wide text-[var(--ink-soft)]">
+                Ya enviado a cocina
+              </p>
+              {onAnularTodo && hayAnulables && (
+                <button
+                  type="button"
+                  onClick={onAnularTodo}
+                  className="rounded-md border border-red-200 px-1.5 py-0.5 text-[10.5px] font-bold text-[var(--red)] hover:bg-red-50"
+                >
+                  Anular cuenta completa
+                </button>
+              )}
+            </div>
             <div className="space-y-1.5">
               {itemsEnviados.map((item) => (
                 <div key={item.id} className="flex items-center justify-between gap-2 text-sm">

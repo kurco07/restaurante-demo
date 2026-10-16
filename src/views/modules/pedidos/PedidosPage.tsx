@@ -3,13 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { usePedidos } from '../../../controllers/pedido/usePedidos'
 import { aceptaPedido, useMesasSede, type MesaVista } from '../../../controllers/mesonero/useMesasSede'
-import { anularItem } from '../../../models/services/pedidoService'
+import { anularItem, anularSesionCompleta } from '../../../models/services/pedidoService'
 import { puedeSupervisar } from '../../../lib/permisos'
 import type { Usuario } from '../../../models/types'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { SelectorMesaModal } from '../mesoneros/components/SelectorMesaModal'
 import { AnularItemModal } from '../mesoneros/components/AnularItemModal'
-import type { ItemEnviado } from './components/ResumenPedido'
+import { AnularCuentaModal } from '../mesoneros/components/AnularCuentaModal'
+import { ESTADOS_ANULABLES, type ItemEnviado } from './components/ResumenPedido'
 import {
   HeaderMesa,
   BuscadorPlatos,
@@ -42,6 +43,7 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
   const mesas = useMesasSede(usuario)
   const [selector, setSelector] = useState<'enviar' | 'mover' | null>(null)
   const [itemAnular, setItemAnular] = useState<ItemEnviado | null>(null)
+  const [anularTodo, setAnularTodo] = useState(false)
   const esSupervisor = puedeSupervisar(usuario.rol)
 
   const p = usePedidos(mesaId)
@@ -109,6 +111,7 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
           enviando={p.enviando}
           subtotal={subtotal}
           onAnular={esSupervisor ? setItemAnular : undefined}
+          onAnularTodo={esSupervisor ? () => setAnularTodo(true) : undefined}
         />
       </div>
 
@@ -132,6 +135,17 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
             setItemAnular(null)
           }}
           onCerrar={() => setItemAnular(null)}
+        />
+      )}
+
+      {anularTodo && p.sesion && (
+        <AnularCuentaModal
+          items={p.itemsEnviados.filter((item) => ESTADOS_ANULABLES.has(item.estado))}
+          onConfirmar={async (motivo) => {
+            await anularSesionCompleta(p.sesion!.id, motivo)
+            setAnularTodo(false)
+          }}
+          onCerrar={() => setAnularTodo(false)}
         />
       )}
 
