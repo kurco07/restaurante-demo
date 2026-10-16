@@ -74,16 +74,18 @@ export function VisorARMarcador({
   rotacion = '0 0 0',
 }: VisorARMarcadorProps) {
   const markerRef = useRef<HTMLElement>(null)
-  const contenedorRef = useRef<HTMLDivElement>(null)
   const [marcadorDetectado, setMarcadorDetectado] = useState(false)
   const [mostrarAyuda, setMostrarAyuda] = useState(false)
 
-  // Pantalla completa real (sin barra de direcciones/UI del navegador) —
-  // además de ser mejor para el video de marketing, evita que la barra
-  // del navegador aparezca/desaparezca y dispare resizes que AR.js
-  // interpreta como cambio de tamaño de cámara a mitad de sesión.
+  // Pantalla completa sobre documentElement (el <html>), NO sobre nuestro
+  // propio div — AR.js inyecta su <video>/<canvas> como hijos directos de
+  // <body>, fuera de este componente. Si se pone en fullscreen nuestro div,
+  // el navegador oculta todo lo que no sea descendiente de él (lo manda a
+  // una "capa" aparte) y la cámara, aunque sigue corriendo, deja de verse
+  // — pantalla negra. Sobre documentElement, body (y sus hijos directos)
+  // siguen siendo descendientes, así que se ven con normalidad.
   useEffect(() => {
-    contenedorRef.current?.requestFullscreen?.().catch(() => {})
+    document.documentElement.requestFullscreen?.().catch(() => {})
     return () => {
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
     }
@@ -134,7 +136,7 @@ export function VisorARMarcador({
     //    Confirmado con un dump en consola del elemento real:
     //    {display:'block', zIndex:'-2', ...} — procesaba cuadros bien
     //    pero nunca se veía por esto.
-    <div ref={contenedorRef} className="fixed inset-0 z-[200]">
+    <div className="fixed inset-0 z-[200]">
       <style>{`
         #arjs-video { display: block !important; z-index: 1 !important; }
         .a-canvas { z-index: 2 !important; }
