@@ -120,9 +120,29 @@ export function VisorARMarcador({
   // con un zoom raro. Este listener de "fullscreenchange" es el único
   // lugar que de verdad cierra (onCerrar), disparado solo cuando el
   // navegador confirma que ya salió.
+  //
+  // Además: en Android/Chrome es un bug conocido que, tras salir de la
+  // Fullscreen API, el navegador se queda calculando el viewport con las
+  // medidas de cuando estaba en pantalla completa (más ancho que la
+  // pantalla real) — se veía la app "recortada" a la izquierda con un
+  // hueco del color de fondo normal (#f3ede4, el que centra el contenido
+  // en pantallas anchas) ocupando el resto. El truco estándar para
+  // forzar que el navegador recalcule el viewport es re-aplicar el
+  // <meta name="viewport"> (quitarlo y volver a ponerlo fuerza un
+  // reflow completo del layout contra las medidas reales de pantalla).
   useEffect(() => {
+    function refrescarViewport() {
+      const meta = document.querySelector('meta[name="viewport"]')
+      const contenido = meta?.getAttribute('content')
+      if (!meta || !contenido) return
+      meta.setAttribute('content', contenido + ', user-scalable=yes')
+      requestAnimationFrame(() => meta.setAttribute('content', contenido))
+    }
     function alCambiarFullscreen() {
-      if (!document.fullscreenElement) onCerrarRef.current()
+      if (!document.fullscreenElement) {
+        refrescarViewport()
+        onCerrarRef.current()
+      }
     }
     document.addEventListener('fullscreenchange', alCambiarFullscreen)
     return () => document.removeEventListener('fullscreenchange', alCambiarFullscreen)
