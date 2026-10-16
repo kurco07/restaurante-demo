@@ -1,11 +1,15 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { PlatoAutopedido } from '../../../../models/types'
 import { fondoPlato } from './fondoPlato'
 
-// Carga diferida: @google/model-viewer trae su propio motor 3D (pesa
-// bastante) y la mayoría de los platos todavía no tienen modelo — que
-// no infle el bundle inicial de todos los clientes que nunca ven RA.
+// Carga diferida: @google/model-viewer y AR.js (A-Frame + three.js)
+// pesan bastante y la mayoría de los platos todavía no tienen modelo —
+// que no infle el bundle inicial de todos los clientes que nunca ven RA.
 const VisorAR = lazy(() => import('../../../components/ui/VisorAR').then((m) => ({ default: m.VisorAR })))
+const VisorARMarcador = lazy(() =>
+  import('../../../components/ui/VisorARMarcador').then((m) => ({ default: m.VisorARMarcador })),
+)
 
 interface HojaPersonalizacionProps {
   plato: PlatoAutopedido
@@ -23,6 +27,7 @@ interface HojaPersonalizacionProps {
 // tabla de personalización (ver nota de Fase 2, Módulo 3 en el roadmap).
 export function HojaPersonalizacion(props: HojaPersonalizacionProps) {
   const { plato } = props
+  const [mostrarCamaraAR, setMostrarCamaraAR] = useState(false)
 
   return (
     <div className="fixed inset-0 z-20 bg-[#2b2118]/40" onClick={props.onCerrar}>
@@ -54,8 +59,26 @@ export function HojaPersonalizacion(props: HojaPersonalizacionProps) {
             {plato.modelo_ar_glb_url && (
               <div className="mt-3.5">
                 <Suspense fallback={<div className="h-[220px] animate-pulse rounded-xl bg-gray-100" />}>
-                  <VisorAR glbUrl={plato.modelo_ar_glb_url} usdzUrl={plato.modelo_ar_usdz_url} nombre={plato.nombre} />
+                  <VisorAR glbUrl={plato.modelo_ar_glb_url} nombre={plato.nombre} />
                 </Suspense>
+                <button
+                  type="button"
+                  onClick={() => setMostrarCamaraAR(true)}
+                  className="mt-2 w-full rounded-xl bg-orange-500 py-2.5 text-sm font-extrabold text-white"
+                >
+                  Ver en RA
+                </button>
+                {mostrarCamaraAR &&
+                  createPortal(
+                    <Suspense fallback={null}>
+                      <VisorARMarcador
+                        glbUrl={plato.modelo_ar_glb_url}
+                        nombre={plato.nombre}
+                        onCerrar={() => setMostrarCamaraAR(false)}
+                      />
+                    </Suspense>,
+                    document.body,
+                  )}
               </div>
             )}
 

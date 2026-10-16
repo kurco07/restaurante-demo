@@ -1,11 +1,15 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { Plato } from '../../../../models/types'
 import { GRADIENTES_FOTO, FOTO_POR_DEFECTO } from './constants'
 
-// Carga diferida: @google/model-viewer trae su propio motor 3D (pesa
-// bastante) y la mayoría de los platos todavía no tienen modelo — que
-// no infle el bundle inicial de todos los que nunca ven RA.
+// Carga diferida: @google/model-viewer y AR.js (A-Frame + three.js)
+// pesan bastante y la mayoría de los platos todavía no tienen modelo —
+// que no infle el bundle inicial de todos los que nunca ven RA.
 const VisorAR = lazy(() => import('../../../components/ui/VisorAR').then((m) => ({ default: m.VisorAR })))
+const VisorARMarcador = lazy(() =>
+  import('../../../components/ui/VisorARMarcador').then((m) => ({ default: m.VisorARMarcador })),
+)
 
 interface ModalPersonalizacionProps {
   plato: Plato | null
@@ -30,6 +34,8 @@ export function ModalPersonalizacion({
   onAgregar,
   precioTotal,
 }: ModalPersonalizacionProps) {
+  const [mostrarCamaraAR, setMostrarCamaraAR] = useState(false)
+
   if (!plato || !isOpen) return null
 
   const background = GRADIENTES_FOTO[plato.imagen_url?.split('/').pop()?.split('.')[0] || ''] || FOTO_POR_DEFECTO
@@ -74,8 +80,26 @@ export function ModalPersonalizacion({
           {plato.modelo_ar_glb_url && (
             <div className="mt-4">
               <Suspense fallback={<div className="h-[220px] animate-pulse rounded-xl bg-[var(--surface-alt)]" />}>
-                <VisorAR glbUrl={plato.modelo_ar_glb_url} usdzUrl={plato.modelo_ar_usdz_url} nombre={plato.nombre} />
+                <VisorAR glbUrl={plato.modelo_ar_glb_url} nombre={plato.nombre} />
               </Suspense>
+              <button
+                type="button"
+                onClick={() => setMostrarCamaraAR(true)}
+                className="mt-2 w-full rounded-xl bg-[var(--orange)] py-2.5 text-sm font-extrabold text-white"
+              >
+                Ver en RA
+              </button>
+              {mostrarCamaraAR &&
+                createPortal(
+                  <Suspense fallback={null}>
+                    <VisorARMarcador
+                      glbUrl={plato.modelo_ar_glb_url}
+                      nombre={plato.nombre}
+                      onCerrar={() => setMostrarCamaraAR(false)}
+                    />
+                  </Suspense>,
+                  document.body,
+                )}
             </div>
           )}
 

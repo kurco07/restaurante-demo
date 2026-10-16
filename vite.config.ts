@@ -15,6 +15,11 @@ export default defineConfig({
       // no el service worker de esta PWA.
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        // El chunk de VisorARMarcador (AR.js: A-Frame + three.js + decoders
+        // de Draco/Basis) pesa varios MB y se carga solo bajo demanda — la
+        // RA por marcador necesita cámara + internet en el momento de todas
+        // formas, así que no gana nada estando precacheado para offline.
+        globIgnores: ['**/VisorARMarcador-*.js'],
       },
       manifest: {
         name: 'Plataforma de Restaurantes',
