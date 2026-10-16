@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import 'aframe'
+// Solo se importa @ar-js-org/ar.js, NO 'aframe' por separado — su build
+// para bundlers ya hace require("aframe") internamente, y si se
+// importa aframe también acá quedan dos copias evaluándose, cada una
+// registrando sus propios custom elements (a-node, a-entity...) con
+// customElements.define(), que solo se puede llamar una vez por
+// nombre — tira "NotSupportedError: ... has already been used" y
+// rompe toda la carga del chunk (pantalla en blanco).
 import '@ar-js-org/ar.js'
 
 // A-Frame declara sus custom elements para el DOM nativo pero no para
