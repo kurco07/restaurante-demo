@@ -142,8 +142,28 @@ export function VisorARMarcador({
     //    valores altos para ganarle a cualquier overlay existente hoy.
     <div className="fixed inset-0 z-[1001]">
       <style>{`
-        #arjs-video { display: block !important; z-index: 999 !important; }
+        /* AR.js dimensiona el video/canvas al tamaño físico de captura
+           (640x480, forzado arriba para evitar la distorsión que ya se
+           vio) en vez de al tamaño de pantalla — sin esto queda un
+           rectángulo chico en vez de pantalla completa. object-fit:
+           cover en el video evita que se vea estirado al forzarlo a
+           100vw/100vh (recorta en vez de deformar). El canvas no soporta
+           object-fit pero igual se estira al verse, sin problema porque
+           es solo el render 3D encima. */
+        #arjs-video, .a-canvas {
+          display: block !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          width: 100vw !important;
+          height: 100vh !important;
+          object-fit: cover !important;
+        }
+        #arjs-video { z-index: 999 !important; }
         .a-canvas { z-index: 1000 !important; }
+        /* vr-mode-ui="enabled: false" no está suprimiendo el botón de
+           A-Frame para "entrar en VR" — se oculta a la fuerza por CSS. */
+        .a-enter-vr { display: none !important; }
       `}</style>
       <a-scene
         embedded
