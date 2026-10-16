@@ -105,12 +105,17 @@ export function VisorARMarcador({
   }, [marcadorDetectado])
 
   return (
-    // Sin fondo propio a propósito: AR.js inyecta su <video> de la cámara
-    // por fuera de este div (como hijo directo de document.body, con su
-    // propio z-index bajo pensado para quedar detrás del canvas 3D
-    // transparente de <a-scene>) — un bg-black acá lo tapa por completo,
-    // aunque la cámara sí esté funcionando y procesando cuadros.
+    // Sin fondo propio a propósito, para no tapar el video de la cámara
+    // que AR.js inyecta (id="arjs-video") detrás del canvas 3D.
+    //
+    // El <style> de abajo es necesario porque el CSS por defecto de
+    // A-Frame (aframe.css) trae esta regla: "a-scene video { display:
+    // none }" — pensada para videos usados como textura de assets, pero
+    // también esconde el video de la cámara de AR.js si queda como
+    // descendiente de <a-scene>. Por eso la cámara procesaba cuadros
+    // perfectamente bien (confirmado en consola) pero nunca se veía.
     <div className="fixed inset-0 z-[200]">
+      <style>{'#arjs-video { display: block !important; }'}</style>
       <a-scene
         embedded
         arjs="sourceType: webcam; trackingMethod: best; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
