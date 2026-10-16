@@ -142,24 +142,17 @@ export function VisorARMarcador({
     //    valores altos para ganarle a cualquier overlay existente hoy.
     <div className="fixed inset-0 z-[1001]">
       <style>{`
-        /* AR.js dimensiona el video/canvas al tamaño físico de captura
-           (640x480, forzado arriba para evitar la distorsión que ya se
-           vio) en vez de al tamaño de pantalla — sin esto queda un
-           rectángulo chico en vez de pantalla completa. object-fit:
-           cover en el video evita que se vea estirado al forzarlo a
-           100vw/100vh (recorta en vez de deformar). El canvas no soporta
-           object-fit pero igual se estira al verse, sin problema porque
-           es solo el render 3D encima. */
-        #arjs-video, .a-canvas {
-          display: block !important;
-          position: fixed !important;
-          top: 0 !important;
-          left: 0 !important;
-          width: 100vw !important;
-          height: 100vh !important;
-          object-fit: cover !important;
-        }
-        #arjs-video { z-index: 999 !important; }
+        /* Ojo: NO forzar width/height/position acá. AR.js ya calcula bien
+           el tamaño del video para cubrir toda la pantalla por su cuenta
+           (lo agranda más que el viewport y lo centra con un margin-left
+           negativo, su propia versión manual de "cover") — forzar
+           width:100vw por CSS pisaba ese ancho pero no el margin-left
+           que AR.js calculó para ESE ancho más grande, así que el recorte
+           de centrado quedaba desalineado y la cámara se veía cortada a
+           la derecha. Solo hace falta mostrarlo y ganarle el z-index.
+           Confirmado con un dump del elemento real:
+           {inlineStyle: "width: 1084px; ...; margin-left: -236.5px"}. */
+        #arjs-video { display: block !important; z-index: 999 !important; }
         .a-canvas { z-index: 1000 !important; }
         /* vr-mode-ui="enabled: false" no está suprimiendo el botón de
            A-Frame para "entrar en VR" — se oculta a la fuerza por CSS. */
