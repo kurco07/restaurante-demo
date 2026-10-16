@@ -105,7 +105,12 @@ export function VisorARMarcador({
   }, [marcadorDetectado])
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black">
+    // Sin fondo propio a propósito: AR.js inyecta su <video> de la cámara
+    // por fuera de este div (como hijo directo de document.body, con su
+    // propio z-index bajo pensado para quedar detrás del canvas 3D
+    // transparente de <a-scene>) — un bg-black acá lo tapa por completo,
+    // aunque la cámara sí esté funcionando y procesando cuadros.
+    <div className="fixed inset-0 z-[200]">
       <a-scene
         embedded
         arjs="sourceType: webcam; trackingMethod: best; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
