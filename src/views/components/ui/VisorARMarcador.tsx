@@ -135,11 +135,15 @@ export function VisorARMarcador({
     //    ya esté "visible" queda tapado por el fondo de la app entera.
     //    Confirmado con un dump en consola del elemento real:
     //    {display:'block', zIndex:'-2', ...} — procesaba cuadros bien
-    //    pero nunca se veía por esto.
-    <div className="fixed inset-0 z-[200]">
+    //    pero nunca se veía por esto. Por la misma razón (hijos de
+    //    <body>, no de este div) un z-index bajo tampoco basta: cualquier
+    //    otro modal de la app con z-index mayor (ej. el modal de
+    //    "Agregar", en 50) se pinta por encima de la cámara. Se usan
+    //    valores altos para ganarle a cualquier overlay existente hoy.
+    <div className="fixed inset-0 z-[1001]">
       <style>{`
-        #arjs-video { display: block !important; z-index: 1 !important; }
-        .a-canvas { z-index: 2 !important; }
+        #arjs-video { display: block !important; z-index: 999 !important; }
+        .a-canvas { z-index: 1000 !important; }
       `}</style>
       <a-scene
         embedded
