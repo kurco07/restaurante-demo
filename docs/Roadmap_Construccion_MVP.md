@@ -192,8 +192,10 @@ Ventas, rentabilidad por plato, rotación de inventario — agregando sobre los 
 
 Construido por Pedro en `/gerencia` (detalle en `docs/Registro_de_Cambios.md`). Todo se agrega en el servidor con funciones `security invoker` (RLS sigue separando restaurantes; anon bloqueado), con un solo selector de período: **ventas** (`kpis_ventas`, migración `0010`), **rotación de inventario** en unidades con valor en stock (`kpis_inventario`, `0011`/`0012`) y **rentabilidad por plato** (`kpis_rentabilidad`, `0012`). Decisión confirmada con el usuario: el costo de un insumo es el de su **última compra recibida** (vista `costo_insumo_actual`), porque `insumos` no tiene costo propio. Platos sin receta o con insumos nunca comprados se marcan aparte, nunca con costo 0. Verificado contra cálculos directos sobre Supabase real: ventas ($165.50 en 6 cuentas), rotación (36 kg, 0,22×) y rentabilidad del plato de prueba ($15 de precio, $30 de costo, −$30 de ganancia en 2 vendidos).
 
-**Módulo 2 — Reportes por turno**
+**Módulo 2 — Reporte por día** (antes "Reportes por turno") ✅
 Reporte de ventas y medios de pago al cierre del día, calculado sobre `pagos_cierre` (no necesariamente una tabla nueva, ver `modelo-de-datos.md`, sección 6).
+
+Decidido con Pedro (2026-10-22): no hay turnos, la unidad es el **día** de la sede. El supervisor ve **solo hoy** de su sede (pestaña "Reporte del día" en `/mesoneros/reporte`); gerencia ve **cualquier día y el historial** (`/gerencia/reportes`); administración no. Incluye anulaciones. Funciones `reporte_diario` y `reporte_diario_historial` (migración `0018`), que verifican el rol en el servidor. Esto resuelve la nota de abajo sobre el acceso del supervisor. Migración `0018` aplicada y verificada por Pedro en Supabase real (2026-10-22). Detalle en `docs/Registro_de_Cambios.md`.
 
 Nota (auditoría 2026-10-13): la matriz de roles de `arquitectura.md` §4.10 le da a "Supervisor de sala" acceso a "reportes del turno", pero `rolesPorModulo.ts` hoy no le da a `supervisor` ningún acceso a `/administracion` ni `/gerencia` — ese rol no puede ver ningún reporte todavía. Este módulo debería decidir cómo resolver eso (una vista reducida propia para supervisor, o ampliar su acceso a esta pantalla) antes de darse por terminado.
 

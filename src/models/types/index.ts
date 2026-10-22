@@ -46,4 +46,10 @@ export type {
   EstadoCostoPlato,
   RentabilidadPlato,
   IngredienteCosteado,
+  MetodoDelDia,
+  MesoneroDelDia,
+  CobroDelDia,
+  AnulacionDelDia,
+  ReporteDiario,
+  DiaHistorial,
 } from './kpis'

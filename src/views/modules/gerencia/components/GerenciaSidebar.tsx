@@ -6,8 +6,8 @@ interface GerenciaSidebarProps {
   rol: Rol
 }
 
-// Reportes por turno, Sedes y Alertas son los Módulos 2, 3 y 4 de la
-// Fase 5 (Roadmap): todavía no existen y llevan a /proximamente.
+// Sedes y Alertas son los Módulos 3 y 4 de la Fase 5 (Roadmap): todavía
+// no existen y llevan a /proximamente.
 const enlaces: EnlaceSidebar[] = [
   {
     label: 'Ventas',
@@ -36,8 +36,8 @@ const enlaces: EnlaceSidebar[] = [
     ),
   },
   {
-    label: 'Reportes por turno',
-    to: '/proximamente',
+    label: 'Reporte por día',
+    to: '/gerencia/reportes',
     icono: (
       <>
         <circle cx="12" cy="12" r="9" />

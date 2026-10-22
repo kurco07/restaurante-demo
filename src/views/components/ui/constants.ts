@@ -22,3 +22,9 @@ export const ESTILOS_ADMIN = {
 export function formatearMoneda(valor: number) {
   return `$${valor.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
+
+export const ETIQUETA_METODO_PAGO: Record<string, string> = {
+  efectivo: 'Efectivo',
+  tarjeta: 'Tarjeta',
+  pago_movil: 'Pago móvil',
+}

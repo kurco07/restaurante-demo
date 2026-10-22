@@ -4,6 +4,44 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-22 — Reporte por día para supervisor y gerencia (Fase 5, Módulo 2)
+
+Rama: `feature/fase5-reporte-diario`. Autor: Pedro (con Claude Code). Migración `0018_reporte_diario.sql` **aplicada en Supabase por Pedro (2026-10-22)**.
+
+### Por qué
+
+El supervisor no podía ver ningún reporte, aunque §4.10 le daba los "reportes del turno". Además no estaba definido qué era un turno.
+
+### Decisiones (Pedro, 2026-10-22)
+
+- **No hay turnos: el reporte es por día** calendario de la sede, en su zona horaria. No se crea tabla de turnos.
+- **Supervisor:** solo el día de **hoy** y solo **su sede**. Ventas, propinas, medios de pago, ventas por mesonero, cada cobro y las anulaciones. **Sin costos ni rentabilidad.**
+- **Gerencia:** cualquier día pasado y el **historial día por día**, de todas las sedes de su restaurante.
+- **Administración:** no ve estos reportes.
+- **Las anulaciones van en el reporte:** hora, mesa, plato, importe, motivo, quién anuló y si dejó merma.
+
+### Qué cambió
+
+**Base de datos (migración `0018`):**
+- `reporte_diario(p_dia, p_sede_id)`: el reporte de un día. Verifica el rol en el servidor: solo `supervisor` y `gerencia`. Al supervisor siempre le da su propia sede y rechaza cualquier día que no sea hoy. Hace falta porque la RLS de `pagos_cierre` deja leer a cualquier usuario de la sede.
+- `reporte_diario_historial(p_desde, p_hasta, p_sede_id)`: totales por día, también los días sin ventas. Solo gerencia.
+- Mismo criterio que `kpis_ventas`: venta = cuenta cerrada con pago. Una mesa liberada por anulación total (`0016`) no cuenta como venta. Ambas son `security invoker`, así que RLS sigue separando restaurantes y sedes.
+
+**Frontend:**
+- Supervisor: pestaña **"Reporte del día"** en su barra (`/mesoneros/reporte`), con botón "Actualizar". Solo aparece para supervisor y gerencia. Necesita internet; sin conexión lo avisa y el resto del módulo sigue funcionando offline.
+- Gerencia: **"Reporte por día"** en la barra lateral (`/gerencia/reportes`), con selector de día (anterior/siguiente/fecha) e historial de 7, 30 o 90 días. Tocar un día del historial abre su reporte.
+- `ReporteDiarioVista` (en `src/views/components/reportes/`) es el contenido compartido por las dos pantallas.
+- `ETIQUETA_METODO_PAGO` pasa a `components/ui/constants.ts` para no duplicarla.
+
+### Pendiente
+
+- [x] Aplicar `0018_reporte_diario.sql` en el SQL Editor.
+- [x] Probar con `supervisor@prueba.com` (debe ver solo hoy) y con un usuario de gerencia (días pasados e historial). Verificar que un mesonero recibe error si llama a `reporte_diario`.
+- [x] Con eso verificado, marcar el Módulo 2 con ✅ en el Roadmap (Pedro lo probó, 2026-10-22).
+- Límite conocido (no se cambia aquí): la RLS de `pagos_cierre` sigue dejando que un mesonero o cocina lean los pagos crudos de su sede por la API. La pantalla y la función están protegidas, pero las tablas no. Cerrarlo pide revisar la política sin romper el cierre de cuenta.
+
+---
+
 ## 2026-10-16 — Supervisor de sala: anular platos y transferir mesas (Fase 2, Módulo 7)
 
 Rama: `feature/navegacion-mesonero`. Autor: Pedro (con Claude Code). Migración `0015_supervisor_anular_transferir.sql` **aplicada en Supabase por Pedro (2026-10-16)**.

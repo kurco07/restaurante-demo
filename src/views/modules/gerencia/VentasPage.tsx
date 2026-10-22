@@ -1,15 +1,9 @@
 import { useKpisGerencia } from '../../../controllers/gerencia/useKpisGerencia'
-import { formatearMoneda } from '../../components/ui/constants'
+import { ETIQUETA_METODO_PAGO, formatearMoneda } from '../../components/ui/constants'
 import { PanelCard } from '../../components/ui/PanelCard'
 import { ListaBarras } from './components/ListaBarras'
 import { SeccionGerencia } from './components/SeccionGerencia'
 import { VentasPorDia } from './components/VentasPorDia'
-
-const ETIQUETA_METODO: Record<string, string> = {
-  efectivo: 'Efectivo',
-  tarjeta: 'Tarjeta',
-  pago_movil: 'Pago móvil',
-}
 
 function cuentas(n: number) {
   return `${n} ${n === 1 ? 'cuenta' : 'cuentas'}`
@@ -81,7 +75,7 @@ export default function VentasPage() {
                   vacio="Sin cobros en el período."
                   filas={d.por_metodo.map((m) => ({
                     clave: m.metodo,
-                    etiqueta: ETIQUETA_METODO[m.metodo] ?? m.metodo,
+                    etiqueta: ETIQUETA_METODO_PAGO[m.metodo] ?? m.metodo,
                     valor: m.ventas,
                     detalle: `${formatearMoneda(m.ventas)} · ${cuentas(m.cuentas)}`,
                   }))}

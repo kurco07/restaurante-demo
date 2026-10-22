@@ -1,6 +1,7 @@
 import { useCarritos } from '../../../../controllers/pedido/useCarritos'
 import { useMisPedidos } from '../../../../controllers/mesonero/useMisPedidos'
 import type { Rol, Usuario } from '../../../../models/types'
+import { puedeSupervisar } from '../../../../lib/permisos'
 import { BarraSuperior, type PestanaBarra } from '../../../components/layout/BarraSuperior'
 import { MenuUsuario } from '../../../components/layout/MenuUsuario'
 
@@ -10,8 +11,8 @@ const ETIQUETA_ROL: Partial<Record<Rol, string>> = {
   gerencia: 'Gerencia',
 }
 
-// Barra superior del mesonero: Mesas · Menú · Mis pedidos, y a la derecha
-// su nombre con "Cerrar sesión".
+// Barra superior del mesonero: Mesas · Menú · Mis pedidos (+ Reporte del
+// día para el supervisor), y a la derecha su nombre con "Cerrar sesión".
 export function BarraMesonero({ usuario }: { usuario: Usuario }) {
   const { totalPlatos } = useCarritos()
   const { listos } = useMisPedidos(usuario)
@@ -47,6 +48,14 @@ export function BarraMesonero({ usuario }: { usuario: Usuario }) {
       ),
     },
   ]
+
+  if (puedeSupervisar(usuario.rol)) {
+    pestanas.push({
+      label: 'Reporte del día',
+      to: '/mesoneros/reporte',
+      icono: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+    })
+  }
 
   return (
     <BarraSuperior

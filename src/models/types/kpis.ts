@@ -103,3 +103,74 @@ export interface IngredienteCosteado {
   costo_unitario: number | null
   subtotal: number | null
 }
+
+// Forma de lo que devuelve reporte_diario (migración 0018): el reporte de
+// un día de una sede (o de todas, para gerencia).
+export interface MetodoDelDia {
+  metodo: string
+  ventas: number
+  propinas: number
+  cuentas: number
+}
+
+export interface MesoneroDelDia {
+  mesonero: string
+  ventas: number
+  propinas: number
+  cuentas: number
+}
+
+export interface CobroDelDia {
+  id: string
+  hora: string // 'HH:MM' en la zona horaria de la sede
+  mesa: string
+  mesonero: string
+  cobrado_por: string
+  metodo: string
+  monto: number
+  propina: number
+}
+
+export interface AnulacionDelDia {
+  hora: string
+  mesa: string
+  plato: string
+  cantidad: number
+  importe: number
+  motivo: string
+  anulado_por: string
+  // En qué estado estaba: en_preparacion o listo dejaron merma
+  anulado_desde: string
+}
+
+export interface ReporteDiario {
+  dia: string // 'YYYY-MM-DD'
+  es_hoy: boolean
+  resumen: {
+    ventas: number
+    propinas: number
+    total_cobrado: number
+    cuentas: number
+    ticket_promedio: number
+  }
+  por_metodo: MetodoDelDia[]
+  por_mesonero: MesoneroDelDia[]
+  cobros: CobroDelDia[]
+  anulaciones: {
+    platos: number
+    importe: number
+    con_merma: number
+    detalle: AnulacionDelDia[]
+  }
+  mesas_abiertas: number
+}
+
+// Un renglón de reporte_diario_historial (migración 0018)
+export interface DiaHistorial {
+  dia: string
+  ventas: number
+  propinas: number
+  cuentas: number
+  platos_anulados: number
+  importe_anulado: number
+}

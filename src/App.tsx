@@ -8,6 +8,7 @@ import { rolesPorModulo } from './lib/rolesPorModulo'
 import MesoneroLayout from './views/modules/mesoneros/MesoneroLayout'
 import MesonerosPage from './views/modules/mesoneros/MesonerosPage'
 import MisPedidosPage from './views/modules/mesoneros/MisPedidosPage'
+import ReporteDelDiaPage from './views/modules/mesoneros/ReporteDelDiaPage'
 import PedidosPage from './views/modules/pedidos/PedidosPage'
 import CocinaLayout from './views/modules/cocina/CocinaLayout'
 import CocinaPage from './views/modules/cocina/CocinaPage'
@@ -30,6 +31,7 @@ import GerenciaLayout from './views/modules/gerencia/GerenciaLayout'
 import VentasPage from './views/modules/gerencia/VentasPage'
 import RentabilidadPage from './views/modules/gerencia/RentabilidadPage'
 import InventarioGerenciaPage from './views/modules/gerencia/InventarioGerenciaPage'
+import ReportesDiariosPage from './views/modules/gerencia/ReportesDiariosPage'
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
 import ProximamentePage from './views/modules/proximamente/ProximamentePage'
@@ -71,6 +73,7 @@ export default function App() {
               <Route path="menu" element={<PedidosPage />} />
               <Route path="menu/:mesaId" element={<PedidosPage />} />
               <Route path="pedidos" element={<MisPedidosPage />} />
+              <Route path="reporte" element={<ReporteDelDiaPage />} />
             </Route>
             {/* Cocina: barra superior con el tablero, entregados y recetas */}
             <Route
@@ -193,6 +196,7 @@ export default function App() {
               <Route index element={<VentasPage />} />
               <Route path="rentabilidad" element={<RentabilidadPage />} />
               <Route path="inventario" element={<InventarioGerenciaPage />} />
+              <Route path="reportes" element={<ReportesDiariosPage />} />
             </Route>
             <Route
               path="/super-admin"
