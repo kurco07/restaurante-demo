@@ -6,7 +6,7 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ## 2026-10-22 — Vista multi-sede para gerencia (Fase 5, Módulo 3)
 
-Rama: `feature/fase5-multi-sede`. Autor: Pedro (con Claude Code). Migración `0019_kpis_sedes.sql` **pendiente de aplicar en Supabase** (SQL Editor).
+Rama: `feature/fase5-multi-sede`. Autor: Pedro (con Claude Code). Migración `0019_kpis_sedes.sql` **aplicada en Supabase por Pedro (2026-10-22)**.
 
 ### Decisiones (Pedro, 2026-10-22)
 
@@ -34,10 +34,10 @@ Rama: `feature/fase5-multi-sede`. Autor: Pedro (con Claude Code). Migración `00
 
 ### Pendiente
 
-- [ ] Aplicar `0019_kpis_sedes.sql` en el SQL Editor.
-- [ ] Correr `supabase/seeds/demo_segunda_sede.sql` en el SQL Editor.
-- [ ] Probar en la app con el usuario de gerencia: selector de sede en cada sección y página Sedes.
-- [ ] Con eso verificado, marcar el Módulo 3 con ✅ en el Roadmap.
+- [x] Aplicar `0019_kpis_sedes.sql` en el SQL Editor.
+- [x] Correr `supabase/seeds/demo_segunda_sede.sql` en el SQL Editor.
+- [x] Probar en la app con el usuario de gerencia: selector de sede en cada sección y página Sedes.
+- [x] Con eso verificado, marcar el Módulo 3 con ✅ en el Roadmap (Pedro lo probó, 2026-10-22).
 
 ---
 
