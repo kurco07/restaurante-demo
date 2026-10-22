@@ -32,6 +32,7 @@ import VentasPage from './views/modules/gerencia/VentasPage'
 import RentabilidadPage from './views/modules/gerencia/RentabilidadPage'
 import InventarioGerenciaPage from './views/modules/gerencia/InventarioGerenciaPage'
 import ReportesDiariosPage from './views/modules/gerencia/ReportesDiariosPage'
+import SedesPage from './views/modules/gerencia/SedesPage'
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
 import ProximamentePage from './views/modules/proximamente/ProximamentePage'
@@ -197,6 +198,7 @@ export default function App() {
               <Route path="rentabilidad" element={<RentabilidadPage />} />
               <Route path="inventario" element={<InventarioGerenciaPage />} />
               <Route path="reportes" element={<ReportesDiariosPage />} />
+              <Route path="sedes" element={<SedesPage />} />
             </Route>
             <Route
               path="/super-admin"

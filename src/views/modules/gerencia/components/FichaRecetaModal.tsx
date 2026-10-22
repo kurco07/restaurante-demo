@@ -1,4 +1,5 @@
 import { useRecetaCosteada } from '../../../../controllers/gerencia/useRecetaCosteada'
+import { useKpisGerencia } from '../../../../controllers/gerencia/useKpisGerencia'
 import type { RentabilidadPlato } from '../../../../models/types'
 import { formatearMoneda } from '../../../components/ui/constants'
 import { ModalAdmin } from '../../administracion/components/comunes/ModalAdmin'
@@ -16,7 +17,8 @@ function cantidad(valor: number, unidad: string) {
 // insumo, para entender su rentabilidad. Editar la receta es tarea de
 // administración, gerencia no entra ahí.
 export function FichaRecetaModal({ plato, onCerrar }: FichaRecetaModalProps) {
-  const r = useRecetaCosteada(plato.menu_item_id)
+  const { sedeId } = useKpisGerencia()
+  const r = useRecetaCosteada(plato.menu_item_id, sedeId)
   const precio = Number(plato.precio_promedio)
 
   return (

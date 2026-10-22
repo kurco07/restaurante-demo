@@ -52,4 +52,6 @@ export type {
   AnulacionDelDia,
   ReporteDiario,
   DiaHistorial,
+  SedeResumen,
+  ComparacionSede,
 } from './kpis'

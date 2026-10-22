@@ -54,8 +54,9 @@ export function useReporteDiario(dia?: string, sedeId?: string) {
   return { datos, cargando, error, recargar }
 }
 
-// Historial de los últimos `dias` días hasta hoy, solo gerencia
-export function useHistorialDiario(dias: number) {
+// Historial de los últimos `dias` días hasta hoy, solo gerencia. Sin
+// sedeId suma todas las sedes.
+export function useHistorialDiario(dias: number, sedeId?: string) {
   const [filas, setFilas] = useState<DiaHistorial[]>([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -64,7 +65,7 @@ export function useHistorialDiario(dias: number) {
     let cancelado = false
     setCargando(true)
     const hasta = claveDia(new Date())
-    fetchHistorialDiario(sumarDiasClave(hasta, -(dias - 1)), hasta)
+    fetchHistorialDiario(sumarDiasClave(hasta, -(dias - 1)), hasta, sedeId)
       .then((r) => {
         if (cancelado) return
         setFilas(r)
@@ -79,7 +80,7 @@ export function useHistorialDiario(dias: number) {
     return () => {
       cancelado = true
     }
-  }, [dias])
+  }, [dias, sedeId])
 
   return { filas, cargando, error }
 }

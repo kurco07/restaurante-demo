@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import type { IngredienteCosteado, KpisVentas, RentabilidadPlato, RotacionInsumo } from '../types'
+import type { ComparacionSede, IngredienteCosteado, KpisVentas, RentabilidadPlato, RotacionInsumo, SedeResumen } from '../types'
 
 // KPIs de ventas de un período, agregados en el servidor por la función
 // kpis_ventas (migración 0010). Corre con los permisos de quien llama:
@@ -41,14 +41,18 @@ export async function fetchKpisRentabilidad(desde: Date, hasta: Date, sedeId?: s
 }
 
 // Para los platos con "Costo incompleto": qué insumos de su receta nunca
-// tuvieron una compra recibida (no aparecen en costo_insumo_actual).
+// tuvieron una compra recibida (no aparecen en costo_insumo_actual), en
+// la sede elegida o en cualquiera si no hay sede.
 // Devuelve { menu_item_id: [nombres de insumo] }.
-export async function fetchInsumosSinCompra(menuItemIds: string[]) {
+export async function fetchInsumosSinCompra(menuItemIds: string[], sedeId?: string) {
   if (menuItemIds.length === 0) return {}
+
+  let costosQuery = supabase.from('costo_insumo_actual').select('insumo_id')
+  if (sedeId) costosQuery = costosQuery.eq('sede_id', sedeId)
 
   const [recetas, costos] = await Promise.all([
     supabase.from('recetas').select('menu_item_id, insumo_id, insumos(nombre)').in('menu_item_id', menuItemIds),
-    supabase.from('costo_insumo_actual').select('insumo_id'),
+    costosQuery,
   ])
   if (recetas.error) throw recetas.error
   if (costos.error) throw costos.error
@@ -63,9 +67,10 @@ export async function fetchInsumosSinCompra(menuItemIds: string[]) {
 }
 
 // Receta de un plato, de solo lectura, para la ficha de rentabilidad de
-// gerencia: cada insumo con su costo. Mismo criterio que kpis_rentabilidad
-// sin sede filtrada: la compra recibida más reciente de cualquier sede.
-export async function fetchRecetaCosteada(menuItemId: string): Promise<IngredienteCosteado[]> {
+// gerencia: cada insumo con su costo. Mismo criterio que kpis_rentabilidad:
+// con sede, la última compra recibida en esa sede; sin sede, la más
+// reciente de cualquier sede.
+export async function fetchRecetaCosteada(menuItemId: string, sedeId?: string): Promise<IngredienteCosteado[]> {
   const recetas = await supabase
     .from('recetas')
     .select('insumo_id, cantidad_requerida, unidad, insumos(nombre)')
@@ -80,11 +85,12 @@ export async function fetchRecetaCosteada(menuItemId: string): Promise<Ingredien
   }[]
   if (filas.length === 0) return []
 
-  const costos = await supabase
+  let costosQuery = supabase
     .from('costo_insumo_actual')
     .select('insumo_id, costo_unitario, comprado_en')
     .in('insumo_id', filas.map((f) => f.insumo_id))
-    .order('comprado_en', { ascending: false })
+  if (sedeId) costosQuery = costosQuery.eq('sede_id', sedeId)
+  const costos = await costosQuery.order('comprado_en', { ascending: false })
   if (costos.error) throw costos.error
 
   // Ordenado de más reciente a más vieja: la primera de cada insumo gana.
@@ -107,4 +113,23 @@ export async function fetchRecetaCosteada(menuItemId: string): Promise<Ingredien
       }
     })
     .sort((a, b) => a.insumo.localeCompare(b.insumo, 'es'))
+}
+
+// Sedes del restaurante para el selector de gerencia. RLS deja ver solo
+// las del propio tenant.
+export async function fetchSedes() {
+  const { data, error } = await supabase.from('sedes').select('id, nombre').order('creado_en')
+  if (error) throw error
+  return data as SedeResumen[]
+}
+
+// Una fila por sede con los números del período, para compararlas
+// (migración 0019).
+export async function fetchKpisSedes(desde: Date, hasta: Date) {
+  const { data, error } = await supabase.rpc('kpis_sedes', {
+    p_desde: desde.toISOString(),
+    p_hasta: hasta.toISOString(),
+  })
+  if (error) throw error
+  return data as ComparacionSede[]
 }

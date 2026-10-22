@@ -6,8 +6,8 @@ interface GerenciaSidebarProps {
   rol: Rol
 }
 
-// Sedes y Alertas son los Módulos 3 y 4 de la Fase 5 (Roadmap): todavía
-// no existen y llevan a /proximamente.
+// Alertas es el Módulo 4 de la Fase 5 (Roadmap): todavía no existe y
+// lleva a /proximamente.
 const enlaces: EnlaceSidebar[] = [
   {
     label: 'Ventas',
@@ -47,7 +47,7 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Sedes',
-    to: '/proximamente',
+    to: '/gerencia/sedes',
     icono: (
       <>
         <path d="M12 21s-7-6.2-7-11.5a7 7 0 0114 0C19 14.8 12 21 12 21z" />

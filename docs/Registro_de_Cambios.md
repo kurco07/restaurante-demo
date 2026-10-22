@@ -4,6 +4,43 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-22 — Vista multi-sede para gerencia (Fase 5, Módulo 3)
+
+Rama: `feature/fase5-multi-sede`. Autor: Pedro (con Claude Code). Migración `0019_kpis_sedes.sql` **pendiente de aplicar en Supabase** (SQL Editor).
+
+### Decisiones (Pedro, 2026-10-22)
+
+- **Selector de sede** en todo el panel de gerencia: "Todas las sedes" (consolidado) o una en particular.
+- **Página "Sedes"** para comparar las sedes entre sí.
+- **Costo de los insumos:** con una sede elegida, la última compra recibida **en esa sede**. En "Todas", la más reciente de **cualquier** sede. El servidor ya lo calculaba así desde `0012`; ahora la ficha de receta y la lista de "falta registrar una compra" también lo respetan.
+- No había datos de una segunda sede: se crean datos demo para probar.
+
+### Qué cambió
+
+**Base de datos (migración `0019`):**
+- `kpis_sedes(p_desde, p_hasta)`: una fila por sede con ventas, propinas, cuentas, ticket promedio, platos e importe anulados, valor de la merma y valor del inventario de hoy (cada sede con el costo de sus propias compras). Los insumos con stock que nunca se compraron en esa sede no se valorizan y se cuentan aparte (nunca costo 0). `security invoker`, como el resto de los KPIs.
+- `kpis_ventas`, `kpis_inventario`, `kpis_rentabilidad` y `reporte_diario` no cambian: ya aceptaban `p_sede_id`.
+
+**Frontend:**
+- `useKpisVentas` guarda la sede elegida junto al período y la pasa a todas las consultas. La lista de sedes sale de la tabla `sedes` (RLS: solo las del restaurante).
+- `SelectorSede` en el encabezado de Ventas, Rentabilidad, Inventario y Reporte por día. Con una sola sede no se muestra.
+- Página **Sedes** (`/gerencia/sedes`): barras con la parte de las ventas de cada sede y tabla comparativa. El margen bruto por sede usa `kpis_rentabilidad` de cada sede, igual que la página de Rentabilidad.
+- La ficha de receta de Rentabilidad usa los costos de la sede elegida.
+
+**Datos demo (`supabase/seeds/`, no son migraciones):**
+- `demo_segunda_sede.sql` (requiere `demo_recetas.sql` antes): crea "Demo · Sede Norte" con 10 mesas y 30 días de ventas en **las dos sedes**, con pagos, propinas y algunas anulaciones. En la Sede Norte también su inventario: dos compras algo más caras que las de la sede original, las salidas por receta, las mermas y el stock final. En la sede original las ventas demo no tocan el inventario. Sin usuarios nuevos: las mesas de la Sede Norte quedan "Sin mesonero".
+- `demo_segunda_sede_borrar.sql`: deshace todo lo anterior.
+- Probado sobre una copia local de la base (todas las migraciones aplicadas): las ventas consolidadas son la suma de las dos sedes, un mismo plato cuesta distinto según la sede, el borrado deja la base exactamente como estaba, y el supervisor sigue limitado a su sede y a hoy.
+
+### Pendiente
+
+- [ ] Aplicar `0019_kpis_sedes.sql` en el SQL Editor.
+- [ ] Correr `supabase/seeds/demo_segunda_sede.sql` en el SQL Editor.
+- [ ] Probar en la app con el usuario de gerencia: selector de sede en cada sección y página Sedes.
+- [ ] Con eso verificado, marcar el Módulo 3 con ✅ en el Roadmap.
+
+---
+
 ## 2026-10-22 — Reporte por día para supervisor y gerencia (Fase 5, Módulo 2)
 
 Rama: `feature/fase5-reporte-diario`. Autor: Pedro (con Claude Code). Migración `0018_reporte_diario.sql` **aplicada en Supabase por Pedro (2026-10-22)**.

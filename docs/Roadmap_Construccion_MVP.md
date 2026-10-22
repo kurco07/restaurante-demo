@@ -199,8 +199,10 @@ Decidido con Pedro (2026-10-22): no hay turnos, la unidad es el **día** de la s
 
 Nota (auditoría 2026-10-13): la matriz de roles de `arquitectura.md` §4.10 le da a "Supervisor de sala" acceso a "reportes del turno", pero `rolesPorModulo.ts` hoy no le da a `supervisor` ningún acceso a `/administracion` ni `/gerencia` — ese rol no puede ver ningún reporte todavía. Este módulo debería decidir cómo resolver eso (una vista reducida propia para supervisor, o ampliar su acceso a esta pantalla) antes de darse por terminado.
 
-**Módulo 3 — Vista multi-sede**
+**Módulo 3 — Vista multi-sede** — 🔧 *construido, falta aplicar la migración `0019`, cargar los datos demo y probar en Supabase real*
 Para cadenas: reportes consolidados de todas las sedes de un tenant, o filtrados por sede individual.
+
+Construido con Pedro (2026-10-22): selector **"Todas las sedes" / una sede** en todo el panel de gerencia (Ventas, Rentabilidad, Inventario, Reporte por día; solo aparece con 2+ sedes) y página **"Sedes"** (`/gerencia/sedes`) que compara las sedes en el período: ventas y su parte del total, cuentas, ticket, propinas, margen bruto, anulado, merma e inventario. Costo de insumos: con sede elegida, sus propias compras; en "Todas", la compra más reciente de cualquier sede (decisión de Pedro, ya era así desde `0012`). Función `kpis_sedes` (migración `0019`). Datos demo: `supabase/seeds/demo_segunda_sede.sql`. Detalle en `docs/Registro_de_Cambios.md`.
 
 **Módulo 4 — Alertas y excepciones** 🔲 *identificado en auditoría (2026-10-13), no construido*
 `arquitectura.md` §4.4 lo incluye explícitamente ("mermas anómalas, descuentos excesivos") pero no tenía módulo propio en este roadmap. Son las excepciones que gerencia necesita ver sin tener que salir a buscarlas activamente.

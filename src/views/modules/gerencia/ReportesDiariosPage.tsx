@@ -5,9 +5,11 @@ import {
   useHistorialDiario,
   useReporteDiario,
 } from '../../../controllers/reportes/useReporteDiario'
+import { useKpisGerencia } from '../../../controllers/gerencia/useKpisGerencia'
 import { formatearMoneda } from '../../components/ui/constants'
 import { PanelCard } from '../../components/ui/PanelCard'
 import { ReporteDiarioVista } from '../../components/reportes/ReporteDiarioVista'
+import { SelectorSede } from './components/SelectorSede'
 
 type Vista = 'dia' | 'historial'
 
@@ -30,8 +32,9 @@ function fechaCorta(dia: string) {
 // Reporte por día de gerencia (Fase 5, Módulo 2): el mismo reporte que ve
 // el supervisor, pero de cualquier día pasado y de todas las sedes, más el
 // historial día por día para comparar. No usa el selector de período del
-// resto del panel: aquí la unidad es el día.
+// resto del panel (aquí la unidad es el día), pero sí el de sede.
 export default function ReportesDiariosPage() {
+  const { sedeId } = useKpisGerencia()
   const hoy = claveDia(new Date())
   const [vista, setVista] = useState<Vista>('dia')
   const [dia, setDia] = useState(hoy)
@@ -49,34 +52,48 @@ export default function ReportesDiariosPage() {
           <h1 className="mt-1 text-[27px] font-extrabold">Reporte por día</h1>
           <p className="mt-0.5 text-xs text-[var(--ink-soft)]">Ventas, medios de pago y anulaciones de cada día</p>
         </div>
-        <div className="flex gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] p-1">
-          {(
-            [
-              ['dia', 'Un día'],
-              ['historial', 'Historial'],
-            ] as const
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setVista(key)}
-              className={`rounded-full px-[15px] py-[7px] text-[12.5px] font-semibold ${
-                vista === key ? 'bg-[var(--orange)] text-white' : 'text-[var(--ink-soft)]'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          <SelectorSede />
+          <div className="flex gap-1 rounded-full border border-[var(--border)] bg-[var(--surface)] p-1">
+            {(
+              [
+                ['dia', 'Un día'],
+                ['historial', 'Historial'],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setVista(key)}
+                className={`rounded-full px-[15px] py-[7px] text-[12.5px] font-semibold ${
+                  vista === key ? 'bg-[var(--orange)] text-white' : 'text-[var(--ink-soft)]'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
       </header>
 
-      {vista === 'dia' ? <ReporteDeUnDia dia={dia} hoy={hoy} onCambiar={setDia} /> : <Historial onAbrir={abrirDia} />}
+      {vista === 'dia' ? (
+        <ReporteDeUnDia dia={dia} hoy={hoy} sedeId={sedeId} onCambiar={setDia} />
+      ) : (
+        <Historial sedeId={sedeId} onAbrir={abrirDia} />
+      )}
     </>
   )
 }
 
-function ReporteDeUnDia({ dia, hoy, onCambiar }: { dia: string; hoy: string; onCambiar: (d: string) => void }) {
-  const { datos, cargando, error } = useReporteDiario(dia)
+interface ReporteDeUnDiaProps {
+  dia: string
+  hoy: string
+  sedeId?: string
+  onCambiar: (d: string) => void
+}
+
+function ReporteDeUnDia({ dia, hoy, sedeId, onCambiar }: ReporteDeUnDiaProps) {
+  const { datos, cargando, error } = useReporteDiario(dia, sedeId)
   const boton =
     'rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-2 text-[12.5px] font-semibold text-[var(--ink-soft)] disabled:opacity-40'
 
@@ -121,9 +138,9 @@ function ReporteDeUnDia({ dia, hoy, onCambiar }: { dia: string; hoy: string; onC
   )
 }
 
-function Historial({ onAbrir }: { onAbrir: (d: string) => void }) {
+function Historial({ sedeId, onAbrir }: { sedeId?: string; onAbrir: (d: string) => void }) {
   const [dias, setDias] = useState(30)
-  const { filas, cargando, error } = useHistorialDiario(dias)
+  const { filas, cargando, error } = useHistorialDiario(dias, sedeId)
 
   const total = filas.reduce(
     (t, f) => ({

@@ -174,3 +174,25 @@ export interface DiaHistorial {
   platos_anulados: number
   importe_anulado: number
 }
+
+export interface SedeResumen {
+  id: string
+  nombre: string
+}
+
+// Una fila de kpis_sedes (migración 0019): los números de una sede en el
+// período, para la página de comparación
+export interface ComparacionSede {
+  sede_id: string
+  sede: string
+  ventas: number
+  propinas: number
+  cuentas: number
+  ticket_promedio: number
+  platos_anulados: number
+  importe_anulado: number
+  valor_merma: number
+  valor_inventario: number
+  // Insumos con stock que nunca se compraron en esa sede: no se valorizan
+  insumos_sin_costo: number
+}

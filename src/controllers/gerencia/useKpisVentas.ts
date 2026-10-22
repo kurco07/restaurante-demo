@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { KpisVentas, RentabilidadPlato, RotacionInsumo, VentaPorDia } from '../../models/types'
+import type { KpisVentas, RentabilidadPlato, RotacionInsumo, SedeResumen, VentaPorDia } from '../../models/types'
 import {
   fetchInsumosSinCompra,
   fetchKpisInventario,
   fetchKpisRentabilidad,
   fetchKpisVentas,
+  fetchSedes,
 } from '../../models/services/kpisService'
 
 export type PeriodoKpi = 'hoy' | '7d' | '30d' | 'mes'
@@ -55,9 +56,12 @@ function completarDias(porDia: VentaPorDia[], desde: Date, hasta: Date): VentaPo
 }
 
 // Dashboard de KPIs de gerencia (Fase 5, Módulo 1): ventas, rotación de
-// inventario y rentabilidad por plato del mismo período.
+// inventario y rentabilidad por plato del mismo período. sedeId elige una
+// sede o, sin valor, todas las del restaurante juntas (Fase 5, Módulo 3).
 export function useKpisVentas() {
   const [periodo, setPeriodo] = useState<PeriodoKpi>('7d')
+  const [sedes, setSedes] = useState<SedeResumen[]>([])
+  const [sedeId, setSedeId] = useState<string | undefined>(undefined)
   const [datos, setDatos] = useState<KpisVentas | null>(null)
   const [inventario, setInventario] = useState<RotacionInsumo[]>([])
   const [rentabilidad, setRentabilidad] = useState<RentabilidadPlato[]>([])
@@ -70,14 +74,28 @@ export function useKpisVentas() {
 
   useEffect(() => {
     let cancelado = false
+    fetchSedes()
+      .then((filas) => {
+        if (!cancelado) setSedes(filas)
+      })
+      .catch(() => {
+        // Sin la lista no hay selector; los KPIs igual suman todas las sedes
+      })
+    return () => {
+      cancelado = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let cancelado = false
     Promise.all([
-      fetchKpisVentas(rango.desde, rango.hasta),
-      fetchKpisInventario(rango.desde, rango.hasta),
-      fetchKpisRentabilidad(rango.desde, rango.hasta),
+      fetchKpisVentas(rango.desde, rango.hasta, sedeId),
+      fetchKpisInventario(rango.desde, rango.hasta, sedeId),
+      fetchKpisRentabilidad(rango.desde, rango.hasta, sedeId),
     ])
       .then(async ([kpis, rotacion, platos]) => {
         const incompletos = platos.filter((p) => p.estado === 'incompleto').map((p) => p.menu_item_id)
-        const faltantes = await fetchInsumosSinCompra(incompletos)
+        const faltantes = await fetchInsumosSinCompra(incompletos, sedeId)
         if (cancelado) return
         setDatos(kpis)
         setInventario(rotacion)
@@ -94,7 +112,7 @@ export function useKpisVentas() {
     return () => {
       cancelado = true
     }
-  }, [rango])
+  }, [rango, sedeId])
 
   const porDia = useMemo(
     () => (datos ? completarDias(datos.por_dia, rango.desde, rango.hasta) : []),
@@ -122,5 +140,11 @@ export function useKpisVentas() {
     setPeriodo(nuevo)
   }
 
-  return { periodo, setPeriodo: cambiarPeriodo, cargando, error, datos, porDia, inventario, rentabilidad, resumenRentabilidad, insumosSinCompra }
+  function cambiarSede(nueva: string | undefined) {
+    if (nueva === sedeId) return
+    setCargando(true)
+    setSedeId(nueva)
+  }
+
+  return { periodo, setPeriodo: cambiarPeriodo, rango, sedes, sedeId, setSedeId: cambiarSede, cargando, error, datos, porDia, inventario, rentabilidad, resumenRentabilidad, insumosSinCompra }
 }
