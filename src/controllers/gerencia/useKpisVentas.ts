@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { KpisVentas, RentabilidadPlato, RotacionInsumo, SedeResumen, VentaPorDia } from '../../models/types'
+import type { AlertaGerencia, KpisVentas, RentabilidadPlato, RotacionInsumo, SedeResumen, VentaPorDia } from '../../models/types'
 import {
+  fetchAlertas,
   fetchInsumosSinCompra,
   fetchKpisInventario,
   fetchKpisRentabilidad,
@@ -69,6 +70,12 @@ export function useKpisVentas() {
   const [insumosSinCompra, setInsumosSinCompra] = useState<Record<string, string[]>>({})
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // Alertas (Fase 5, Módulo 4): viven aquí para que la barra lateral
+  // muestre cuántas hay en cualquier sección. Dependen de la sede, no del
+  // período: cada alerta tiene su propia ventana fija (ver migración 0020).
+  const [alertas, setAlertas] = useState<AlertaGerencia[]>([])
+  const [cargandoAlertas, setCargandoAlertas] = useState(true)
+  const [errorAlertas, setErrorAlertas] = useState<string | null>(null)
 
   const rango = useMemo(() => rangoDe(periodo), [periodo])
 
@@ -85,6 +92,26 @@ export function useKpisVentas() {
       cancelado = true
     }
   }, [])
+
+  useEffect(() => {
+    let cancelado = false
+    setCargandoAlertas(true)
+    fetchAlertas(sedeId)
+      .then((filas) => {
+        if (cancelado) return
+        setAlertas(filas)
+        setErrorAlertas(null)
+      })
+      .catch((e: unknown) => {
+        if (!cancelado) setErrorAlertas(e instanceof Error ? e.message : String(e))
+      })
+      .finally(() => {
+        if (!cancelado) setCargandoAlertas(false)
+      })
+    return () => {
+      cancelado = true
+    }
+  }, [sedeId])
 
   useEffect(() => {
     let cancelado = false
@@ -146,5 +173,5 @@ export function useKpisVentas() {
     setSedeId(nueva)
   }
 
-  return { periodo, setPeriodo: cambiarPeriodo, rango, sedes, sedeId, setSedeId: cambiarSede, cargando, error, datos, porDia, inventario, rentabilidad, resumenRentabilidad, insumosSinCompra }
+  return { periodo, setPeriodo: cambiarPeriodo, rango, sedes, sedeId, setSedeId: cambiarSede, cargando, error, datos, porDia, inventario, rentabilidad, resumenRentabilidad, insumosSinCompra, alertas, cargandoAlertas, errorAlertas }
 }

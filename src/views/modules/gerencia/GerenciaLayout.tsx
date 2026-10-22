@@ -23,7 +23,7 @@ export default function GerenciaLayout() {
       className="grid min-h-screen grid-cols-[232px_1fr] bg-[var(--bg)] text-[var(--ink)]"
       style={ESTILOS_ADMIN}
     >
-      <GerenciaSidebar nombre={usuario.nombre} rol={usuario.rol} />
+      <GerenciaSidebar nombre={usuario.nombre} rol={usuario.rol} alertas={kpis.alertas.length} />
       <main className="min-w-0 max-w-[1280px] px-[34px] pb-10 pt-7">
         <Outlet context={kpis} />
       </main>

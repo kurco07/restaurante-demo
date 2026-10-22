@@ -54,4 +54,6 @@ export type {
   DiaHistorial,
   SedeResumen,
   ComparacionSede,
+  TipoAlerta,
+  AlertaGerencia,
 } from './kpis'

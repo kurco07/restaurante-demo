@@ -9,6 +9,8 @@ export interface EnlaceSidebar {
   icono: ReactNode
   // Otras rutas en las que el enlace también debe verse activo
   activoEn?: string[]
+  // Número a la derecha (ej. alertas activas); 0 o sin valor, no se muestra
+  contador?: number
 }
 
 interface PanelSidebarProps {
@@ -68,6 +70,11 @@ export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
               {enlace.icono}
             </svg>
             {enlace.label}
+            {!!enlace.contador && (
+              <span className="ml-auto min-w-[20px] rounded-full bg-[var(--red)] px-1.5 py-px text-center text-[11px] font-bold text-white">
+                {enlace.contador}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
-import type { ComparacionSede, IngredienteCosteado, KpisVentas, RentabilidadPlato, RotacionInsumo, SedeResumen } from '../types'
+import type { AlertaGerencia, ComparacionSede, IngredienteCosteado, KpisVentas, RentabilidadPlato, RotacionInsumo, SedeResumen } from '../types'
 
 // KPIs de ventas de un período, agregados en el servidor por la función
 // kpis_ventas (migración 0010). Corre con los permisos de quien llama:
@@ -132,4 +132,12 @@ export async function fetchKpisSedes(desde: Date, hasta: Date) {
   })
   if (error) throw error
   return data as ComparacionSede[]
+}
+
+// Alertas y excepciones del momento (migración 0020), solo gerencia. Sin
+// sedeId, de todas las sedes.
+export async function fetchAlertas(sedeId?: string) {
+  const { data, error } = await supabase.rpc('alertas_gerencia', { p_sede_id: sedeId ?? null })
+  if (error) throw error
+  return data as AlertaGerencia[]
 }

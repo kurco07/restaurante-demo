@@ -204,10 +204,10 @@ Para cadenas: reportes consolidados de todas las sedes de un tenant, o filtrados
 
 Construido con Pedro (2026-10-22): selector **"Todas las sedes" / una sede** en todo el panel de gerencia (Ventas, Rentabilidad, Inventario, Reporte por día; solo aparece con 2+ sedes) y página **"Sedes"** (`/gerencia/sedes`) que compara las sedes en el período: ventas y su parte del total, cuentas, ticket, propinas, margen bruto, anulado, merma e inventario. Costo de insumos: con sede elegida, sus propias compras; en "Todas", la compra más reciente de cualquier sede (decisión de Pedro, ya era así desde `0012`). Función `kpis_sedes` (migración `0019`). Datos demo: `supabase/seeds/demo_segunda_sede.sql`. Migración `0019` aplicada y datos demo cargados por Pedro; verificado en Supabase real (2026-10-22). Detalle en `docs/Registro_de_Cambios.md`.
 
-**Módulo 4 — Alertas y excepciones** 🔲 *identificado en auditoría (2026-10-13), no construido*
+**Módulo 4 — Alertas y excepciones** ✅ *(migración `0020` aplicada y probada por Pedro, 2026-10-22)*
 `arquitectura.md` §4.4 lo incluye explícitamente ("mermas anómalas, descuentos excesivos") pero no tenía módulo propio en este roadmap. Son las excepciones que gerencia necesita ver sin tener que salir a buscarlas activamente.
 
-Definido con Pedro (2026-10-22), todavía sin construir:
+Definido con Pedro (2026-10-22). Construido en `/gerencia/alertas`, con un contador en la barra lateral, a partir de la función `alertas_gerencia` (migración `0020`):
 - **Entran:** (1) merma alta: merma de la semana en $ más de 50% sobre el promedio de las 4 semanas anteriores, o más del 3% de las ventas; (3) anulación de platos ya preparados (en preparación o listo) por más de $15 en un día; (4) faltante en un conteo físico de más del 10% del stock de un insumo o más de $20; (5) plato con margen negativo; (6) ventas caídas: un día con menos del 60% del promedio del mismo día de la semana; (7) insumo bajo su `stock_minimo`.
 - **No entra:** muchas anulaciones de una misma persona (más de 3 platos o más del 5% de lo vendido en un día). Los "descuentos excesivos" de §4.4 no aplican porque los descuentos están fuera del MVP.
 - **Umbrales fijos** por ahora; hacerlos configurables por restaurante queda para la Fase 7.

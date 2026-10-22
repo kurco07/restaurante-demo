@@ -4,10 +4,10 @@ import { PanelSidebar, type EnlaceSidebar } from '../../../components/layout/Pan
 interface GerenciaSidebarProps {
   nombre: string
   rol: Rol
+  // Alertas activas, para el contador junto a "Alertas"
+  alertas: number
 }
 
-// Alertas es el Módulo 4 de la Fase 5 (Roadmap): todavía no existe y
-// lleva a /proximamente.
 const enlaces: EnlaceSidebar[] = [
   {
     label: 'Ventas',
@@ -57,7 +57,7 @@ const enlaces: EnlaceSidebar[] = [
   },
   {
     label: 'Alertas',
-    to: '/proximamente',
+    to: '/gerencia/alertas',
     icono: (
       <>
         <path d="M6 16V11a6 6 0 0112 0v5l2 2H4l2-2z" />
@@ -67,6 +67,7 @@ const enlaces: EnlaceSidebar[] = [
   },
 ]
 
-export function GerenciaSidebar({ nombre, rol }: GerenciaSidebarProps) {
-  return <PanelSidebar enlaces={enlaces} nombre={nombre} rol={rol} />
+export function GerenciaSidebar({ nombre, rol, alertas }: GerenciaSidebarProps) {
+  const conContador = enlaces.map((e) => (e.to === '/gerencia/alertas' ? { ...e, contador: alertas } : e))
+  return <PanelSidebar enlaces={conContador} nombre={nombre} rol={rol} />
 }

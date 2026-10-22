@@ -4,6 +4,55 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-22 — Alertas y excepciones para gerencia (Fase 5, Módulo 4)
+
+Rama: `feature/fase5-alertas` (sale de `feature/fase5-multi-sede`). Autor: Pedro (con Claude Code). Migración `0020_alertas_gerencia.sql` **aplicada en Supabase por Pedro (2026-10-22)**.
+
+### Decisiones (Pedro, 2026-10-22)
+
+Seis alertas, umbrales fijos, solo para gerencia, y solo se muestran (no hay "marcar como revisada"). El detalle y los umbrales están en el Roadmap, Fase 5, Módulo 4:
+
+- merma alta
+- anulación de platos ya preparados
+- faltante en conteo físico
+- plato con margen negativo
+- ventas caídas
+- stock bajo mínimo
+
+No entra "muchas anulaciones de una persona".
+
+### Qué cambió
+
+**Base de datos (migración `0020`):** `alertas_gerencia(p_sede_id)`.
+- Calcula las seis alertas al momento y devuelve tipo, gravedad, sede, fecha y los datos que dispararon cada una.
+- Solo responde a gerencia: el rol se verifica dentro de la función.
+- Es `security invoker`, así que RLS sigue separando restaurantes.
+- Los días se cuentan en la zona horaria de cada sede.
+- Costo de los insumos: la última compra de la sede o, si nunca se compró ahí, la de cualquier sede. Un insumo nunca comprado no suma a la merma en $.
+- El faltante del conteo físico sale de la referencia que guarda `useConteoFisico` ("teórico X, contado Y").
+- Gravedad "alta": plato con margen negativo, insumo agotado, y merma que cumple los dos criterios a la vez. Las demás son "media".
+
+**Frontend:**
+- Página **Alertas** (`/gerencia/alertas`): cada alerta con su gravedad, explicada en una frase, y un enlace a donde se ve el detalle (Inventario, Rentabilidad o el Reporte por día de esa fecha). Incluye un resumen por tipo y la explicación de cómo se calcula cada una.
+- La página respeta el selector de sede. No usa el de período, porque cada alerta tiene su propia ventana fija.
+- **Contador rojo** junto a "Alertas" en la barra lateral, visible desde cualquier sección. La barra lateral compartida (`PanelSidebar`) acepta ahora un `contador` opcional.
+- El Reporte por día acepta `?dia=YYYY-MM-DD` para abrir directamente una fecha.
+
+**Prueba sobre una copia local de la base**, con todas las migraciones y los datos demo:
+- Las seis alertas se disparan con su caso.
+- Los casos por debajo del umbral no se disparan: un conteo de 1%, un insumo con stock suficiente y una merma normal.
+- Una merma que triplica el promedio sale como "alta".
+- El supervisor recibe el error "Solo gerencia puede ver las alertas".
+
+### Pendiente
+
+- [x] Aplicar `0020_alertas_gerencia.sql` en el SQL Editor.
+- [x] Probar en la app con el usuario de gerencia, con los datos demo de las dos sedes cargados.
+- [x] Con eso verificado, marcar el Módulo 4 con ✅ en el Roadmap (Pedro lo probó, 2026-10-22).
+- Observación de la prueba: la regla "más de 50% sobre el promedio" también salta con montos chicos. Con los datos demo, la Sede Norte da alerta por $12.64 de merma frente a un promedio de $3.85. Queda como está, porque así se decidió, pero un monto mínimo semanal ayudaría.
+
+---
+
 ## 2026-10-22 — Vista multi-sede para gerencia (Fase 5, Módulo 3)
 
 Rama: `feature/fase5-multi-sede`. Autor: Pedro (con Claude Code). Migración `0019_kpis_sedes.sql` **aplicada en Supabase por Pedro (2026-10-22)**.

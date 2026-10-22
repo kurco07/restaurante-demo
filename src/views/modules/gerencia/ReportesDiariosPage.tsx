@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   claveDia,
   sumarDiasClave,
@@ -33,11 +34,14 @@ function fechaCorta(dia: string) {
 // el supervisor, pero de cualquier día pasado y de todas las sedes, más el
 // historial día por día para comparar. No usa el selector de período del
 // resto del panel (aquí la unidad es el día), pero sí el de sede.
+// ?dia=YYYY-MM-DD abre ese día (lo usan los enlaces de Alertas).
 export default function ReportesDiariosPage() {
   const { sedeId } = useKpisGerencia()
+  const [params] = useSearchParams()
   const hoy = claveDia(new Date())
+  const pedido = params.get('dia')
   const [vista, setVista] = useState<Vista>('dia')
-  const [dia, setDia] = useState(hoy)
+  const [dia, setDia] = useState(pedido && /^\d{4}-\d{2}-\d{2}$/.test(pedido) && pedido <= hoy ? pedido : hoy)
 
   function abrirDia(d: string) {
     setDia(d)

@@ -196,3 +196,22 @@ export interface ComparacionSede {
   // Insumos con stock que nunca se compraron en esa sede: no se valorizan
   insumos_sin_costo: number
 }
+
+// Una alerta de alertas_gerencia (migración 0020). datos cambia según el
+// tipo; la pantalla arma el texto de cada una.
+export type TipoAlerta =
+  | 'merma_alta'
+  | 'anulacion_preparada'
+  | 'conteo_faltante'
+  | 'margen_negativo'
+  | 'ventas_caidas'
+  | 'stock_bajo'
+
+export interface AlertaGerencia {
+  tipo: TipoAlerta
+  gravedad: 'alta' | 'media'
+  sede_id: string | null
+  sede: string | null
+  fecha: string | null // 'YYYY-MM-DD' en la zona horaria de la sede
+  datos: Record<string, string | number | null>
+}
