@@ -104,6 +104,7 @@ Decidieron ampliar presupuesto/timeline de fase 1 en vez de recortar alcance o h
 - Dashboards de ventas, rentabilidad por plato, rotación de inventario
 - Reportes por turno, por mesonero, por período
 - Alertas y excepciones (mermas anómalas, descuentos excesivos)
+- ✅ **Decidido (2026-10-22, Pedro):** las alertas del MVP son merma alta, anulación de platos ya preparados, faltante en conteo físico, plato con margen negativo, ventas caídas y stock bajo mínimo. No entra "muchas anulaciones de una persona", y los descuentos no aplican porque están fuera del MVP. Umbrales fijos, solo las ve gerencia, solo se muestran (sin marcar revisadas). Detalle y umbrales en el Roadmap, Fase 5, Módulo 4
 
 ### 4.5 Motor de IA
 - Sugerencias de compra de materia prima (basado en consumo histórico + tendencia)
