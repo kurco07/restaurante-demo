@@ -230,15 +230,23 @@ Construido con Pedro (2026-10-26):
 
 Decisiones de Pedro en `arquitectura.md` §4.5: corre en Edge Functions, solo se envían resúmenes sin nombres, y la aprobación se construye junto con el Módulo 2, no al final.
 
-**Módulo 2 — Sugerencias de compra**
+**Módulo 2 — Sugerencias de compra** — 🔧 *construido, falta aplicar la migración `0021` y probar con la IA real*
 Basadas en el consumo histórico registrado en `movimientos_inventario`.
+
+Decidido con Pedro (2026-10-26):
+- Las revisa **administración**, en una pestaña nueva **Sugerencias IA** dentro de Inventario (`/administracion/sugerencias-compra`).
+- Se generan **a mano**, para cubrir **7 días**.
+- **Cálculo mixto:** la base calcula consumo diario, stock, mínimo, lo ya pedido y una cantidad base (`datos_sugerencia_compra`, migración `0021`). La IA ajusta cada cantidad entre 0 y 1,5 veces la base, y explica por qué.
+- **Al aprobar** se crea un **borrador de orden por proveedor**, marcado como de la IA, que sigue el paso normal de Compras.
+
+Construido junto con el Módulo 5 (bandeja de aprobación). Detalle en `docs/Registro_de_Cambios.md`.
 
 **Módulo 3 — Sugerencias de qué platos preparar**
 Según inventario disponible y rentabilidad.
 
 **Módulo 4 — Recomendados del día**
 
-**Módulo 5 — Flujo de aprobación humana** *(decisión de Pedro, 2026-10-26: se construye junto con el Módulo 2 y se reutiliza en el 3 y el 4, no al final)*
+**Módulo 5 — Flujo de aprobación humana** *(decisión de Pedro, 2026-10-26: se construye junto con el Módulo 2 y se reutiliza en el 3 y el 4, no al final)* — 🔧 *base construida con el Módulo 2: triggers de `sugerencias_ia`, aprobar y rechazar con motivo, y la bandeja de compras*
 Ninguna sugerencia se ejecuta sola — cada una queda en `sugerencias_ia` con estado pendiente hasta que un usuario la apruebe o la rechace. Esto no es opcional, es una regla del proyecto (ver `CLAUDE.md`).
 
 ---

@@ -4,6 +4,84 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-26 — Sugerencias de compra con la IA y su aprobación (Fase 6, Módulos 2 y 5)
+
+Rama: `feature/fase6-sugerencias-compra` (sale de `feature/fase6-ia-adaptador`). Autor: Pedro (con Claude Code). Migración `0021_sugerencias_compra.sql` **pendiente de aplicar en Supabase** (SQL Editor). La Edge Function `ia-sugerir-compras` **ya está desplegada**.
+
+### Decisiones (Pedro, 2026-10-26)
+
+- Las sugerencias de compra las revisa y aprueba **administración**.
+- **Al aprobar se crea un borrador de orden por proveedor**, marcado como sugerido por la IA (`creada_por` nulo). Se edita y se aprueba con el paso normal de Compras. La IA nunca crea una orden aprobada.
+- **Cálculo mixto:** los números los pone la base y la IA solo ajusta y explica.
+- Se generan **a mano**, para **7 días**.
+
+### Qué cambió
+
+**Base de datos (migración `0021`):**
+- `sugerencias_ia.revisada_en`: cuándo se revisó cada sugerencia.
+- `datos_sugerencia_compra(sede, dias)` calcula, por insumo "exacto" o "por lote" de la sede:
+  - consumo diario (salidas y mermas de 28 días);
+  - stock y mínimo;
+  - lo ya pedido y sin llegar (borradores y aprobadas), para no pedirlo dos veces;
+  - la cantidad base = consumo × días + mínimo − stock − lo pedido;
+  - los días que alcanza el stock;
+  - el proveedor y el costo de la última compra.
+- Trigger `validar_sugerencia_ia`, porque RLS deja escribir en `sugerencias_ia` a cualquiera del restaurante:
+  - toda sugerencia nace "pendiente";
+  - se revisa una sola vez, y el servidor anota quién y cuándo;
+  - las de compra solo las revisa administración;
+  - una sugerencia revisada no cambia, y ninguna se borra.
+- `aprobar_sugerencia_compra(id, items)`: valida rol, sede, cantidades y proveedores. Crea un borrador por proveedor y marca la sugerencia como aprobada, todo en una sola transacción.
+- `rechazar_sugerencia_ia(id, motivo)`: exige motivo. Sirve también para los Módulos 3 y 4.
+
+**Edge Function `ia-sugerir-compras`** (solo administración):
+- Lee los números de su sede.
+- Le pasa a la IA solo los insumos que hay que reponer, con referencias cortas y solo cifras (sin ids, proveedores ni personas).
+- Valida la respuesta con `_shared/compras.ts`:
+  - se descartan insumos inventados o repetidos;
+  - cada cantidad se recorta entre 0 y 1,5 veces la base, y se redondea como en la base;
+  - un insumo que la IA no revisó queda con la cantidad calculada.
+- Guarda la sugerencia como pendiente. No crea órdenes.
+- `compras.test.ts`: 8 pruebas de esa validación.
+
+**Frontend:** pestaña **Sugerencias IA** en Inventario de administración (`/administracion/sugerencias-compra`):
+- Botón "Generar sugerencias (7 días)".
+- Bandeja de revisión: por cada insumo se ve stock, consumo, días que alcanza, cantidad calculada y motivo de la IA. Se puede quitar el insumo, cambiar la cantidad o el proveedor, y elegir proveedor para los que nunca se compraron.
+- "Aprobar y crear borradores", o "Rechazar" con motivo.
+- Historial de las revisadas.
+- Los borradores aparecen en Compras como "IA (sugerida)".
+
+**Datos demo:** `supabase/seeds/demo_compras_sede_norte.sql` baja el stock de 8 insumos de la Sede Norte (que es toda inventada) para que haya algo que sugerir. Explica cómo pasar al usuario de administración a esa sede para probar, y cómo devolverlo.
+
+**Verificado** sobre una copia local de la base, con todas las migraciones y los datos demo:
+- Una sugerencia no se puede colar como aprobada.
+- Mesonero y gerencia no pueden aprobar.
+- No se aprueba vacía, con cantidad 0 o sin proveedor.
+- Al aprobar se crean 2 borradores (uno por proveedor), con `creada_por` nulo y sin aprobar.
+- Lo pedido se descuenta de la siguiente sugerencia.
+- Una sugerencia revisada no se puede cambiar, volver a aprobar ni borrar.
+- Rechazar exige motivo.
+
+Además: 19 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
+
+**Falta:** la prueba con Gemini real.
+
+### Pasos para probarla
+
+1. Aplicar `supabase/migrations/0021_sugerencias_compra.sql` en el SQL Editor.
+2. Correr `supabase/seeds/demo_compras_sede_norte.sql` en el SQL Editor.
+3. Pasar al usuario de administración de prueba a la Sede Norte. La instrucción SQL está al principio de ese mismo script. Después, cerrar sesión y volver a entrar.
+4. Ir a Administración → Inventario → **Sugerencias IA** → **Generar sugerencias**, revisar y aprobar. Comprobar que los borradores aparecen en **Compras**.
+5. Devolver al usuario de administración a su sede (también está en el script).
+
+### Pendiente
+
+- [ ] Pasos 1 a 5.
+- [ ] Con eso verificado, marcar el Módulo 2 con ✅. El Módulo 5 se cierra cuando los Módulos 3 y 4 también usen la bandeja.
+- Límite conocido: cualquier usuario del restaurante puede **insertar** una sugerencia directamente por la API (RLS lo permite), aunque siempre entra como "pendiente" y solo administración la puede aprobar. Cerrarlo pide una política de inserción por rol.
+
+---
+
 ## 2026-10-26 — Capa adaptadora de IA (Fase 6, Módulo 1)
 
 Rama: `feature/fase6-ia-adaptador`. Autor: Pedro (con Claude Code). **No tiene migraciones.**

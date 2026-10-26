@@ -27,6 +27,7 @@ import InsumosPage from './views/modules/administracion/InsumosPage'
 import LotesPage from './views/modules/administracion/LotesPage'
 import ConfiguracionPage from './views/modules/administracion/ConfiguracionPage'
 import ComprasPage from './views/modules/administracion/ComprasPage'
+import SugerenciasCompraPage from './views/modules/administracion/SugerenciasCompraPage'
 import GerenciaLayout from './views/modules/gerencia/GerenciaLayout'
 import VentasPage from './views/modules/gerencia/VentasPage'
 import RentabilidadPage from './views/modules/gerencia/RentabilidadPage'
@@ -168,6 +169,14 @@ export default function App() {
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
                   <ComprasPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/administracion/sugerencias-compra"
+              element={
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                  <SugerenciasCompraPage />
                 </ProtectedRoute>
               }
             />

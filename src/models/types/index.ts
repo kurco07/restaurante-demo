@@ -57,4 +57,12 @@ export type {
   TipoAlerta,
   AlertaGerencia,
 } from './kpis'
-export type { ResultadoPruebaIA } from './ia'
+export type {
+  ResultadoPruebaIA,
+  PrioridadCompra,
+  ItemSugerenciaCompra,
+  EstadoSugerencia,
+  SugerenciaCompra,
+  ItemAprobadoCompra,
+  ResultadoGenerarCompra,
+} from './ia'

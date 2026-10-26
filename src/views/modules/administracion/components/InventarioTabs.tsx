@@ -1,14 +1,15 @@
 import { NavLink } from 'react-router-dom'
 
-// Compartido entre las 5 pantallas de inventario (Insumos, Movimientos,
-// Conteo físico, Proveedores, Compras) — cada una vive en su propia ruta
-// bajo /administracion.
+// Compartido entre las pantallas de inventario (Insumos, Movimientos,
+// Conteo físico, Proveedores, Compras, Sugerencias IA) — cada una vive en
+// su propia ruta bajo /administracion.
 const tabs = [
   { label: 'Insumos', to: '/administracion/insumos' },
   { label: 'Movimientos', to: '/administracion/movimientos' },
   { label: 'Conteo físico', to: '/administracion/conteo-fisico' },
   { label: 'Proveedores', to: '/administracion/proveedores' },
   { label: 'Compras', to: '/administracion/compras' },
+  { label: 'Sugerencias IA', to: '/administracion/sugerencias-compra' },
 ]
 
 export function InventarioTabs() {
