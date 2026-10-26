@@ -12,20 +12,80 @@ interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
+// Copia propia de la sesión, separada de la que ya persiste el SDK de
+// Supabase: cuando el token de acceso ya expiró de verdad (no solo "cerca
+// de expirar"), getSession() intenta renovarlo, la renovación falla por
+// falta de red, y el SDK trata la sesión como inválida — aunque la única
+// razón real sea "no hay internet para confirmarlo", no que el usuario
+// haya cerrado sesión. Reproducido en vivo: recargar la página offline
+// con el token ya vencido mandaba derecho a /login sin dejar entrar.
+// Mesoneros, cocina y mesas deben seguir funcionando sin internet
+// (CLAUDE.md) — un dispositivo del restaurante que ya inició sesión una
+// vez debe poder seguir actuando como ese usuario mientras está offline,
+// hasta que vuelva la conexión y el SDK reconcilie la sesión real.
+const CLAVE_CACHE = 'beta-restaurant-sesion-offline'
+
+function guardarCache(session: Session) {
+  try {
+    localStorage.setItem(CLAVE_CACHE, JSON.stringify(session))
+  } catch {
+    // Almacenamiento lleno o no disponible — se pierde la resiliencia
+    // offline pero no rompe nada mientras hay conexión.
+  }
+}
+
+function leerCache(): Session | null {
+  try {
+    const guardada = localStorage.getItem(CLAVE_CACHE)
+    return guardada ? (JSON.parse(guardada) as Session) : null
+  } catch {
+    return null
+  }
+}
+
+function borrarCache() {
+  try {
+    localStorage.removeItem(CLAVE_CACHE)
+  } catch {
+    // no-op
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
+      if (data.session) {
+        setSession(data.session)
+        guardarCache(data.session)
+      } else if (!navigator.onLine) {
+        setSession(leerCache())
+      } else {
+        setSession(null)
+        borrarCache()
+      }
       setLoading(false)
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (event === 'SIGNED_OUT') {
+        borrarCache()
+        setSession(null)
+        return
+      }
+      if (newSession) {
+        guardarCache(newSession)
+        setSession(newSession)
+        return
+      }
+      // newSession nula sin ser un cierre de sesión explícito (ej. una
+      // renovación automática en segundo plano que falló) — offline no
+      // se trata como cierre de sesión real.
+      setSession(!navigator.onLine ? leerCache() : null)
     })
 
     return () => subscription.unsubscribe()
@@ -37,6 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    // Se borra la caché local primero: "cerrar sesión" debe funcionar de
+    // verdad aunque el dispositivo esté offline en ese momento, aunque la
+    // llamada al servidor de Supabase (que invalida el refresh token del
+    // lado del servidor) no pueda completarse sin conexión.
+    borrarCache()
     await supabase.auth.signOut()
   }
 
