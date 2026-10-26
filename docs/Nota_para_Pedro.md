@@ -45,7 +45,7 @@ El usuario probó offline en serio por primera vez (mesonero, en su teléfono) y
 2. Si el token de sesión ya había expirado de verdad, `getSession()` intentaba renovarlo, fallaba por falta de red, y el SDK trataba la sesión como inválida. `AuthProvider.tsx` ahora guarda su propia copia de la última sesión válida y la usa como respaldo offline (con límite de 4 segundos de espera, para no quedarse colgado esperando un fetch que nunca va a responder).
 3. La más gorda: el service worker de la PWA **nunca cacheaba los `.wasm` de PowerSync** (`vite.config.ts` — el glob pattern no incluía `wasm`). Sin eso, el motor de SQLite local ni siquiera podía abrir la base offline. Esto estaba roto desde que existe el modo offline, simplemente nunca se había probado a fondo con una recarga real sin red.
 
-Con esto, el **Fase 2, Módulo 4** del roadmap (prueba real de sincronización offline) ya se puede dar por cerrado — confirmado funcionando por el usuario en su teléfono. Si tú o tu IA tocan `vite.config.ts`, `AuthProvider.tsx`, o `UsuarioProvider.tsx`, lean los comentarios ahí antes de cambiar nada — cada uno explica el bug real que arregla.
+Con esto, el **Fase 2, Módulo 4** del roadmap (prueba real de sincronización offline) está arreglado y confirmado — pero **solo para mesonero** (lo único que el usuario probó hasta ahora, en su teléfono). Falta repetir la misma prueba real con **cocina** (el otro rol que `CLAUDE.md` exige que funcione sin internet) antes de marcar el módulo como cerrado del todo — la arquitectura es la misma (PowerSync + los mismos `AuthProvider`/`UsuarioProvider` corregidos), así que debería funcionar igual, pero no está confirmado todavía. Si tú o tu IA tocan `vite.config.ts`, `AuthProvider.tsx`, o `UsuarioProvider.tsx`, lean los comentarios ahí antes de cambiar nada — cada uno explica el bug real que arregla.
 
 ---
 
@@ -59,7 +59,7 @@ Van juntas para que quien hable con él las repase todas de una vez:
 
 ## 4. Lo que sigue en el Roadmap
 
-Con Fase 2 (ya con el Módulo 4 cerrado) hasta Fase 5 completas, lo siguiente es:
+Con Fase 2 (Módulo 4 arreglado, falta confirmar offline en cocina) hasta Fase 5 completas, lo siguiente es:
 
 **Fase 6 — Inteligencia artificial.** Módulo 1 es la capa adaptadora del proveedor de IA (empezar con Gemini por el nivel gratuito). Regla dura del proyecto, no negociable: **ninguna sugerencia de la IA se ejecuta sola**, siempre la aprueba una persona (`sugerencias_ia` con estado pendiente).
 
