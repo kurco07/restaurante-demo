@@ -51,15 +51,42 @@ function borrarCache() {
   }
 }
 
+// Sin red, un fetch() puede tardar mucho en fallar de verdad (sobre todo
+// en datos móviles con señal débil, en vez de wifi apagado) — no basta con
+// el truco de "usar la caché si getSession() devuelve null", porque en los
+// hechos ni siquiera llega a resolver rápido. Reproducido en vivo: la
+// pantalla se quedaba en "Cargando sesión…" varios minutos en vez de caer
+// al respaldo. Se le pone un límite de tiempo explícito: si no responde en
+// ese plazo, se asume sin red y se usa la última sesión válida conocida.
+const LIMITE_MS = 4000
+
+function conLimiteDeTiempo<T>(promesa: Promise<T>, ms: number): Promise<T | 'tiempo-agotado'> {
+  return new Promise((resolve) => {
+    const id = setTimeout(() => resolve('tiempo-agotado'), ms)
+    promesa.then(
+      (valor) => {
+        clearTimeout(id)
+        resolve(valor)
+      },
+      () => {
+        clearTimeout(id)
+        resolve('tiempo-agotado')
+      },
+    )
+  })
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        setSession(data.session)
-        guardarCache(data.session)
+    conLimiteDeTiempo(supabase.auth.getSession(), LIMITE_MS).then((resultado) => {
+      if (resultado === 'tiempo-agotado') {
+        setSession(leerCache())
+      } else if (resultado.data.session) {
+        setSession(resultado.data.session)
+        guardarCache(resultado.data.session)
       } else if (!navigator.onLine) {
         setSession(leerCache())
       } else {
