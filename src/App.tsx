@@ -34,6 +34,7 @@ import InventarioGerenciaPage from './views/modules/gerencia/InventarioGerenciaP
 import ReportesDiariosPage from './views/modules/gerencia/ReportesDiariosPage'
 import SedesPage from './views/modules/gerencia/SedesPage'
 import AlertasPage from './views/modules/gerencia/AlertasPage'
+import SugerenciasIAPage from './views/modules/gerencia/SugerenciasIAPage'
 import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
 import ProximamentePage from './views/modules/proximamente/ProximamentePage'
@@ -201,6 +202,7 @@ export default function App() {
               <Route path="reportes" element={<ReportesDiariosPage />} />
               <Route path="sedes" element={<SedesPage />} />
               <Route path="alertas" element={<AlertasPage />} />
+              <Route path="sugerencias" element={<SugerenciasIAPage />} />
             </Route>
             <Route
               path="/super-admin"

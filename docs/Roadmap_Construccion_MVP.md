@@ -220,8 +220,15 @@ Definido con Pedro (2026-10-22). Construido en `/gerencia/alertas`, con un conta
 
 Se construye una vez que las fases anteriores ya están generando datos reales — la IA no tiene nada de qué aprender antes de eso.
 
-**Módulo 1 — Capa adaptadora de proveedor de IA**
+**Módulo 1 — Capa adaptadora de proveedor de IA** ✅ *(conexión probada por Pedro, 2026-10-26: `gemini-flash-lite-latest`, 0,6 s)*
 Integración desacoplada del proveedor (empezar con la API de Gemini por su nivel gratuito para pruebas, según lo ya decidido), para poder cambiar de modelo sin reescribir el resto.
+
+Construido con Pedro (2026-10-26):
+- Interfaz común `ProveedorIA` y adaptador de Gemini en `supabase/functions/_shared/ia/`, con 11 pruebas que no usan red.
+- Edge Function `ia-probar`, que prueba la conexión sin mandar datos del restaurante.
+- Página **Sugerencias IA** en gerencia, con el botón "Probar conexión".
+
+Decisiones de Pedro en `arquitectura.md` §4.5: corre en Edge Functions, solo se envían resúmenes sin nombres, y la aprobación se construye junto con el Módulo 2, no al final.
 
 **Módulo 2 — Sugerencias de compra**
 Basadas en el consumo histórico registrado en `movimientos_inventario`.
@@ -231,7 +238,7 @@ Según inventario disponible y rentabilidad.
 
 **Módulo 4 — Recomendados del día**
 
-**Módulo 5 — Flujo de aprobación humana**
+**Módulo 5 — Flujo de aprobación humana** *(decisión de Pedro, 2026-10-26: se construye junto con el Módulo 2 y se reutiliza en el 3 y el 4, no al final)*
 Ninguna sugerencia se ejecuta sola — cada una queda en `sugerencias_ia` con estado pendiente hasta que un usuario la apruebe o la rechace. Esto no es opcional, es una regla del proyecto (ver `CLAUDE.md`).
 
 ---

@@ -4,6 +4,71 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-26 — Capa adaptadora de IA (Fase 6, Módulo 1)
+
+Rama: `feature/fase6-ia-adaptador`. Autor: Pedro (con Claude Code). **No tiene migraciones.**
+
+### Decisiones (Pedro, 2026-10-26), también en `arquitectura.md` §4.5
+
+- La IA corre en **Edge Functions de Supabase**. La clave nunca llega al navegador.
+- Al modelo se le mandan **solo resúmenes con cifras, sin nombres** de personas ni datos de clientes. El nivel gratuito de Gemini puede usar lo que recibe.
+- La **aprobación de sugerencias** se construye junto con el Módulo 2, no al final.
+- Pedro crea la clave de Gemini.
+
+### Qué cambió
+
+**Capa de IA** (`supabase/functions/_shared/ia/`):
+- `proveedor.ts`: la interfaz común `ProveedorIA.generarJSON(instrucciones, mensaje, esquema)`, que pide siempre un JSON con forma fija. También define `ErrorIA`, con códigos propios y mensajes en español (`no_configurada`, `clave_invalida`, `modelo_no_encontrado`, `cuota_agotada`, `bloqueada`, `respuesta_invalida`, `sin_conexion`).
+- `gemini.ts`: el adaptador de Gemini por su API REST.
+  - La clave va en un encabezado, no en la URL.
+  - El esquema se traduce al formato de Gemini.
+  - Espera como máximo 30 segundos.
+  - Traduce cada error de Gemini a un código propio.
+- `index.ts`: `obtenerProveedorIA(config)` elige el adaptador según el secreto `IA_PROVEEDOR`, que por defecto es `gemini`. Cambiar de proveedor es escribir otro adaptador y agregar un `case`.
+- `ia.test.ts`: 11 pruebas con un Gemini falso, sin red ni clave. Se corren con `node --test supabase/functions/_shared/ia/ia.test.ts`.
+
+**Edge Functions:**
+- `_shared/http.ts`: CORS, respuestas en JSON y `autenticar(req, roles)`. Identifica a quien llama con su propia sesión, verifica su rol y devuelve un cliente que pasa por RLS. **No se usa la clave de servicio.**
+- `ia-probar`: hace una pregunta mínima al modelo y devuelve proveedor, modelo y tiempo de respuesta. No envía datos del restaurante ni guarda nada. Solo para gerencia y administración.
+
+**Frontend:** página **Sugerencias IA** (`/gerencia/sugerencias`), con el botón "Probar conexión". Aquí van a llegar las sugerencias de los Módulos 2 a 4.
+
+**Verificado:**
+- Las pruebas del adaptador pasan (11 al cierre del módulo).
+- `deno check` de la función, sin errores.
+- La función se levantó localmente con Deno: la consulta previa de CORS (OPTIONS) responde 200, y las llamadas sin sesión o con una sesión inválida reciben 401.
+- `tsc -b` y `npm run build` pasan.
+
+**Falta:** la prueba real contra Gemini, que necesita la clave.
+
+### Pasos para activarla
+
+1. **Crear la clave de Gemini (gratis, sin tarjeta):** entra a https://aistudio.google.com con una cuenta de Google, ve a **Get API key**, luego **Create API key**, y cópiala. No la pegues en el chat ni en el código.
+2. **Guardarla en Supabase:** en el panel de Supabase, ve a **Edge Functions**, luego **Secrets**, y agrega `GEMINI_API_KEY` con la clave. Es opcional agregar también `GEMINI_MODELO`. Si no se pone, se usa `gemini-flash-lite-latest`. Si un modelo no existe o no responde a tiempo, la prueba lo dice, lista los modelos que la clave sí puede usar, y se cambia este secreto.
+3. **Desplegar la función** desde la carpeta del proyecto:
+   ```bash
+   npx supabase login
+   npx supabase functions deploy ia-probar --use-api
+   ```
+   `--use-api` evita necesitar Docker. El proyecto ya está vinculado (`supabase/.temp/project-ref`).
+4. **Probar:** entra como gerente, ve a **Sugerencias IA** y toca **Probar conexión**. Tiene que salir "Conectada: gemini · … respondió en X s".
+
+### Resultado de la puesta en marcha (2026-10-26)
+
+- [x] Pedro creó la clave y la guardó como secreto. La función `ia-probar` quedó desplegada y la prueba conecta: **`gemini-flash-lite-latest` respondió en 0,6 s**.
+- Lo que se aprendió con la clave nueva:
+  - `gemini-2.5-flash-lite` y `gemini-2.5-flash` devuelven "no encontrado", aunque aparecen en la lista de modelos.
+  - `gemini-flash-latest` no respondió en 60 s.
+  - El alias **`gemini-flash-lite-latest`** funciona. Por eso quedó como predeterminado del código y como valor del secreto `GEMINI_MODELO`.
+- Mejoras que salieron de esa prueba:
+  - El error del modelo muestra el motivo exacto que da Gemini.
+  - Se distingue "no respondió a tiempo" (`tiempo_agotado`) de "no se pudo conectar". La espera máxima subió a 60 s.
+  - Cuando el modelo falla, la prueba lista los modelos que la clave sí puede usar.
+  - Ahora son 11 pruebas.
+- [x] Módulo 1 marcado con ✅ en el Roadmap.
+
+---
+
 ## 2026-10-22 — Alertas y excepciones para gerencia (Fase 5, Módulo 4)
 
 Rama: `feature/fase5-alertas` (sale de `feature/fase5-multi-sede`). Autor: Pedro (con Claude Code). Migración `0020_alertas_gerencia.sql` **aplicada en Supabase por Pedro (2026-10-22)**.

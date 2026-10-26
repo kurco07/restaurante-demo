@@ -113,6 +113,10 @@ Decidieron ampliar presupuesto/timeline de fase 1 en vez de recortar alcance o h
 - ~~Atención automatizada (chat/asistente)~~ — descartada por ahora (ver 4.1)
 - ✅ **Decidido: siempre con aprobación humana.** Ninguna sugerencia de la IA se ejecuta sola (ni una orden de compra ni un cambio de menú) — el sistema propone, una persona con el rol adecuado aprueba
 - ✅ **Proveedor de IA:** pediste "bueno, bonito, barato, y gratis para pruebas" — el dato concreto: para desarrollo/pruebas, la API de Gemini (Google) tiene un nivel gratuito real, sin tarjeta de crédito, con límites de uso — sirve para probar la lógica de las sugerencias sin gastar. Para producción, los modelos "económicos" de las tres familias (Gemini Flash-Lite, GPT-5 mini/nano, Claude Haiku 4.5) cuestan centavos de dólar por cada mil interacciones — con el volumen de un restaurante, el gasto mensual de IA debería ser bajo frente a la mensualidad del modelo SaaS. Recomiendo construir la capa de IA desacoplada del proveedor (un adaptador en el backend) para poder cambiar de modelo sin reescribir el sistema
+- ✅ **Decidido (2026-10-26, Pedro): cómo se construye la IA.**
+  - **Dónde corre:** en Edge Functions de Supabase. La clave del proveedor es un secreto de Supabase y nunca llega al navegador. Cada función actúa con la sesión de quien la llama, así que RLS sigue separando restaurantes.
+  - **Qué datos se envían:** solo resúmenes con cifras (consumo por insumo, ventas por plato, stock), nunca nombres de personas ni datos de clientes. El nivel gratuito de Gemini puede usar lo que recibe para mejorar sus productos. Para restaurantes reales en producción hay que pasar a un nivel pago que no use los datos.
+  - **Aprobación:** la bandeja para aprobar o rechazar sugerencias se construye con el primer módulo que genera sugerencias (Módulo 2) y se reutiliza en los siguientes. Así nunca existe una sugerencia sin forma de revisarla.
 
 ### 4.6 Realidad aumentada
 - Visualización de porciones/platos en AR desde el dispositivo del cliente
