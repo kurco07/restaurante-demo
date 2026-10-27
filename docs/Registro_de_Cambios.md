@@ -77,7 +77,12 @@ Además: 19 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
 ### Resultado de la prueba (2026-10-26)
 
 - [x] Pasos 1 a 4. Pedro generó, aprobó una sugerencia y rechazó las demás. La aprobación creó 2 borradores "IA (sugerida)", uno por proveedor: Distribuidora Norte con 10 insumos ($122.04), y Distribuidora con 1 insumo sin precio de referencia ($0.00, porque nunca se había comprado).
-- [ ] Paso 5: devolver al usuario de administración a su sede.
+- [x] Paso 5: el usuario de administración volvió a la Sede Principal.
+- [x] Ciclo completo verificado en la base: generar, aprobar la sugerencia, aprobar la orden OC-E417AD02 en Compras y registrar la recepción. Los 11 insumos sumaron al stock la cantidad exacta pedida, cada uno con su movimiento de "entrada".
+- **Problema a vigilar en el modo offline (para César):** durante la prueba, el navegador de Pedro se quedó con una **copia local de PowerSync trabada**. Después de cambiar de sede al usuario, la fila nueva nunca se aplicó en el navegador, aunque cerrara sesión y recargara con Ctrl + F5.
+  - Se descartó todo lo del lado del servidor: el slot de replicación de PowerSync estaba activo y sin atraso, `usuarios` está en la publicación, PowerSync aceptó el token de sesión y su stream mandaba la versión nueva de la fila.
+  - Se arregló borrando los datos del sitio (F12 → Application → Storage → Clear site data).
+  - Si un mesonero o cocina ven datos viejos que no se actualizan, es lo mismo. Vale la pena investigar por qué se traba (¿varias pestañas abiertas?, ¿una actualización del esquema local?) y quizás ofrecer un botón de "reiniciar datos locales".
 - Dos fallas encontradas en la prueba, ya arregladas (commit `d79339a`):
   - **La bandeja no mostraba nada.** La función genera para la sede que dice la base, pero la bandeja usaba la sede del perfil guardado en el navegador (PowerSync), que quedaba atrasado después de cambiar al usuario de sede. Ahora la bandeja usa la sede del servidor, la muestra y avisa si el navegador tiene otra.
   - **Cada clic creaba una sugerencia nueva igual.** Ahora solo puede haber una pendiente por sede, y eso se controla en la pantalla y en la función.
