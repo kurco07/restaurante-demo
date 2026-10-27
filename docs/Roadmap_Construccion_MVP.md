@@ -230,7 +230,7 @@ Construido con Pedro (2026-10-26):
 
 Decisiones de Pedro en `arquitectura.md` §4.5: corre en Edge Functions, solo se envían resúmenes sin nombres, y la aprobación se construye junto con el Módulo 2, no al final.
 
-**Módulo 2 — Sugerencias de compra** — 🔧 *construido, falta aplicar la migración `0021` y probar con la IA real*
+**Módulo 2 — Sugerencias de compra** ✅ *(migración `0021` aplicada y probada por Pedro con Gemini real, 2026-10-26)*
 Basadas en el consumo histórico registrado en `movimientos_inventario`.
 
 Decidido con Pedro (2026-10-26):

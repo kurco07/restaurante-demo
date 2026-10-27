@@ -6,7 +6,7 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ## 2026-10-26 — Sugerencias de compra con la IA y su aprobación (Fase 6, Módulos 2 y 5)
 
-Rama: `feature/fase6-sugerencias-compra` (sale de `feature/fase6-ia-adaptador`). Autor: Pedro (con Claude Code). Migración `0021_sugerencias_compra.sql` **pendiente de aplicar en Supabase** (SQL Editor). La Edge Function `ia-sugerir-compras` **ya está desplegada**.
+Rama: `feature/fase6-sugerencias-compra` (sale de `feature/fase6-ia-adaptador`). Autor: Pedro (con Claude Code). Migración `0021_sugerencias_compra.sql` **aplicada en Supabase por Pedro (2026-10-26)**. La Edge Function `ia-sugerir-compras` está desplegada.
 
 ### Decisiones (Pedro, 2026-10-26)
 
@@ -74,10 +74,14 @@ Además: 19 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
 4. Ir a Administración → Inventario → **Sugerencias IA** → **Generar sugerencias**, revisar y aprobar. Comprobar que los borradores aparecen en **Compras**.
 5. Devolver al usuario de administración a su sede (también está en el script).
 
-### Pendiente
+### Resultado de la prueba (2026-10-26)
 
-- [ ] Pasos 1 a 5.
-- [ ] Con eso verificado, marcar el Módulo 2 con ✅. El Módulo 5 se cierra cuando los Módulos 3 y 4 también usen la bandeja.
+- [x] Pasos 1 a 4. Pedro generó, aprobó una sugerencia y rechazó las demás. La aprobación creó 2 borradores "IA (sugerida)", uno por proveedor: Distribuidora Norte con 10 insumos ($122.04), y Distribuidora con 1 insumo sin precio de referencia ($0.00, porque nunca se había comprado).
+- [ ] Paso 5: devolver al usuario de administración a su sede.
+- Dos fallas encontradas en la prueba, ya arregladas (commit `d79339a`):
+  - **La bandeja no mostraba nada.** La función genera para la sede que dice la base, pero la bandeja usaba la sede del perfil guardado en el navegador (PowerSync), que quedaba atrasado después de cambiar al usuario de sede. Ahora la bandeja usa la sede del servidor, la muestra y avisa si el navegador tiene otra.
+  - **Cada clic creaba una sugerencia nueva igual.** Ahora solo puede haber una pendiente por sede, y eso se controla en la pantalla y en la función.
+- [x] Módulo 2 marcado con ✅. El Módulo 5 se cierra cuando los Módulos 3 y 4 también usen la bandeja.
 - Límite conocido: cualquier usuario del restaurante puede **insertar** una sugerencia directamente por la API (RLS lo permite), aunque siempre entra como "pendiente" y solo administración la puede aprobar. Cerrarlo pide una política de inserción por rol.
 
 ---
