@@ -27,6 +27,22 @@ Deno.serve(async (req) => {
   const { supabase, perfil } = sesion
   if (!perfil.sede_id) return responder({ ok: false, mensaje: 'Tu usuario no tiene una sede asignada.' }, 403)
 
+  // Una sola pendiente por sede: si no, cada clic agrega otra igual a la
+  // bandeja y gasta cuota de la IA
+  const { count: pendientes } = await supabase
+    .from('sugerencias_ia')
+    .select('id', { count: 'exact', head: true })
+    .eq('tipo', 'compra')
+    .eq('sede_id', perfil.sede_id)
+    .eq('estado', 'pendiente')
+  if (pendientes) {
+    return responder({
+      ok: false,
+      codigo: 'ya_pendiente',
+      mensaje: 'Ya hay una sugerencia de compra pendiente en esta sede. Apruébala o recházala antes de generar otra.',
+    })
+  }
+
   const { data, error } = await supabase.rpc('datos_sugerencia_compra', { p_sede_id: perfil.sede_id, p_dias: DIAS })
   if (error) {
     console.error(error)

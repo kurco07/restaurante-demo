@@ -24,9 +24,11 @@ export default function SugerenciasCompraPage() {
   return (
     <AdminLayout usuario={usuario}>
       <EncabezadoAdmin ruta="Administración · Inventario · Sugerencias IA" titulo="Sugerencias de compra">
-        <BotonNuevo onClick={s.generando ? undefined : s.generar}>
-          {s.generando ? 'Generando… (puede tardar)' : '✦ Generar sugerencias (7 días)'}
-        </BotonNuevo>
+        {s.pendientes.length === 0 && (
+          <BotonNuevo onClick={s.generando ? undefined : s.generar}>
+            {s.generando ? 'Generando… (puede tardar)' : '✦ Generar sugerencias (7 días)'}
+          </BotonNuevo>
+        )}
       </EncabezadoAdmin>
 
       <InventarioTabs />
@@ -40,6 +42,18 @@ export default function SugerenciasCompraPage() {
         , que se revisan y aprueban como siempre.
       </p>
 
+      {s.sedeNombre && (
+        <p className="mb-3 text-[12.5px]">
+          Sede: <b>{s.sedeNombre}</b>
+        </p>
+      )}
+      {s.perfilDesactualizado && (
+        <p className="mb-5 rounded-xl bg-[var(--orange-bg)] px-4 py-3 text-[13px] font-semibold text-[var(--orange-dark)]">
+          Tu usuario cambió de sede hace poco y este navegador todavía tiene la sede anterior. Esta página ya usa la
+          sede correcta, pero el resto de Administración puede mostrar la vieja hasta que cierres sesión y vuelvas a
+          entrar (si sigue igual, recarga con Ctrl + F5).
+        </p>
+      )}
       {s.error && (
         <p className="mb-5 rounded-xl bg-[var(--red-bg)] px-4 py-3 text-[13px] font-semibold text-[var(--red)]">{s.error}</p>
       )}
@@ -56,6 +70,13 @@ export default function SugerenciasCompraPage() {
               <p className="text-[15px] font-extrabold">No hay sugerencias pendientes</p>
               <p className="mt-1 text-xs text-[var(--ink-soft)]">Toca "Generar sugerencias" para que la IA revise el inventario.</p>
             </div>
+          )}
+
+          {s.pendientes.length > 1 && (
+            <p className="mb-5 rounded-xl bg-[var(--orange-bg)] px-4 py-3 text-[13px] font-semibold text-[var(--orange-dark)]">
+              Hay {s.pendientes.length} sugerencias pendientes. Revisa la más reciente y rechaza las demás (por ejemplo,
+              con el motivo "Duplicada"); para generar otra no puede quedar ninguna pendiente.
+            </p>
           )}
 
           {s.pendientes.map((sug) => (

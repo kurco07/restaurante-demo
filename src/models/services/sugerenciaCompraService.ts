@@ -75,3 +75,18 @@ export async function rechazarSugerencia(id: string, motivo: string) {
   const { error } = await supabase.rpc('rechazar_sugerencia_ia', { p_sugerencia_id: id, p_motivo: motivo })
   if (error) throw error
 }
+
+// La sede del usuario según el SERVIDOR. La Edge Function genera para esta
+// sede (lee usuarios en la base), así que la bandeja tiene que mirar la
+// misma: el perfil local de PowerSync puede ir atrasado si la sede del
+// usuario cambió hace poco.
+export async function fetchSedeServidor(usuarioId: string) {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('sede_id, sedes(nombre)')
+    .eq('id', usuarioId)
+    .single()
+  if (error) throw error
+  const fila = data as unknown as { sede_id: string | null; sedes: { nombre: string } | null }
+  return { sedeId: fila.sede_id, sedeNombre: fila.sedes?.nombre ?? null }
+}

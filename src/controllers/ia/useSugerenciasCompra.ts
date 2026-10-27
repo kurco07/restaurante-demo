@@ -3,6 +3,7 @@ import { useUsuario } from '../usuario/useUsuario'
 import { fetchProveedores } from '../../models/services/proveedorService'
 import {
   aprobarSugerenciaCompra,
+  fetchSedeServidor,
   fetchSugerenciasCompra,
   generarSugerenciaCompra,
   rechazarSugerencia,
@@ -29,15 +30,22 @@ export function useSugerenciasCompra() {
   // Resultado de la última acción, para mostrarlo arriba
   const [aviso, setAviso] = useState<string | null>(null)
 
-  const sedeId = usuario?.sede_id
+  // Sede según el servidor (ver fetchSedeServidor): es la que usa la Edge
+  // Function al generar, así que la bandeja mira esa y no la del perfil local
+  const [sede, setSede] = useState<{ sedeId: string | null; sedeNombre: string | null } | null>(null)
+
+  const usuarioId = usuario?.id
   const tenantId = usuario?.tenant_id
 
   const cargar = useCallback(async () => {
-    if (!sedeId || !tenantId) return
-    const [lista, provs] = await Promise.all([fetchSugerenciasCompra(sedeId), fetchProveedores(tenantId)])
+    if (!usuarioId || !tenantId) return
+    const sedeServidor = await fetchSedeServidor(usuarioId)
+    setSede(sedeServidor)
+    if (!sedeServidor.sedeId) return
+    const [lista, provs] = await Promise.all([fetchSugerenciasCompra(sedeServidor.sedeId), fetchProveedores(tenantId)])
     setSugerencias(lista)
     setProveedores(provs)
-  }, [sedeId, tenantId])
+  }, [usuarioId, tenantId])
 
   useEffect(() => {
     let cancelado = false
@@ -66,6 +74,8 @@ export function useSugerenciasCompra() {
       }
       if (!r.sugerenciaId) setAviso(r.mensaje ?? 'No hace falta comprar nada por ahora.')
       await cargar()
+    } catch (e) {
+      setError(mensaje(e))
     } finally {
       setGenerando(false)
     }
@@ -104,6 +114,10 @@ export function useSugerenciasCompra() {
   }
 
   return {
+    sedeNombre: sede?.sedeNombre ?? null,
+    // El perfil guardado en este navegador dice otra sede que el servidor:
+    // pasa justo después de cambiar la sede de un usuario
+    perfilDesactualizado: !!sede && !!usuario && sede.sedeId !== usuario.sede_id,
     pendientes: sugerencias.filter((s) => s.estado === 'pendiente'),
     revisadas: sugerencias.filter((s) => s.estado !== 'pendiente'),
     proveedores,
