@@ -241,8 +241,19 @@ Decidido con Pedro (2026-10-26):
 
 Construido junto con el Módulo 5 (bandeja de aprobación). Detalle en `docs/Registro_de_Cambios.md`.
 
-**Módulo 3 — Sugerencias de qué platos preparar**
+**Módulo 3 — Sugerencias de qué platos preparar** — 🔲 *definido, sin construir (rama `feature/fase6-platos-preparar`)*
 Según inventario disponible y rentabilidad.
+
+Decidido con Pedro (2026-10-26):
+- **Quién:** lo genera y aprueba **gerencia**, en Gerencia → Sugerencias IA, porque usa rentabilidad y costos, que cocina no puede ver (§4.10). **Cocina ve la lista aprobada, sin precios**, en su pantalla. La sugerencia es por sede: un gerente de cadena elige la sede con el selector del panel.
+- **Al aprobar:** aparece en cocina como **"Platos sugeridos para hoy"**, con las porciones a preparar y el motivo. **No cambia el menú ni el inventario.**
+- **Criterios de la IA:**
+  - el **stock disponible** (cuántas porciones alcanzan según la receta);
+  - la **rentabilidad** (margen por plato);
+  - **lo que más se vende** ese día de la semana;
+  - los **insumos por vencer** (lotes con fecha cercana), para aprovecharlos.
+- **Cuándo:** **a mano, para el día**, con una pendiente a la vez por sede, igual que compras.
+- Mismo esquema mixto que compras: la base calcula los números (porciones posibles, ventas promedio, margen, lotes por vencer) y la IA elige, ordena y explica. Reutiliza la bandeja de aprobación (trigger de `sugerencias_ia` y `rechazar_sugerencia_ia`).
 
 **Módulo 4 — Recomendados del día**
 
