@@ -6,7 +6,7 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ## 2026-10-28 — Platos sugeridos para preparar hoy (Fase 6, Módulo 3)
 
-Rama: `feature/fase6-platos-preparar` (sale de `feature/fase6-sugerencias-compra`). Autor: Pedro (con Claude Code). Migración `0022_platos_a_preparar.sql` **pendiente de aplicar en Supabase** (SQL Editor). La Edge Function `ia-sugerir-platos` **ya está desplegada**.
+Rama: `feature/fase6-platos-preparar` (sale de `feature/fase6-sugerencias-compra`). Autor: Pedro (con Claude Code). Migración `0022_platos_a_preparar.sql` **aplicada en Supabase por Pedro (2026-10-28)**. La Edge Function `ia-sugerir-platos` está desplegada.
 
 ### Decisiones (Pedro, 2026-10-26)
 
@@ -75,8 +75,9 @@ Además, 28 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
 
 ### Pendiente
 
-- [ ] Pasos 1 a 3.
-- [ ] Con eso verificado, marcar el Módulo 3 con ✅.
+- [x] Pasos 1 a 3. Pedro generó y aprobó la lista como gerencia y la vio en la pestaña Sugeridos de cocina.
+- Algo que salió en la prueba: una lista aprobada para la Sede Norte no aparecía en la cocina de la Sede Principal. Funcionaba bien, porque cada cocina ve solo su sede, pero no se veía a qué sede iba la lista. Ahora el botón y el título nombran la sede, y cocina refresca la lista cada minuto y al volver a la pestaña (commit `25ad1e6`).
+- [x] Módulo 3 marcado con ✅.
 
 ---
 

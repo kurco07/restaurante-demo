@@ -241,7 +241,7 @@ Decidido con Pedro (2026-10-26):
 
 Construido junto con el Módulo 5 (bandeja de aprobación). Detalle en `docs/Registro_de_Cambios.md`.
 
-**Módulo 3 — Sugerencias de qué platos preparar** — 🔧 *construido, falta aplicar la migración `0022` y probar con la IA real*
+**Módulo 3 — Sugerencias de qué platos preparar** ✅ *(migración `0022` aplicada y probada por Pedro con Gemini real, 2026-10-28)*
 Según inventario disponible y rentabilidad.
 
 Decidido con Pedro (2026-10-26):
