@@ -6,7 +6,7 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ## 2026-10-28 — Recomendados del día en el menú del mesonero y el QR (Fase 6, Módulo 4)
 
-Rama: `feature/fase6-recomendados` (sale de `feature/fase6-platos-preparar`). Autor: Pedro (con Claude Code). Migración `0023_recomendados_del_dia.sql` **pendiente de aplicar en Supabase** (SQL Editor). La Edge Function `ia-sugerir-recomendados` **ya está desplegada**.
+Rama: `feature/fase6-recomendados` (sale de `feature/fase6-platos-preparar`). Autor: Pedro (con Claude Code). Migración `0023_recomendados_del_dia.sql` **aplicada en Supabase por Pedro (2026-10-28)**. La Edge Function `ia-sugerir-recomendados` está desplegada.
 
 ### Decisiones (Pedro, 2026-10-28)
 
@@ -75,8 +75,9 @@ Además, 36 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
 
 ### Pendiente
 
-- [ ] Pasos 1 a 4.
-- [ ] Con eso verificado, marcar los Módulos 4 y 5 con ✅. El 5 queda completo porque compras, platos y recomendados ya usan la bandeja.
+- [x] Pasos 1 a 4: Pedro lo revisó y funciona.
+- [x] Módulos 4 y 5 marcados con ✅. **La Fase 6 queda completa.**
+- Observación de Pedro: sin **fotos propias** de los platos, los recomendados lucen poco, y la IA no puede generarlas. Hoy ningún plato tiene foto real (`imagen_url` solo elige un fondo de color). Queda como pendiente aparte del menú, anotado en el Roadmap ("Fotos reales de los platos"), y no se elimina este módulo: cuando haya fotos, se van a ver solas.
 
 ---
 

@@ -255,7 +255,9 @@ Decidido con Pedro (2026-10-26):
 - **Cuándo:** **a mano, para el día**, con una pendiente a la vez por sede, igual que compras.
 - Mismo esquema mixto que compras: la base calcula los números (porciones posibles, ventas promedio, margen, lotes por vencer) y la IA elige, ordena y explica. Reutiliza la bandeja de aprobación (trigger de `sugerencias_ia` y `rechazar_sugerencia_ia`).
 
-**Módulo 4 — Recomendados del día** — 🔧 *construido, falta aplicar la migración `0023` y probar con la IA real*
+**Módulo 4 — Recomendados del día** ✅ *(migración `0023` aplicada y probada por Pedro, 2026-10-28)*
+
+Nota de Pedro al cerrarlo (2026-10-28): para que los recomendados luzcan, los platos necesitan **foto propia**, y la IA no las puede generar. Hoy **ningún plato tiene foto real** en la app: `imagen_url` solo elige un fondo de color, y no hay forma de subir una imagen. No es un problema de este módulo sino del menú, así que queda como pendiente aparte (ver "Fotos reales de los platos", en la Fase 7). Pedro duda de que los recomendados sobrevivan si nunca tienen fotos.
 
 Decidido con Pedro (2026-10-28):
 - Es una lista **aparte** de la de cocina. "Platos a preparar" (Módulo 3) dice **cuánto tener listo**; los recomendados dicen **qué ofrecer**.
@@ -267,12 +269,15 @@ Decidido con Pedro (2026-10-28):
   - una **pestaña "Sugeridos" propia en la barra del mesonero**, con contador, como la de cocina.
 - Siguiendo el mismo criterio que con cocina, los mesoneros y los clientes ven el plato y su motivo, sin costos ni márgenes. Para el cliente por QR, la lista va por una función pública que la base valida por la mesa.
 
-**Módulo 5 — Flujo de aprobación humana** *(decisión de Pedro, 2026-10-26: se construye junto con el Módulo 2 y se reutiliza en el 3 y el 4, no al final)* — 🔧 *base construida con el Módulo 2: triggers de `sugerencias_ia`, aprobar y rechazar con motivo, y la bandeja de compras*
+**Módulo 5 — Flujo de aprobación humana** ✅ *(decisión de Pedro, 2026-10-26: se construyó junto con el Módulo 2 y lo usan compras, platos a preparar y recomendados)*
 Ninguna sugerencia se ejecuta sola — cada una queda en `sugerencias_ia` con estado pendiente hasta que un usuario la apruebe o la rechace. Esto no es opcional, es una regla del proyecto (ver `CLAUDE.md`).
 
 ---
 
 ## Fase 7 — Multi-tenant, negocio y personalización
+
+**Pendiente propuesto, sin módulo asignado — Fotos reales de los platos** 🔲 *(salió al cerrar la Fase 6, 2026-10-28)*
+Una foto **por plato, subida una sola vez** en Administración → Menú, guardada en un bucket público de Storage con el mismo patrón que los modelos 3D (`0013`). La usarían el menú del mesonero, el QR, los recomendados del día y la RA. No depende de la IA, que no genera imágenes. Falta decidir con Pedro en qué fase va (aquí, como personalización, o en la Fase 9, con la interfaz final) y quién sube las fotos.
 
 **Módulo 1 — Registro self-service de un restaurante nuevo**
 Formulario de alta, sin intervención manual del equipo.
