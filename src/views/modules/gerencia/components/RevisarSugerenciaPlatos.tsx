@@ -9,6 +9,8 @@ interface Fila {
 
 interface RevisarSugerenciaPlatosProps {
   sugerencia: SugerenciaPlatos
+  // A qué sede va: cada cocina ve solo la lista de su sede
+  nombreSede?: string
   guardando: boolean
   onAprobar: (items: PlatoAprobado[]) => void
   onRechazar: (motivo: string) => void
@@ -17,7 +19,7 @@ interface RevisarSugerenciaPlatosProps {
 // Revisión de los platos sugeridos para hoy (Fase 6, Módulos 3 y 5):
 // gerencia quita platos o cambia porciones y aprueba. Lo aprobado lo ve
 // cocina, sin precios. No cambia el menú ni el inventario.
-export function RevisarSugerenciaPlatos({ sugerencia, guardando, onAprobar, onRechazar }: RevisarSugerenciaPlatosProps) {
+export function RevisarSugerenciaPlatos({ sugerencia, nombreSede, guardando, onAprobar, onRechazar }: RevisarSugerenciaPlatosProps) {
   const [filas, setFilas] = useState<Record<string, Fila>>(() =>
     Object.fromEntries(sugerencia.items.map((i) => [i.menu_item_id, { incluido: true, porciones: String(i.porciones) }])),
   )
@@ -38,7 +40,7 @@ export function RevisarSugerenciaPlatos({ sugerencia, guardando, onAprobar, onRe
     <section className="mb-5 rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-5 py-[18px]">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-[17px] font-extrabold">Platos a preparar hoy</p>
+          <p className="text-[17px] font-extrabold">Platos a preparar hoy{nombreSede && ` · ${nombreSede}`}</p>
           <p className="text-xs text-[var(--ink-soft)]">
             Generada el {new Date(sugerencia.generada_en).toLocaleString('es')}
             {sugerencia.modelo && ` · ${sugerencia.modelo}`}
@@ -147,7 +149,7 @@ export function RevisarSugerenciaPlatos({ sugerencia, guardando, onAprobar, onRe
               disabled={guardando || marcados.length === 0 || invalidos.length > 0}
               className="rounded-full bg-[var(--orange)] px-5 py-2 text-[13px] font-bold text-white disabled:opacity-50"
             >
-              {guardando ? 'Guardando…' : 'Aprobar y enviar a cocina'}
+              {guardando ? 'Guardando…' : `Aprobar y enviar a cocina${nombreSede ? ` · ${nombreSede}` : ''}`}
             </button>
           </div>
         ) : (

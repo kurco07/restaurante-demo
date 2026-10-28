@@ -69,6 +69,7 @@ export default function SugerenciasIAPage() {
               <RevisarSugerenciaPlatos
                 key={s.id}
                 sugerencia={s}
+                nombreSede={nombreSede}
                 guardando={p.guardando}
                 onAprobar={(items) => p.aprobar(s.id, items)}
                 onRechazar={(motivo) => p.rechazar(s.id, motivo)}
@@ -78,7 +79,8 @@ export default function SugerenciasIAPage() {
             {aprobadaHoy && (
               <div className="rounded-xl bg-[var(--green-bg)] px-4 py-3 text-[13px]">
                 <p className="font-bold text-[var(--green)]">
-                  En cocina hoy{aprobadaHoy.revisada_por && ` · aprobada por ${aprobadaHoy.revisada_por}`}
+                  En la cocina de {nombreSede ?? 'esta sede'} hoy
+                  {aprobadaHoy.revisada_por && ` · aprobada por ${aprobadaHoy.revisada_por}`}
                 </p>
                 <p className="mt-1">{aprobadaHoy.aprobados.map((a) => `${a.plato} (${a.porciones})`).join(' · ')}</p>
               </div>
