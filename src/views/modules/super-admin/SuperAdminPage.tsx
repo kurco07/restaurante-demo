@@ -1,10 +1,44 @@
 import { useEffect, useState } from 'react'
 import {
   actualizarTenantAdmin,
+  aplicarPresetModulos,
+  fetchModulosTenant,
   fetchTenantsAdmin,
+  fijarModuloTenant,
   marcarSuscripcion,
   type TenantAdmin,
 } from '../../../models/services/superAdminService'
+import { MODULOS_OPCIONALES, type ModuloOpcional } from '../../../models/services/modulosService'
+
+const ETIQUETA_MODULO: Record<ModuloOpcional, string> = {
+  ia_sugerencias_compra: 'Sugerencias de compra (IA)',
+  ia_sugerencias_platos: 'Platos a preparar (IA)',
+  ia_recomendados: 'Recomendados del día (IA)',
+  alertas_gerencia: 'Alertas de gerencia',
+  multi_sede: 'Vista multi-sede',
+  realidad_aumentada: 'Realidad aumentada ("Ver en RA")',
+}
+
+function Interruptor({ activo, onClick, disabled }: { activo: boolean; onClick: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={activo}
+      onClick={onClick}
+      disabled={disabled}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-50 ${
+        activo ? 'bg-orange-600' : 'bg-gray-300'
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+          activo ? 'translate-x-[22px]' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  )
+}
 
 // Fase 7, Módulo 5 — panel del equipo del SaaS: lista todos los tenants
 // (RLS, migración 0026, ya le da acceso entre tenants solo a super_admin)
@@ -114,6 +148,33 @@ function PanelGestionTenant({
   const [proximoCobro, setProximoCobro] = useState(tenant.suscripcion?.proximo_cobro ?? '')
   const [guardando, setGuardando] = useState(false)
 
+  const [modulos, setModulos] = useState<Record<ModuloOpcional, boolean> | null>(null)
+  const [aplicandoPreset, setAplicandoPreset] = useState(false)
+  useEffect(() => {
+    fetchModulosTenant(tenant.id).then(setModulos)
+  }, [tenant.id])
+
+  async function alternarModulo(modulo: ModuloOpcional) {
+    if (!modulos) return
+    const nuevoValor = !modulos[modulo]
+    setModulos({ ...modulos, [modulo]: nuevoValor }) // optimista
+    try {
+      await fijarModuloTenant(tenant.id, modulo, nuevoValor)
+    } catch {
+      setModulos(modulos) // revierte si falló
+    }
+  }
+
+  async function aplicarPreset(presetPlan: string) {
+    setAplicandoPreset(true)
+    try {
+      await aplicarPresetModulos(tenant.id, presetPlan)
+      setModulos(await fetchModulosTenant(tenant.id))
+    } finally {
+      setAplicandoPreset(false)
+    }
+  }
+
   async function guardar() {
     setGuardando(true)
     try {
@@ -206,6 +267,42 @@ function PanelGestionTenant({
               className="rounded-lg border border-gray-300 px-3 py-2 font-normal"
             />
           </label>
+
+          <hr className="my-1 border-gray-200" />
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-extrabold uppercase tracking-wide text-gray-400">Módulos activos</p>
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={() => aplicarPreset('starter')}
+                disabled={aplicandoPreset}
+                className="rounded-full border border-gray-300 px-2.5 py-1 text-[11px] font-bold text-gray-600 disabled:opacity-50"
+              >
+                Preset Starter
+              </button>
+              <button
+                type="button"
+                onClick={() => aplicarPreset('pro')}
+                disabled={aplicandoPreset}
+                className="rounded-full border border-gray-300 px-2.5 py-1 text-[11px] font-bold text-gray-600 disabled:opacity-50"
+              >
+                Preset Pro
+              </button>
+            </div>
+          </div>
+
+          {!modulos ? (
+            <p className="py-1 text-xs text-gray-400">Cargando módulos…</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {MODULOS_OPCIONALES.map((m) => (
+                <div key={m} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
+                  <span className="text-xs font-semibold text-gray-700">{ETIQUETA_MODULO[m]}</span>
+                  <Interruptor activo={modulos[m]} onClick={() => alternarModulo(m)} disabled={aplicandoPreset} />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="mt-5 flex gap-2.5">

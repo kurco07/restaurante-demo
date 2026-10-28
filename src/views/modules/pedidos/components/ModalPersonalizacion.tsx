@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import type { Plato } from '../../../../models/types'
 import { GRADIENTES_FOTO, FOTO_POR_DEFECTO } from './constants'
 import { abrirVistaAR } from '../../../components/ui/abrirVistaAR'
+import { useUsuario } from '../../../../controllers/usuario/useUsuario'
 
 // Carga diferida: @google/model-viewer pesa bastante y la mayoría de los
 // platos todavía no tienen modelo — que no infle el bundle inicial de
@@ -32,6 +33,9 @@ export function ModalPersonalizacion({
   onAgregar,
   precioTotal,
 }: ModalPersonalizacionProps) {
+  const { modulosActivos } = useUsuario()
+  const raActiva = !modulosActivos || modulosActivos.has('realidad_aumentada')
+
   if (!plato || !isOpen) return null
 
   const background = GRADIENTES_FOTO[plato.imagen_url?.split('/').pop()?.split('.')[0] || ''] || FOTO_POR_DEFECTO
@@ -78,13 +82,15 @@ export function ModalPersonalizacion({
               <Suspense fallback={<div className="h-[220px] animate-pulse rounded-xl bg-[var(--surface-alt)]" />}>
                 <VisorAR glbUrl={plato.modelo_ar_glb_url} nombre={plato.nombre} />
               </Suspense>
-              <button
-                type="button"
-                onClick={() => abrirVistaAR(plato.modelo_ar_glb_url!, plato.nombre)}
-                className="mt-2 w-full rounded-xl bg-[var(--orange)] py-2.5 text-sm font-extrabold text-white"
-              >
-                Ver en RA
-              </button>
+              {raActiva && (
+                <button
+                  type="button"
+                  onClick={() => abrirVistaAR(plato.modelo_ar_glb_url!, plato.nombre)}
+                  className="mt-2 w-full rounded-xl bg-[var(--orange)] py-2.5 text-sm font-extrabold text-white"
+                >
+                  Ver en RA
+                </button>
+              )}
             </div>
           )}
 

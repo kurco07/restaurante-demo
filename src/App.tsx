@@ -79,7 +79,14 @@ export default function App() {
               <Route path="menu" element={<PedidosPage />} />
               <Route path="menu/:mesaId" element={<PedidosPage />} />
               <Route path="pedidos" element={<MisPedidosPage />} />
-              <Route path="sugeridos" element={<SugeridosMesoneroPage />} />
+              <Route
+                path="sugeridos"
+                element={
+                  <ProtectedRoute allowedRoles={rolesPorModulo['/mesoneros']} modulo="ia_recomendados">
+                    <SugeridosMesoneroPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="reporte" element={<ReporteDelDiaPage />} />
             </Route>
             {/* Cocina: barra superior con el tablero, sugeridos, entregados y recetas */}
@@ -92,7 +99,14 @@ export default function App() {
               }
             >
               <Route index element={<CocinaPage />} />
-              <Route path="sugeridos" element={<SugeridosPage />} />
+              <Route
+                path="sugeridos"
+                element={
+                  <ProtectedRoute allowedRoles={rolesPorModulo['/cocina']} modulo="ia_sugerencias_platos">
+                    <SugeridosPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="entregados" element={<EntregadosPage />} />
               <Route path="recetas" element={<RecetasCocinaPage />} />
             </Route>
@@ -179,7 +193,7 @@ export default function App() {
             <Route
               path="/administracion/sugerencias-compra"
               element={
-                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']} modulo="ia_sugerencias_compra">
                   <SugerenciasCompraPage />
                 </ProtectedRoute>
               }
@@ -213,9 +227,33 @@ export default function App() {
               <Route path="rentabilidad" element={<RentabilidadPage />} />
               <Route path="inventario" element={<InventarioGerenciaPage />} />
               <Route path="reportes" element={<ReportesDiariosPage />} />
-              <Route path="sedes" element={<SedesPage />} />
-              <Route path="alertas" element={<AlertasPage />} />
-              <Route path="sugerencias" element={<SugerenciasIAPage />} />
+              <Route
+                path="sedes"
+                element={
+                  <ProtectedRoute allowedRoles={rolesPorModulo['/gerencia']} modulo="multi_sede">
+                    <SedesPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="alertas"
+                element={
+                  <ProtectedRoute allowedRoles={rolesPorModulo['/gerencia']} modulo="alertas_gerencia">
+                    <AlertasPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="sugerencias"
+                element={
+                  <ProtectedRoute
+                    allowedRoles={rolesPorModulo['/gerencia']}
+                    modulo={['ia_sugerencias_platos', 'ia_recomendados']}
+                  >
+                    <SugerenciasIAPage />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
             <Route
               path="/super-admin"

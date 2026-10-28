@@ -16,11 +16,16 @@ export default function AutopedidoPage() {
   const p = ap.personalizacion
   const recomendados = useRecomendadosMesa(mesaId)
   useAplicarMarca(ap.menu?.marca)
-  // Solo los que están en el menú de esta mesa (con su precio de la sede)
-  const platosRecomendados = (recomendados?.items ?? []).flatMap((r) => {
-    const plato = ap.menu?.platos.find((pl) => pl.id === r.menu_item_id)
-    return plato ? [{ plato, frase: r.frase }] : []
-  })
+  // Solo los que están en el menú de esta mesa (con su precio de la sede).
+  // Si el restaurante tiene el módulo apagado, ni se muestra la franja —
+  // aunque haya recomendados ya aprobados de antes.
+  const recomendadosActivo = ap.menu?.modulos?.ia_recomendados ?? true
+  const platosRecomendados = !recomendadosActivo
+    ? []
+    : (recomendados?.items ?? []).flatMap((r) => {
+        const plato = ap.menu?.platos.find((pl) => pl.id === r.menu_item_id)
+        return plato ? [{ plato, frase: r.frase }] : []
+      })
 
   return (
     <div className="flex min-h-screen justify-center bg-[#f3ede4]">
@@ -101,6 +106,7 @@ export default function AutopedidoPage() {
             precio={p.precio}
             onAgregar={p.agregar}
             onCerrar={p.cerrar}
+            raActiva={ap.menu?.modulos?.realidad_aumentada ?? true}
           />
         )}
       </div>

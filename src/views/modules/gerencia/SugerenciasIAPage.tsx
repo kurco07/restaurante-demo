@@ -1,3 +1,4 @@
+import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { useKpisGerencia } from '../../../controllers/gerencia/useKpisGerencia'
 import { useProbarIA } from '../../../controllers/ia/useProbarIA'
 import { useSugerenciasPlatos } from '../../../controllers/ia/useSugerenciasPlatos'
@@ -17,6 +18,11 @@ function esHoy(iso: string) {
 // compra las revisa administración en su módulo. Ninguna se aplica sola:
 // la IA propone y una persona aprueba (CLAUDE.md).
 export default function SugerenciasIAPage() {
+  const { modulosActivos } = useUsuario()
+  // null (todavía sin resolver) se trata como prendido, para no ocultar
+  // de más mientras carga.
+  const platosActivo = !modulosActivos || modulosActivos.has('ia_sugerencias_platos')
+  const recomendadosActivo = !modulosActivos || modulosActivos.has('ia_recomendados')
   const k = useKpisGerencia()
   // Los platos son por sede: con una sola sede se usa esa; con varias,
   // la que esté elegida en el selector
@@ -36,6 +42,7 @@ export default function SugerenciasIAPage() {
         <SelectorSede />
       </header>
 
+      {platosActivo && (
       <PanelCard
         titulo="Platos a preparar hoy"
         subtitulo="Según el stock, lo que se vende este día, el margen y los insumos por vencer. Al aprobar, cocina ve la lista sin precios."
@@ -107,8 +114,9 @@ export default function SugerenciasIAPage() {
           </>
         )}
       </PanelCard>
+      )}
 
-      {sedeId && <Recomendados sedeId={sedeId} nombreSede={nombreSede} />}
+      {recomendadosActivo && sedeId && <Recomendados sedeId={sedeId} nombreSede={nombreSede} />}
 
       <ConexionIA />
 

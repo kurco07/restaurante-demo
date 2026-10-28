@@ -3,6 +3,7 @@ import { useAuth } from '../../controllers/auth/useAuth'
 import { usePowerSyncWatch } from '../../controllers/usePowerSyncWatch'
 import { useAplicarMarca } from '../../controllers/marca/useAplicarMarca'
 import { fetchMarcaPropia } from '../../models/services/marcaService'
+import { fetchModulosActivos, type ModuloOpcional } from '../../models/services/modulosService'
 import type { Usuario } from '../../models/types/usuario'
 import type { Marca } from '../../models/types/marca'
 
@@ -10,6 +11,10 @@ interface UsuarioContextValue {
   usuario: Usuario | null
   loading: boolean
   error: string | null
+  // null = todavía no se sabe (recién logueado, o sin red) — se trata
+  // como "todo disponible" para no bloquear por accidente mientras carga
+  // u offline (mesoneros/cocina no pueden depender de esto — CLAUDE.md).
+  modulosActivos: Set<ModuloOpcional> | null
 }
 
 export const UsuarioContext = createContext<UsuarioContextValue | undefined>(undefined)
@@ -45,8 +50,19 @@ export function UsuarioProvider({ children }: { children: ReactNode }) {
   }, [usuario?.tenant_id])
   useAplicarMarca(marca)
 
+  // Mismo criterio que la marca: no es parte del camino offline crítico,
+  // así que un fetch simple basta. Mientras no resuelva (o si falla), se
+  // queda en null — ProtectedRoute lo trata como "no bloquear todavía".
+  const [modulosActivos, setModulosActivos] = useState<Set<ModuloOpcional> | null>(null)
+  useEffect(() => {
+    if (!usuario) return
+    fetchModulosActivos()
+      .then(setModulosActivos)
+      .catch(() => setModulosActivos(null))
+  }, [usuario?.tenant_id])
+
   return (
-    <UsuarioContext.Provider value={{ usuario, loading, error: null }}>
+    <UsuarioContext.Provider value={{ usuario, loading, error: null, modulosActivos }}>
       {children}
     </UsuarioContext.Provider>
   )

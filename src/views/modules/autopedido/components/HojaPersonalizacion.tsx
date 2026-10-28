@@ -18,13 +18,17 @@ interface HojaPersonalizacionProps {
   precio: number
   onAgregar: () => void
   onCerrar: () => void
+  // Fase 7, Módulo 5: el restaurante puede tener la RA apagada (viene del
+  // RPC público menu_publico_mesa, sin sesión no se puede consultar
+  // tenant_modulos por su cuenta). Por defecto prendida.
+  raActiva?: boolean
 }
 
 // Hoja inferior para agregar un plato: cantidad + nota libre, igual que el
 // mesonero. Proteína/quitar/extras quedan diferidos hasta que exista la
 // tabla de personalización (ver nota de Fase 2, Módulo 3 en el roadmap).
 export function HojaPersonalizacion(props: HojaPersonalizacionProps) {
-  const { plato } = props
+  const { plato, raActiva = true } = props
 
   return (
     <div className="fixed inset-0 z-20 bg-[#2b2118]/40" onClick={props.onCerrar}>
@@ -58,13 +62,15 @@ export function HojaPersonalizacion(props: HojaPersonalizacionProps) {
                 <Suspense fallback={<div className="h-[220px] animate-pulse rounded-xl bg-gray-100" />}>
                   <VisorAR glbUrl={plato.modelo_ar_glb_url} nombre={plato.nombre} />
                 </Suspense>
-                <button
-                  type="button"
-                  onClick={() => abrirVistaAR(plato.modelo_ar_glb_url!, plato.nombre)}
-                  className="mt-2 w-full rounded-xl bg-orange-500 py-2.5 text-sm font-extrabold text-white"
-                >
-                  Ver en RA
-                </button>
+                {raActiva && (
+                  <button
+                    type="button"
+                    onClick={() => abrirVistaAR(plato.modelo_ar_glb_url!, plato.nombre)}
+                    className="mt-2 w-full rounded-xl bg-orange-500 py-2.5 text-sm font-extrabold text-white"
+                  >
+                    Ver en RA
+                  </button>
+                )}
               </div>
             )}
 

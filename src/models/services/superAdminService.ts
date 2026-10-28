@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabaseClient'
+import { MODULOS_OPCIONALES, type ModuloOpcional } from './modulosService'
 
 export interface SuscripcionTenant {
   id: string
@@ -50,6 +51,29 @@ export async function fetchTenantsAdmin(): Promise<TenantAdmin[]> {
 
 export async function actualizarTenantAdmin(tenantId: string, cambios: { plan?: string; estado?: string }) {
   const { error } = await supabase.from('tenants').update(cambios).eq('id', tenantId)
+  if (error) throw error
+}
+
+// Fase 7, Módulo 5 — interruptores por restaurante (migración 0029).
+// Siempre devuelve las 6 filas: si el tenant todavía no tiene ninguna
+// (los de antes de este módulo), se completan como "activo" por defecto,
+// igual que ya hace el backfill de la migración para los que ya existían.
+export async function fetchModulosTenant(tenantId: string): Promise<Record<ModuloOpcional, boolean>> {
+  const { data, error } = await supabase.from('tenant_modulos').select('modulo, activo').eq('tenant_id', tenantId)
+  if (error) throw error
+  const mapa = new Map((data ?? []).map((f) => [f.modulo as ModuloOpcional, f.activo as boolean]))
+  const resultado = {} as Record<ModuloOpcional, boolean>
+  for (const m of MODULOS_OPCIONALES) resultado[m] = mapa.get(m) ?? true
+  return resultado
+}
+
+export async function fijarModuloTenant(tenantId: string, modulo: ModuloOpcional, activo: boolean) {
+  const { error } = await supabase.from('tenant_modulos').upsert({ tenant_id: tenantId, modulo, activo }, { onConflict: 'tenant_id,modulo' })
+  if (error) throw error
+}
+
+export async function aplicarPresetModulos(tenantId: string, plan: string) {
+  const { error } = await supabase.rpc('aplicar_preset_modulos', { p_tenant_id: tenantId, p_plan: plan })
   if (error) throw error
 }
 

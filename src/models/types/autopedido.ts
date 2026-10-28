@@ -20,6 +20,7 @@ export interface PlatoAutopedido {
 export interface MenuPublicoMesa {
   restaurante: string
   marca: { logo_url: string | null; color_primario: string | null; color_secundario: string | null }
+  modulos: { realidad_aumentada: boolean; ia_recomendados: boolean }
   mesa: { id: string; nombre_numero: string }
   categorias: CategoriaAutopedido[]
   platos: PlatoAutopedido[]

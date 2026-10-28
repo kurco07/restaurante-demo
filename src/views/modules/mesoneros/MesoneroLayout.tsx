@@ -13,10 +13,14 @@ import { BarraMesonero } from './components/BarraMesonero'
 // para que no se pierdan al cambiar de sección. Todo lee y escribe la
 // SQLite local de PowerSync: sigue funcionando sin internet.
 export default function MesoneroLayout() {
-  const { usuario, loading, error } = useUsuario()
+  const { usuario, loading, error, modulosActivos } = useUsuario()
   // Recomendados del día (Fase 6, Módulo 4): se piden aquí una sola vez y
-  // los comparten la barra (contador) y las secciones (menú y Sugeridos)
-  const recomendados = useRecomendadosHoy(usuario?.sede_id ?? null)
+  // los comparten la barra (contador) y las secciones (menú y Sugeridos).
+  // Si el restaurante tiene el módulo apagado (Fase 7, Módulo 5), se
+  // esconde en todos lados aunque haya recomendados ya aprobados de antes.
+  const recomendadosActivo = !modulosActivos || modulosActivos.has('ia_recomendados')
+  const recomendadosCrudo = useRecomendadosHoy(usuario?.sede_id ?? null)
+  const recomendados = recomendadosActivo ? recomendadosCrudo : null
 
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
