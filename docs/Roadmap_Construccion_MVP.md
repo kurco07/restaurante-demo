@@ -241,7 +241,7 @@ Decidido con Pedro (2026-10-26):
 
 Construido junto con el Módulo 5 (bandeja de aprobación). Detalle en `docs/Registro_de_Cambios.md`.
 
-**Módulo 3 — Sugerencias de qué platos preparar** — 🔲 *definido, sin construir (rama `feature/fase6-platos-preparar`)*
+**Módulo 3 — Sugerencias de qué platos preparar** — 🔧 *construido, falta aplicar la migración `0022` y probar con la IA real*
 Según inventario disponible y rentabilidad.
 
 Decidido con Pedro (2026-10-26):

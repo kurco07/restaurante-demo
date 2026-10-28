@@ -4,6 +4,82 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-28 — Platos sugeridos para preparar hoy (Fase 6, Módulo 3)
+
+Rama: `feature/fase6-platos-preparar` (sale de `feature/fase6-sugerencias-compra`). Autor: Pedro (con Claude Code). Migración `0022_platos_a_preparar.sql` **pendiente de aplicar en Supabase** (SQL Editor). La Edge Function `ia-sugerir-platos` **ya está desplegada**.
+
+### Decisiones (Pedro, 2026-10-26)
+
+- Los genera y aprueba **gerencia**, por sede, porque usan rentabilidad. **Cocina ve la lista aprobada, sin precios.**
+- Aprobar **no cambia el menú ni el inventario**: solo publica la lista para cocina.
+- La IA tiene en cuenta:
+  - el stock, en porciones que alcanzan;
+  - la rentabilidad;
+  - lo que se vende ese día de la semana;
+  - los insumos por vencer.
+- Se generan **a mano, para el día**, con una pendiente a la vez por sede.
+
+### Qué cambió
+
+**Base de datos (migración `0022`):**
+- **Política restrictiva en `sugerencias_ia`:** solo administración, gerencia y super-admin la leen o escriben. Antes la leía cualquiera del restaurante, y el contenido trae costos y márgenes. Esto también **cierra el pendiente de `0021`**: un mesonero ya no puede insertar sugerencias.
+- **`validar_sugerencia_ia` actualizada:** las de platos solo las revisa gerencia; las de compra siguen siendo de administración.
+- **`datos_platos_preparar(sede)`** calcula, por plato con receta disponible en la sede:
+  - **porciones que alcanzan** con el stock (el mínimo entre los insumos, sin contar los "estimado") y el insumo que pone el límite;
+  - **ventas esperadas**: promedio de ese día de la semana en las 4 semanas anteriores;
+  - precio de la sede, costo y margen, con las compras de la sede (sin asumir nunca costo 0);
+  - **insumos con lotes que vencen en 3 días**.
+  - Como trae costos, a los roles que no son de gestión les devuelve una lista vacía.
+- **`aprobar_sugerencia_platos(id, items)`:** solo gerencia, porciones enteras de 1 o más. Guarda la lista aprobada con el nombre y el motivo de cada plato.
+- **`platos_sugeridos_hoy()`:** lo que ve cocina. Devuelve la última lista aprobada hoy para su sede, **solo plato, porciones y motivo**. Es `security definer` porque cocina ya no puede leer `sugerencias_ia`.
+
+**Edge Function `ia-sugerir-platos`** (solo gerencia, recibe la sede):
+- Verifica que la sede sea del restaurante y que no haya otra pendiente.
+- Le ofrece a la IA los platos que se pueden preparar.
+- Valida la respuesta con `_shared/platos.ts`:
+  - máximo 8 platos;
+  - se descartan los inventados o repetidos;
+  - las porciones se recortan: **nunca más de las que alcanzan, ni más del doble de lo que se vende ese día** (mínimo 10).
+- La lista **"sin stock"** (platos que se suelen pedir ese día pero hoy no alcanzan) la calcula el servidor, no la IA.
+- `platos.test.ts`: 9 pruebas.
+
+**Frontend:**
+- **Gerencia → Sugerencias IA:** sección "Platos a preparar hoy" para la sede del selector (con una sola sede, se usa esa):
+  - generar;
+  - revisar cada plato: porciones, datos (ventas del día, cuánto alcanza, margen, qué vence) y motivo. Se pueden quitar platos y cambiar porciones;
+  - aviso de platos sin stock;
+  - aprobar o rechazar;
+  - "En cocina hoy", con la lista aprobada;
+  - historial.
+- La prueba de conexión pasó al final de la página.
+- **Cocina → Pedidos:** tarjeta plegable **"✦ Platos sugeridos para hoy"** arriba del tablero, con plato, porciones y motivo, sin precios.
+  - Es lo único de cocina que usa red: se pide al entrar, cada 5 minutos y al volver la conexión.
+  - Sin internet se queda con la última lista, y si nunca llegó ninguna no se muestra. El tablero sigue funcionando offline como antes.
+
+**Verificado** en la copia local de la base, con todas las migraciones y los datos demo:
+- Los números por plato salen bien: porciones e insumo limitante, ventas esperadas, margen, y un lote que vence en 2 días.
+- Supervisor y cocina reciben la lista de datos vacía.
+- Cocina y mesonero no leen ni insertan en `sugerencias_ia`.
+- Administración no puede aprobar platos.
+- Porciones no enteras: error.
+- Cocina ve solo plato, porciones y motivo; un usuario de otra sede no ve nada.
+- Administración sigue viendo sus sugerencias de compra.
+
+Además, 28 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
+
+### Pasos para probarlo
+
+1. Aplicar `supabase/migrations/0022_platos_a_preparar.sql` en el SQL Editor.
+2. Entrar como gerencia, ir a **Sugerencias IA** y elegir la sede en el selector. La sede original tiene ventas demo, aunque su inventario no se descuenta con ellas. La **Sede Norte** tiene ventas e inventario. Tocar **Generar para hoy**, revisar y aprobar.
+3. Entrar como cocina (`cocina@prueba.com`, que es de la sede original) y ver la tarjeta arriba del tablero. Para verla hay que haber aprobado una lista **para la sede de cocina**.
+
+### Pendiente
+
+- [ ] Pasos 1 a 3.
+- [ ] Con eso verificado, marcar el Módulo 3 con ✅.
+
+---
+
 ## 2026-10-26 — Sugerencias de compra con la IA y su aprobación (Fase 6, Módulos 2 y 5)
 
 Rama: `feature/fase6-sugerencias-compra` (sale de `feature/fase6-ia-adaptador`). Autor: Pedro (con Claude Code). Migración `0021_sugerencias_compra.sql` **aplicada en Supabase por Pedro (2026-10-26)**. La Edge Function `ia-sugerir-compras` está desplegada.

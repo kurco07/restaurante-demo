@@ -53,3 +53,42 @@ export interface ItemAprobadoCompra {
 export type ResultadoGenerarCompra =
   | { ok: true; sugerenciaId: string | null; mensaje?: string }
   | { ok: false; codigo?: string; mensaje: string }
+
+// Fase 6, Módulo 3 — sugerencia de platos a preparar (contenido lo arma la
+// Edge Function ia-sugerir-platos con armarSugerenciaPlatos)
+export interface PlatoSugeridoIA {
+  menu_item_id: string
+  plato: string
+  porciones: number
+  motivo: string
+  porciones_posibles: number | null
+  ventas_esperadas: number
+  margen: number | null
+  margen_pct: number | null
+  por_vencer: { insumo: string; dias: number }[]
+}
+
+export interface SugerenciaPlatos {
+  id: string
+  estado: EstadoSugerencia
+  generada_en: string
+  revisada_en: string | null
+  revisada_por: string | null
+  resumen: string
+  modelo: string
+  items: PlatoSugeridoIA[]
+  sin_stock: { plato: string; insumo_limitante: string | null; ventas_esperadas: number }[]
+  aprobados: { plato: string; porciones: number }[]
+  motivoRechazo: string | null
+}
+
+export interface PlatoAprobado {
+  menu_item_id: string
+  porciones: number
+}
+
+// Lo que ve cocina (platos_sugeridos_hoy, migración 0022): sin precios
+export interface PlatosSugeridosHoy {
+  aprobada_en: string
+  items: { plato: string; porciones: number; motivo: string }[]
+}

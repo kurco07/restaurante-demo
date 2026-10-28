@@ -65,4 +65,8 @@ export type {
   SugerenciaCompra,
   ItemAprobadoCompra,
   ResultadoGenerarCompra,
+  PlatoSugeridoIA,
+  SugerenciaPlatos,
+  PlatoAprobado,
+  PlatosSugeridosHoy,
 } from './ia'
