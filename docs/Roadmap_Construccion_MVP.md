@@ -255,7 +255,17 @@ Decidido con Pedro (2026-10-26):
 - **Cuándo:** **a mano, para el día**, con una pendiente a la vez por sede, igual que compras.
 - Mismo esquema mixto que compras: la base calcula los números (porciones posibles, ventas promedio, margen, lotes por vencer) y la IA elige, ordena y explica. Reutiliza la bandeja de aprobación (trigger de `sugerencias_ia` y `rechazar_sugerencia_ia`).
 
-**Módulo 4 — Recomendados del día**
+**Módulo 4 — Recomendados del día** — 🔲 *definido, sin construir*
+
+Decidido con Pedro (2026-10-28):
+- Es una lista **aparte** de la de cocina. "Platos a preparar" (Módulo 3) dice **cuánto tener listo**; los recomendados dicen **qué ofrecer**.
+- La IA elige 3 a 5 platos para ofrecer: buen margen, que usen insumos por vencer y que tengan stock.
+- Gerencia los aprueba, con la misma bandeja.
+- Se ven en tres lugares:
+  - una sección **"⭐ Recomendados de hoy"** arriba en el **menú del mesonero**;
+  - la misma sección en el **autopedido QR del cliente**;
+  - una **pestaña "Sugeridos" propia en la barra del mesonero**, con contador, como la de cocina.
+- Siguiendo el mismo criterio que con cocina, los mesoneros y los clientes ven el plato y su motivo, sin costos ni márgenes. Para el cliente por QR, la lista va por una función pública que la base valida por la mesa.
 
 **Módulo 5 — Flujo de aprobación humana** *(decisión de Pedro, 2026-10-26: se construye junto con el Módulo 2 y se reutiliza en el 3 y el 4, no al final)* — 🔧 *base construida con el Módulo 2: triggers de `sugerencias_ia`, aprobar y rechazar con motivo, y la bandeja de compras*
 Ninguna sugerencia se ejecuta sola — cada una queda en `sugerencias_ia` con estado pendiente hasta que un usuario la apruebe o la rechace. Esto no es opcional, es una regla del proyecto (ver `CLAUDE.md`).
