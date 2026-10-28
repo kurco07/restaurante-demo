@@ -69,4 +69,8 @@ export type {
   SugerenciaPlatos,
   PlatoAprobado,
   PlatosSugeridosHoy,
+  RecomendadoIA,
+  SugerenciaRecomendados,
+  RecomendadoAprobado,
+  RecomendadosHoy,
 } from './ia'

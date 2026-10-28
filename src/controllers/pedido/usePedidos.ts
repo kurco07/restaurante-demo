@@ -189,6 +189,9 @@ export function usePedidos(mesaId?: string) {
     mesa,
     sesion,
     categorias,
+    // Todos los platos disponibles en la sede (los recomendados del día se
+    // buscan aquí, sin importar la categoría elegida)
+    platos,
     platosFiltrados,
     categoriaActiva,
     setCategoriaActiva,

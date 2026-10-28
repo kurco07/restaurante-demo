@@ -1,8 +1,10 @@
 import { useKpisGerencia } from '../../../controllers/gerencia/useKpisGerencia'
 import { useProbarIA } from '../../../controllers/ia/useProbarIA'
 import { useSugerenciasPlatos } from '../../../controllers/ia/useSugerenciasPlatos'
+import { useSugerenciasRecomendados } from '../../../controllers/ia/useSugerenciasRecomendados'
 import { PanelCard } from '../../components/ui/PanelCard'
 import { RevisarSugerenciaPlatos } from './components/RevisarSugerenciaPlatos'
+import { RevisarRecomendados } from './components/RevisarRecomendados'
 import { SelectorSede } from './components/SelectorSede'
 
 function esHoy(iso: string) {
@@ -10,7 +12,8 @@ function esHoy(iso: string) {
 }
 
 // Sugerencias de la IA para gerencia (Fase 6). Aquí viven los platos a
-// preparar hoy (Módulo 3) y la prueba de conexión (Módulo 1). Las de
+// preparar hoy (Módulo 3), los recomendados del día (Módulo 4) y la prueba
+// de conexión (Módulo 1). Las de
 // compra las revisa administración en su módulo. Ninguna se aplica sola:
 // la IA propone y una persona aprueba (CLAUDE.md).
 export default function SugerenciasIAPage() {
@@ -105,15 +108,91 @@ export default function SugerenciasIAPage() {
         )}
       </PanelCard>
 
+      {sedeId && <Recomendados sedeId={sedeId} nombreSede={nombreSede} />}
+
       <ConexionIA />
 
-      <PanelCard titulo="Otras sugerencias" subtitulo="Dónde está cada una">
-        <ul className="list-disc space-y-1 pl-5 text-[13px]">
-          <li>Sugerencias de compra: las revisa administración en Inventario → Sugerencias IA.</li>
-          <li>Recomendados del día: próximamente.</li>
-        </ul>
-      </PanelCard>
+      <p className="text-xs text-[var(--ink-soft)]">
+        Las sugerencias de compra las revisa administración en Inventario → Sugerencias IA.
+      </p>
     </>
+  )
+}
+
+// Recomendados del día de una sede (Módulo 4): qué ofrecer. Al publicarlos
+// salen en el menú del mesonero y en el QR de las mesas de esa sede.
+function Recomendados({ sedeId, nombreSede }: { sedeId: string; nombreSede?: string }) {
+  const r = useSugerenciasRecomendados(sedeId)
+  const publicadosHoy = r.revisadas.find((s) => s.estado === 'aprobada' && esHoy(s.generada_en))
+
+  return (
+    <PanelCard
+      titulo="Recomendados del día"
+      subtitulo="Qué ofrecer hoy: buen margen, insumos por vencer y con stock. Mesonero y cliente ven el plato y su frase, sin precios."
+    >
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        {r.pendientes.length === 0 && (
+          <button
+            type="button"
+            onClick={r.generar}
+            disabled={r.generando || r.cargando}
+            className="rounded-full bg-[var(--orange)] px-4 py-2 text-[12.5px] font-bold text-white disabled:opacity-60"
+          >
+            {r.generando ? 'Generando… (puede tardar)' : `✦ Generar recomendados${nombreSede ? ` · ${nombreSede}` : ''}`}
+          </button>
+        )}
+        {publicadosHoy && r.pendientes.length === 0 && (
+          <span className="text-xs text-[var(--ink-soft)]">Ya hay recomendados publicados hoy; si apruebas otros, reemplazan a estos.</span>
+        )}
+      </div>
+
+      {r.error && <p className="mb-4 rounded-xl bg-[var(--red-bg)] px-4 py-3 text-[13px] font-semibold text-[var(--red)]">{r.error}</p>}
+      {r.aviso && <p className="mb-4 rounded-xl bg-[var(--green-bg)] px-4 py-3 text-[13px] font-semibold text-[var(--green)]">{r.aviso}</p>}
+      {r.cargando && <p className="py-4 text-center text-sm text-[var(--ink-soft)]">Cargando…</p>}
+
+      {r.pendientes.map((s) => (
+        <RevisarRecomendados
+          key={s.id}
+          sugerencia={s}
+          nombreSede={nombreSede}
+          guardando={r.guardando}
+          onAprobar={(items) => r.aprobar(s.id, items)}
+          onRechazar={(motivo) => r.rechazar(s.id, motivo)}
+        />
+      ))}
+
+      {publicadosHoy && (
+        <div className="rounded-xl bg-[var(--green-bg)] px-4 py-3 text-[13px]">
+          <p className="font-bold text-[var(--green)]">
+            Publicados hoy en el menú de {nombreSede ?? 'esta sede'}
+            {publicadosHoy.revisada_por && ` · por ${publicadosHoy.revisada_por}`}
+          </p>
+          <ul className="mt-1">
+            {publicadosHoy.aprobados.map((a) => (
+              <li key={a.plato}>
+                ⭐ <b>{a.plato}</b>: {a.frase}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {r.revisadas.length > 0 && (
+        <details className="mt-4 text-[12.5px]">
+          <summary className="cursor-pointer font-semibold text-[var(--ink-soft)]">Historial</summary>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {r.revisadas.map((s) => (
+              <li key={s.id} className="text-[var(--ink-soft)]">
+                <b className="text-[var(--ink)]">{new Date(s.generada_en).toLocaleDateString('es')}</b> · {s.estado}
+                {s.estado === 'aprobada' && ` · ${s.aprobados.length} platos`}
+                {s.motivoRechazo && ` · motivo: ${s.motivoRechazo}`}
+                {s.revisada_por && ` · por ${s.revisada_por}`}
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </PanelCard>
   )
 }
 

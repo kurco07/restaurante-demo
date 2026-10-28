@@ -1,7 +1,9 @@
 import { useParams } from 'react-router-dom'
 import { useAutopedido } from '../../../controllers/autopedido/useAutopedido'
+import { useRecomendadosMesa } from '../../../controllers/autopedido/useRecomendadosMesa'
 import { EncabezadoAutopedido } from './components/EncabezadoAutopedido'
 import { ListaPlatos } from './components/ListaPlatos'
+import { RecomendadosAutopedido } from './components/RecomendadosAutopedido'
 import { PedidoMesa } from './components/PedidoMesa'
 import { HojaPersonalizacion } from './components/HojaPersonalizacion'
 
@@ -11,6 +13,12 @@ export default function AutopedidoPage() {
   const { mesaId } = useParams()
   const ap = useAutopedido(mesaId)
   const p = ap.personalizacion
+  const recomendados = useRecomendadosMesa(mesaId)
+  // Solo los que están en el menú de esta mesa (con su precio de la sede)
+  const platosRecomendados = (recomendados?.items ?? []).flatMap((r) => {
+    const plato = ap.menu?.platos.find((pl) => pl.id === r.menu_item_id)
+    return plato ? [{ plato, frase: r.frase }] : []
+  })
 
   return (
     <div className="flex min-h-screen justify-center bg-[#f3ede4]">
@@ -40,13 +48,16 @@ export default function AutopedidoPage() {
               {ap.pedidoEnviado ? (
                 <PedidoEnviado mesa={ap.menu.mesa.nombre_numero} onNuevoPedido={ap.nuevoPedido} />
               ) : ap.vista === 'menu' ? (
-                <ListaPlatos
-                  categorias={ap.menu.categorias}
-                  categoria={ap.categoria}
-                  onCambiarCategoria={ap.setCategoria}
-                  platos={ap.platosVisibles}
-                  onAbrirPlato={p.abrir}
-                />
+                <>
+                  <RecomendadosAutopedido items={platosRecomendados} onAbrirPlato={p.abrir} />
+                  <ListaPlatos
+                    categorias={ap.menu.categorias}
+                    categoria={ap.categoria}
+                    onCambiarCategoria={ap.setCategoria}
+                    platos={ap.platosVisibles}
+                    onAbrirPlato={p.abrir}
+                  />
+                </>
               ) : (
                 <PedidoMesa
                   mesa={ap.menu.mesa.nombre_numero}

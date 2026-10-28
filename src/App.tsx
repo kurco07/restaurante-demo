@@ -9,6 +9,7 @@ import MesoneroLayout from './views/modules/mesoneros/MesoneroLayout'
 import MesonerosPage from './views/modules/mesoneros/MesonerosPage'
 import MisPedidosPage from './views/modules/mesoneros/MisPedidosPage'
 import ReporteDelDiaPage from './views/modules/mesoneros/ReporteDelDiaPage'
+import SugeridosMesoneroPage from './views/modules/mesoneros/SugeridosPage'
 import PedidosPage from './views/modules/pedidos/PedidosPage'
 import CocinaLayout from './views/modules/cocina/CocinaLayout'
 import CocinaPage from './views/modules/cocina/CocinaPage'
@@ -78,6 +79,7 @@ export default function App() {
               <Route path="menu" element={<PedidosPage />} />
               <Route path="menu/:mesaId" element={<PedidosPage />} />
               <Route path="pedidos" element={<MisPedidosPage />} />
+              <Route path="sugeridos" element={<SugeridosMesoneroPage />} />
               <Route path="reporte" element={<ReporteDelDiaPage />} />
             </Route>
             {/* Cocina: barra superior con el tablero, sugeridos, entregados y recetas */}

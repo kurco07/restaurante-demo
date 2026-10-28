@@ -4,6 +4,82 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-28 — Recomendados del día en el menú del mesonero y el QR (Fase 6, Módulo 4)
+
+Rama: `feature/fase6-recomendados` (sale de `feature/fase6-platos-preparar`). Autor: Pedro (con Claude Code). Migración `0023_recomendados_del_dia.sql` **pendiente de aplicar en Supabase** (SQL Editor). La Edge Function `ia-sugerir-recomendados` **ya está desplegada**.
+
+### Decisiones (Pedro, 2026-10-28)
+
+- Es una lista **aparte** de la de cocina. "Platos a preparar" dice **cuánto tener listo**; los recomendados dicen **qué ofrecer**.
+- La IA elige **3 a 5 platos**: buen margen, que usen insumos por vencer y que tengan stock. **Gerencia aprueba**.
+- Se ven en tres lugares:
+  - el **menú del mesonero**;
+  - el **autopedido QR del cliente**;
+  - una **pestaña "Sugeridos" del mesonero** con contador.
+- Mesonero y cliente ven el **plato y una frase** para ofrecerlo, nunca costos ni márgenes.
+
+### Qué cambió
+
+**Base de datos (migración `0023`):**
+- `validar_sugerencia_ia`: los recomendados solo los revisa gerencia.
+- `aprobar_sugerencia_recomendados(id, items)`: solo gerencia, de 1 a 5 platos. Cada uno lleva una frase obligatoria de hasta 140 caracteres, y se guarda en el orden que dejó gerencia.
+- `recomendados_hoy()`: lo que lee el mesonero, para su sede.
+- `recomendados_mesa(mesa)`: lo que lee el cliente por QR, sin sesión. Valida como el menú público: la mesa existe y su restaurante está activo.
+- Las dos devuelven la última lista aprobada **hoy**, solo **plato y frase**, y solo los platos que la sede sigue ofreciendo.
+- Usan por dentro `recomendados_de_sede`, que nadie puede llamar directamente.
+- Los números por plato son los de `datos_platos_preparar` (`0022`), así que no hace falta otra función de datos.
+
+**Edge Function `ia-sugerir-recomendados`** (solo gerencia, recibe la sede):
+- Una pendiente a la vez por sede.
+- Candidatos: los platos con 5 porciones o más (o sin límite de stock conocido).
+- La IA escribe para cada plato una **frase** para el cliente y un **motivo** para gerencia.
+- `_shared/recomendados.ts` valida la respuesta:
+  - máximo 5 platos; se descartan los inventados o repetidos;
+  - una frase que hable de margen, costo, stock o vencimiento, o que venga vacía, se reemplaza por una neutra ("Hoy te recomendamos …");
+  - las frases se cortan a 140 caracteres.
+- `recomendados.test.ts`: 8 pruebas.
+
+**Frontend:**
+- **Gerencia → Sugerencias IA:** sección "Recomendados del día":
+  - generar;
+  - revisar cada plato, **editar su frase**, y ver el motivo y los números (solo para gerencia);
+  - "Publicar en el menú · sede", o rechazar;
+  - "Publicados hoy" e historial.
+- **Mesonero:**
+  - pestaña **"Sugeridos"** con contador, y página con cada plato, su frase y un botón **"Agregar"** que abre el plato en el menú para anotarlo;
+  - franja **"⭐ Recomendados de hoy"** arriba del menú (se oculta mientras se busca). Tocar un plato lo abre.
+  - La lista se pide en `MesoneroLayout`: al entrar, cada minuto, al volver a la pestaña y al volver la conexión. **La última lista del día queda guardada en el dispositivo**, así que sin internet se siguen viendo. Tomar pedidos no depende de esto.
+- **Autopedido QR:** franja "⭐ Recomendados de hoy" arriba del menú, con el precio de la sede. Tocar un plato lo abre para agregarlo. Si no carga, el menú se ve igual.
+- `usePedidos` ahora devuelve también `platos` (todos los de la sede), para encontrar los recomendados sin importar la categoría elegida.
+
+**Verificado** en la copia local de la base:
+- Antes de aprobar, mesonero y QR no ven nada.
+- Administración no puede aprobar.
+- Una frase vacía o más de 5 platos dan error.
+- Después de aprobar, mesonero y QR ven plato y frase, en el orden de gerencia.
+- Una mesa que no existe no devuelve nada.
+- Nadie puede llamar directamente a `recomendados_de_sede`.
+- Un plato que la sede deja de ofrecer desaparece de los recomendados.
+
+Además, 36 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
+
+### Pasos para probarlo
+
+1. Aplicar `supabase/migrations/0023_recomendados_del_dia.sql` en el SQL Editor.
+2. Entrar como gerencia, ir a **Sugerencias IA** y elegir **Sede Principal**. En **Recomendados del día**, tocar **Generar**, revisar o editar las frases y **Publicar**.
+3. Entrar como mesonero (`mesonero@prueba.com`):
+   - la pestaña **Sugeridos** debe tener contador;
+   - el **menú** debe mostrar la franja ⭐;
+   - "Agregar" debe abrir el plato.
+4. Abrir el QR de una mesa de la Sede Principal (`/autopedido/<id de la mesa>`) y ver la franja ⭐.
+
+### Pendiente
+
+- [ ] Pasos 1 a 4.
+- [ ] Con eso verificado, marcar los Módulos 4 y 5 con ✅. El 5 queda completo porque compras, platos y recomendados ya usan la bandeja.
+
+---
+
 ## 2026-10-28 — Platos sugeridos para preparar hoy (Fase 6, Módulo 3)
 
 Rama: `feature/fase6-platos-preparar` (sale de `feature/fase6-sugerencias-compra`). Autor: Pedro (con Claude Code). Migración `0022_platos_a_preparar.sql` **aplicada en Supabase por Pedro (2026-10-28)**. La Edge Function `ia-sugerir-platos` está desplegada.

@@ -255,7 +255,7 @@ Decidido con Pedro (2026-10-26):
 - **Cuándo:** **a mano, para el día**, con una pendiente a la vez por sede, igual que compras.
 - Mismo esquema mixto que compras: la base calcula los números (porciones posibles, ventas promedio, margen, lotes por vencer) y la IA elige, ordena y explica. Reutiliza la bandeja de aprobación (trigger de `sugerencias_ia` y `rechazar_sugerencia_ia`).
 
-**Módulo 4 — Recomendados del día** — 🔲 *definido, sin construir*
+**Módulo 4 — Recomendados del día** — 🔧 *construido, falta aplicar la migración `0023` y probar con la IA real*
 
 Decidido con Pedro (2026-10-28):
 - Es una lista **aparte** de la de cocina. "Platos a preparar" (Módulo 3) dice **cuánto tener listo**; los recomendados dicen **qué ofrecer**.

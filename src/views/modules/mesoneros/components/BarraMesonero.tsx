@@ -13,7 +13,8 @@ const ETIQUETA_ROL: Partial<Record<Rol, string>> = {
 
 // Barra superior del mesonero: Mesas · Menú · Mis pedidos (+ Reporte del
 // día para el supervisor), y a la derecha su nombre con "Cerrar sesión".
-export function BarraMesonero({ usuario }: { usuario: Usuario }) {
+// recomendados = cuántos platos recomendó gerencia hoy (Fase 6, Módulo 4)
+export function BarraMesonero({ usuario, recomendados }: { usuario: Usuario; recomendados: number }) {
   const { totalPlatos } = useCarritos()
   const { listos } = useMisPedidos(usuario)
 
@@ -46,6 +47,12 @@ export function BarraMesonero({ usuario }: { usuario: Usuario }) {
           <path d="M9 8h6M9 12h6" />
         </>
       ),
+    },
+    {
+      label: 'Sugeridos',
+      to: '/mesoneros/sugeridos',
+      contador: recomendados,
+      icono: <path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7L12 3z" />,
     },
   ]
 

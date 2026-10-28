@@ -92,3 +92,41 @@ export interface PlatosSugeridosHoy {
   aprobada_en: string
   items: { plato: string; porciones: number; motivo: string }[]
 }
+
+// Fase 6, Módulo 4 — recomendados del día (contenido lo arma la Edge
+// Function ia-sugerir-recomendados con armarRecomendados)
+export interface RecomendadoIA {
+  menu_item_id: string
+  plato: string
+  frase: string // la leen mesonero y cliente
+  motivo: string // solo gerencia
+  porciones_posibles: number | null
+  margen: number | null
+  margen_pct: number | null
+  por_vencer: { insumo: string; dias: number }[]
+}
+
+export interface SugerenciaRecomendados {
+  id: string
+  estado: EstadoSugerencia
+  generada_en: string
+  revisada_en: string | null
+  revisada_por: string | null
+  resumen: string
+  modelo: string
+  items: RecomendadoIA[]
+  aprobados: { plato: string; frase: string }[]
+  motivoRechazo: string | null
+}
+
+export interface RecomendadoAprobado {
+  menu_item_id: string
+  frase: string
+}
+
+// Lo que ven mesonero y cliente (recomendados_hoy / recomendados_mesa,
+// migración 0023): plato y frase, sin precios
+export interface RecomendadosHoy {
+  aprobada_en: string
+  items: { menu_item_id: string; plato: string; frase: string }[]
+}

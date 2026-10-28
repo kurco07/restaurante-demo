@@ -1,16 +1,17 @@
-import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router-dom'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { usePedidos } from '../../../controllers/pedido/usePedidos'
 import { aceptaPedido, useMesasSede, type MesaVista } from '../../../controllers/mesonero/useMesasSede'
 import { anularItem, anularSesionCompleta } from '../../../models/services/pedidoService'
 import { puedeSupervisar } from '../../../lib/permisos'
-import type { Usuario } from '../../../models/types'
+import type { RecomendadosHoy, Usuario } from '../../../models/types'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { SelectorMesaModal } from '../mesoneros/components/SelectorMesaModal'
 import { AnularItemModal } from '../mesoneros/components/AnularItemModal'
 import { AnularCuentaModal } from '../mesoneros/components/AnularCuentaModal'
 import { ESTADOS_ANULABLES, type ItemEnviado } from './components/ResumenPedido'
+import { RecomendadosMenu } from './components/RecomendadosMenu'
 import {
   HeaderMesa,
   BuscadorPlatos,
@@ -49,6 +50,25 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
   const p = usePedidos(mesaId)
   const subtotal = p.calcularSubtotal()
 
+  // Recomendados del día (Fase 6, Módulo 4), los comparte MesoneroLayout
+  const recomendados = useOutletContext<RecomendadosHoy | null>()
+  const platosRecomendados = (recomendados?.items ?? [])
+    .map((r) => ({ ...r, plato: p.platos.find((pl) => pl.id === r.menu_item_id) }))
+    .filter((r) => r.plato)
+
+  // "Agregar" desde la pestaña Sugeridos llega con el plato a abrir
+  const location = useLocation()
+  const abrirPlatoId = (location.state as { abrirPlato?: string } | null)?.abrirPlato
+  const yaAbierto = useRef(false)
+  useEffect(() => {
+    if (!abrirPlatoId || yaAbierto.current) return
+    const plato = p.platos.find((pl) => pl.id === abrirPlatoId)
+    if (!plato) return
+    yaAbierto.current = true
+    p.abrirModal(plato)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abrirPlatoId, p.platos])
+
   const mesa = mesaId ? mesas.find((m) => m.id === mesaId) : undefined
   // La mesa sale de la SQLite local; mientras carga, no hay nada que mostrar
   if (mesaId && !mesa) return <LoadingSpinner message="Cargando mesa…" />
@@ -83,6 +103,15 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
         <section>
+          {!p.busqueda && (
+            <RecomendadosMenu
+              items={platosRecomendados.map((r) => ({ id: r.menu_item_id, nombre: r.plato!.nombre, frase: r.frase }))}
+              onAbrir={(id) => {
+                const plato = p.platos.find((pl) => pl.id === id)
+                if (plato) p.abrirModal(plato)
+              }}
+            />
+          )}
           <BuscadorPlatos value={p.busqueda} onChange={p.setBusqueda} />
           <CategoriaPills
             categorias={p.categorias}
