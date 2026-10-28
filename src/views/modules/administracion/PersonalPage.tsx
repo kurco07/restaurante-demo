@@ -1,13 +1,17 @@
+import { useState } from 'react'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { AdminLayout } from './components/layout/AdminLayout'
 import { EstadoChip } from './components/panel/EstadoChip'
+import { NuevoEmpleadoModal } from './components/personal/NuevoEmpleadoModal'
 import { usePersonal } from '../../../controllers/administracion/usePersonal'
 
 export default function PersonalPage() {
   const { usuario, loading, error } = useUsuario()
   const p = usePersonal()
+  const [mostrarNuevoEmpleado, setMostrarNuevoEmpleado] = useState(false)
+  const [invitado, setInvitado] = useState(false)
 
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
@@ -28,11 +32,31 @@ export default function PersonalPage() {
             onChange={(e) => p.setBusqueda(e.target.value)}
             className="w-56 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-2.5 text-[13px]"
           />
-          <button type="button" className="whitespace-nowrap rounded-full bg-[var(--orange)] px-4 py-2.5 text-[12.5px] font-bold text-white">
+          <button
+            type="button"
+            onClick={() => setMostrarNuevoEmpleado(true)}
+            className="whitespace-nowrap rounded-full bg-[var(--orange)] px-4 py-2.5 text-[12.5px] font-bold text-white"
+          >
             + Nuevo empleado
           </button>
         </div>
       </header>
+
+      {invitado && (
+        <p className="mb-4 rounded-xl bg-[var(--green-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--green)]">
+          Invitación enviada — el empleado va a aparecer en la lista en cuanto acepte y entre por primera vez.
+        </p>
+      )}
+
+      {mostrarNuevoEmpleado && (
+        <NuevoEmpleadoModal
+          onCerrar={() => setMostrarNuevoEmpleado(false)}
+          onCreado={() => {
+            setMostrarNuevoEmpleado(false)
+            setInvitado(true)
+          }}
+        />
+      )}
 
       <div className="mb-[22px] grid grid-cols-1 gap-3.5 sm:grid-cols-3">
         <div className="rounded-[14px] border border-[var(--border)] bg-[var(--surface)] px-[18px] py-4">

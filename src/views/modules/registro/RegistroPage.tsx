@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../../controllers/auth/useAuth'
+import { supabase } from '../../../lib/supabaseClient'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import {
   IconoCandado,
@@ -11,11 +13,13 @@ import {
   IconoTelefono,
 } from '../../components/ui/IconosAuth'
 
-// Alta de restaurante nuevo (Fase 7, Módulo 1 del roadmap) — todavía no
-// construida de verdad. Esta pantalla es solo el recorrido navegable:
-// valida en el cliente y manda a /proximamente, no crea tenant ni usuario.
+// Alta de restaurante nuevo (Fase 7, Módulos 1 y 2). Llama a la Edge
+// Function registrar-restaurante (clave de servicio, crea tenant + sede +
+// usuario + suscripción en trial en una sola transacción — migración
+// 0027) y después inicia sesión normal, como si ya tuviera cuenta.
 export default function RegistroPage() {
   const navigate = useNavigate()
+  const { signIn } = useAuth()
   const [nombreRestaurante, setNombreRestaurante] = useState('')
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
@@ -28,7 +32,7 @@ export default function RegistroPage() {
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError(null)
 
@@ -42,9 +46,34 @@ export default function RegistroPage() {
     }
 
     setEnviando(true)
-    // Todavía no hay backend de self-service (ver Fase 7 del roadmap) —
-    // esto es solo el recorrido navegable del prototipo.
-    navigate('/proximamente')
+    const { data, error: errorFuncion } = await supabase.functions.invoke<{ ok: boolean; mensaje?: string }>(
+      'registrar-restaurante',
+      {
+        body: {
+          nombre_restaurante: nombreRestaurante,
+          nombre_usuario: nombre,
+          email,
+          password,
+          telefono,
+        },
+      },
+    )
+
+    if (errorFuncion || !data?.ok) {
+      setEnviando(false)
+      setError(data?.mensaje ?? 'No se pudo registrar tu restaurante. Intenta de nuevo.')
+      return
+    }
+
+    const { error: errorSesion } = await signIn(email, password)
+    setEnviando(false)
+    if (errorSesion) {
+      // La cuenta sí se creó — solo falló el login automático. Que entre
+      // por /login como cualquier otra vez, en vez de quedarse atascado.
+      navigate('/login')
+      return
+    }
+    navigate('/gerencia')
   }
 
   return (

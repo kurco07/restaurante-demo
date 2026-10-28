@@ -29,7 +29,7 @@ export default function ConfiguracionPage() {
           pagosActivos={config.pagosActivos}
           onAlternarPago={config.alternarPago}
         />
-        <ColoresMarcaSeccion colores={config.colores} />
+        <ColoresMarcaSeccion tenantId={usuario.tenant_id} />
         <NotificacionesSeccion
           notificaciones={config.notificaciones}
           activas={config.alertasActivas}

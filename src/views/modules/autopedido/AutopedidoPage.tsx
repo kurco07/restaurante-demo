@@ -1,5 +1,6 @@
 import { useParams } from 'react-router-dom'
 import { useAutopedido } from '../../../controllers/autopedido/useAutopedido'
+import { useAplicarMarca } from '../../../controllers/marca/useAplicarMarca'
 import { useRecomendadosMesa } from '../../../controllers/autopedido/useRecomendadosMesa'
 import { EncabezadoAutopedido } from './components/EncabezadoAutopedido'
 import { ListaPlatos } from './components/ListaPlatos'
@@ -14,6 +15,7 @@ export default function AutopedidoPage() {
   const ap = useAutopedido(mesaId)
   const p = ap.personalizacion
   const recomendados = useRecomendadosMesa(mesaId)
+  useAplicarMarca(ap.menu?.marca)
   // Solo los que están en el menú de esta mesa (con su precio de la sede)
   const platosRecomendados = (recomendados?.items ?? []).flatMap((r) => {
     const plato = ap.menu?.platos.find((pl) => pl.id === r.menu_item_id)

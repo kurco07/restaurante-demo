@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
+import { useAplicarMarca } from '../../../controllers/marca/useAplicarMarca'
 import { HeroCarousel } from './components/HeroCarousel'
 
 // Home pública del restaurante — sin login, sin mesa. Es una vitrina (menú
@@ -34,6 +35,7 @@ interface Sede {
 
 interface MenuPublico {
   restaurante: string
+  marca: { logo_url: string | null; color_primario: string | null; color_secundario: string | null }
   sedes: Sede[]
   categorias: Categoria[]
   platos: Plato[]
@@ -84,6 +86,8 @@ export default function InicioPage() {
     menuRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     if (enfocarBuscador) setTimeout(() => buscadorRef.current?.focus(), 400)
   }
+
+  useAplicarMarca(menu?.marca)
 
   const nombreRestaurante = menu?.restaurante ?? 'Roof Burgers'
   const sedePrincipal = menu?.sedes[0]

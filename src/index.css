@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+/* Paleta por defecto de la plataforma — hasta la Fase 7 estas variables se
+   usaban en el código (PersonalPage.tsx, ConfiguracionPage.tsx, etc.) sin
+   estar definidas en ningún :root, así que `var(--orange)` etc. caían al
+   color por defecto del navegador. Quedan acá con los mismos valores que
+   ya traían los mockups de docs/interfaces/. `--orange`/`--orange-dark` se
+   sobreescriben en tiempo de ejecución por tenant (ver useAplicarMarca.ts,
+   Fase 7 Módulo 4) si el restaurante configuró su propio color. */
+:root {
+  --bg: #fffbf6;
+  --surface: #ffffff;
+  --surface-alt: #fff2e2;
+  --border: #f1e3d1;
+  --ink: #2b2118;
+  --ink-soft: #8c8175;
+  --orange: #ff7a1a;
+  --orange-dark: #e0650a;
+  --orange-bg: #fff2e2;
+  --gray-bg: #f2efe9;
+  --green: #24a24a;
+  --green-bg: #e9f8ee;
+  --red: #e14434;
+  --red-bg: #fdeceb;
+}

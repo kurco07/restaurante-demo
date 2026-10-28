@@ -1,7 +1,10 @@
-import { createContext, type ReactNode } from 'react'
+import { createContext, useEffect, useState, type ReactNode } from 'react'
 import { useAuth } from '../../controllers/auth/useAuth'
 import { usePowerSyncWatch } from '../../controllers/usePowerSyncWatch'
+import { useAplicarMarca } from '../../controllers/marca/useAplicarMarca'
+import { fetchMarcaPropia } from '../../models/services/marcaService'
 import type { Usuario } from '../../models/types/usuario'
+import type { Marca } from '../../models/types/marca'
 
 interface UsuarioContextValue {
   usuario: Usuario | null
@@ -28,6 +31,19 @@ export function UsuarioProvider({ children }: { children: ReactNode }) {
   // justo después de loguearse, antes de que llegue la primera sincronización
   // de PowerSync con la fila propia — no en cada re-render posterior.
   const loading = authLoading || (!!user && filas.length === 0)
+
+  // La marca no es parte del camino offline crítico (mesonero/cocina/mesas
+  // — CLAUDE.md): es cosmética, así que un simple fetch por red basta;
+  // useAplicarMarca ya se encarga de no parpadear entre recargas gracias
+  // al caché en localStorage.
+  const [marca, setMarca] = useState<Marca | null | undefined>(undefined)
+  useEffect(() => {
+    if (!usuario) return
+    fetchMarcaPropia()
+      .then(setMarca)
+      .catch(() => setMarca(null))
+  }, [usuario?.tenant_id])
+  useAplicarMarca(marca)
 
   return (
     <UsuarioContext.Provider value={{ usuario, loading, error: null }}>
