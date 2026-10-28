@@ -14,6 +14,7 @@ import CocinaLayout from './views/modules/cocina/CocinaLayout'
 import CocinaPage from './views/modules/cocina/CocinaPage'
 import EntregadosPage from './views/modules/cocina/EntregadosPage'
 import RecetasCocinaPage from './views/modules/cocina/RecetasCocinaPage'
+import SugeridosPage from './views/modules/cocina/SugeridosPage'
 import AutopedidoPage from './views/modules/autopedido/AutopedidoPage'
 import AdministracionPage from './views/modules/administracion/AdministracionPage'
 import MenuAdminPage from './views/modules/administracion/MenuAdminPage'
@@ -79,7 +80,7 @@ export default function App() {
               <Route path="pedidos" element={<MisPedidosPage />} />
               <Route path="reporte" element={<ReporteDelDiaPage />} />
             </Route>
-            {/* Cocina: barra superior con el tablero, entregados y recetas */}
+            {/* Cocina: barra superior con el tablero, sugeridos, entregados y recetas */}
             <Route
               path="/cocina"
               element={
@@ -89,6 +90,7 @@ export default function App() {
               }
             >
               <Route index element={<CocinaPage />} />
+              <Route path="sugeridos" element={<SugeridosPage />} />
               <Route path="entregados" element={<EntregadosPage />} />
               <Route path="recetas" element={<RecetasCocinaPage />} />
             </Route>

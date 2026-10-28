@@ -52,7 +52,7 @@ Rama: `feature/fase6-platos-preparar` (sale de `feature/fase6-sugerencias-compra
   - "En cocina hoy", con la lista aprobada;
   - historial.
 - La prueba de conexión pasó al final de la página.
-- **Cocina → Pedidos:** tarjeta plegable **"✦ Platos sugeridos para hoy"** arriba del tablero, con plato, porciones y motivo, sin precios.
+- **Cocina → pestaña "Sugeridos"** (entre Pedidos y Entregados), con un contador que muestra cuántos platos tiene la lista del día. La página muestra plato, porciones y motivo, sin precios. A pedido de Pedro va en su propia pestaña y no encima del tablero, para no estorbar.
   - Es lo único de cocina que usa red: se pide al entrar, cada 5 minutos y al volver la conexión.
   - Sin internet se queda con la última lista, y si nunca llegó ninguna no se muestra. El tablero sigue funcionando offline como antes.
 
@@ -71,7 +71,7 @@ Además, 28 pruebas de Node, `deno check`, `tsc -b` y `npm run build` pasan.
 
 1. Aplicar `supabase/migrations/0022_platos_a_preparar.sql` en el SQL Editor.
 2. Entrar como gerencia, ir a **Sugerencias IA** y elegir la sede en el selector. La sede original tiene ventas demo, aunque su inventario no se descuenta con ellas. La **Sede Norte** tiene ventas e inventario. Tocar **Generar para hoy**, revisar y aprobar.
-3. Entrar como cocina (`cocina@prueba.com`, que es de la sede original) y ver la tarjeta arriba del tablero. Para verla hay que haber aprobado una lista **para la sede de cocina**.
+3. Entrar como cocina (`cocina@prueba.com`, que es de la sede original) y ver la pestaña **Sugeridos** con su contador. Para verla hay que haber aprobado una lista **para la sede de cocina**.
 
 ### Pendiente
 

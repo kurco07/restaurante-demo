@@ -20,10 +20,11 @@ function Reloj() {
   )
 }
 
-// Barra superior de cocina: Pedidos (el tablero) · Entregados · Recetas, y
-// a la derecha el estado de conexión, la hora y el usuario. Ligera a
-// propósito: el tablero es la pantalla principal (arquitectura.md §4.2).
-export function BarraCocina({ usuario }: { usuario: Usuario }) {
+// Barra superior de cocina: Pedidos (el tablero) · Sugeridos · Entregados ·
+// Recetas, y a la derecha el estado de conexión, la hora y el usuario.
+// Ligera a propósito: el tablero es la pantalla principal (§4.2).
+// sugeridos = cuántos platos tiene la lista aprobada hoy por gerencia.
+export function BarraCocina({ usuario, sugeridos }: { usuario: Usuario; sugeridos: number }) {
   const { contador } = useCocina()
 
   const pestanas: PestanaBarra[] = [
@@ -39,6 +40,12 @@ export function BarraCocina({ usuario }: { usuario: Usuario }) {
           <path d="M9 8h6M9 12h6" />
         </>
       ),
+    },
+    {
+      label: 'Sugeridos',
+      to: '/cocina/sugeridos',
+      contador: sugeridos,
+      icono: <path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8L12 3z" />,
     },
     {
       label: 'Entregados',
