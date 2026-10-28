@@ -8,16 +8,28 @@ import {
   marcarSuscripcion,
   type TenantAdmin,
 } from '../../../models/services/superAdminService'
-import { MODULOS_OPCIONALES, type ModuloOpcional } from '../../../models/services/modulosService'
+import { type ModuloOpcional } from '../../../models/services/modulosService'
 
-const ETIQUETA_MODULO: Record<ModuloOpcional, string> = {
-  ia_sugerencias_compra: 'Sugerencias de compra (IA)',
-  ia_sugerencias_platos: 'Platos a preparar (IA)',
-  ia_recomendados: 'Recomendados del día (IA)',
-  alertas_gerencia: 'Alertas de gerencia',
-  multi_sede: 'Vista multi-sede',
-  realidad_aumentada: 'Realidad aumentada ("Ver en RA")',
+interface InfoModulo {
+  titulo: string
+  descripcion: string
+  icono: string
 }
+
+const INFO_MODULO: Record<ModuloOpcional, InfoModulo> = {
+  ia_sugerencias_compra: { titulo: 'Sugerencias de compra', descripcion: 'La IA sugiere qué y cuánto comprar según stock y consumo', icono: '🛒' },
+  ia_sugerencias_platos: { titulo: 'Platos a preparar', descripcion: 'La IA sugiere qué preparar hoy en la cocina', icono: '🍳' },
+  ia_recomendados: { titulo: 'Recomendados del día', descripcion: 'Platos destacados en el menú del mesonero y el QR', icono: '⭐' },
+  alertas_gerencia: { titulo: 'Alertas de gerencia', descripcion: 'Avisos de merma, anulaciones, stock bajo y más', icono: '🔔' },
+  multi_sede: { titulo: 'Vista multi-sede', descripcion: 'Comparar reportes entre las sedes del restaurante', icono: '🏢' },
+  realidad_aumentada: { titulo: 'Realidad aumentada', descripcion: 'Botón "Ver en RA" para mostrar el plato en 3D con cámara', icono: '📱' },
+}
+
+const GRUPOS_MODULOS: { label: string; modulos: ModuloOpcional[] }[] = [
+  { label: 'Inteligencia Artificial', modulos: ['ia_sugerencias_compra', 'ia_sugerencias_platos', 'ia_recomendados'] },
+  { label: 'Gerencia', modulos: ['alertas_gerencia', 'multi_sede'] },
+  { label: 'Marketing', modulos: ['realidad_aumentada'] },
+]
 
 function Interruptor({ activo, onClick, disabled }: { activo: boolean; onClick: () => void; disabled?: boolean }) {
   return (
@@ -49,6 +61,10 @@ export default function SuperAdminPage() {
   const [tenants, setTenants] = useState<TenantAdmin[]>([])
   const [cargando, setCargando] = useState(true)
   const [seleccionadoId, setSeleccionadoId] = useState<string | null>(null)
+  // Los módulos ya no van en el modal: al elegir "Módulos" se reemplaza
+  // esta misma vista por la de tarjetas (como la referencia), con un
+  // botón de volver — no un popup encima.
+  const [vistaModulosId, setVistaModulosId] = useState<string | null>(null)
 
   function recargar() {
     setCargando(true)
@@ -60,8 +76,13 @@ export default function SuperAdminPage() {
   useEffect(recargar, [])
 
   const seleccionado = tenants.find((t) => t.id === seleccionadoId) ?? null
+  const tenantModulos = tenants.find((t) => t.id === vistaModulosId) ?? null
 
   if (cargando) return <div className="p-8 text-sm text-gray-500">Cargando restaurantes…</div>
+
+  if (tenantModulos) {
+    return <VistaModulos tenant={tenantModulos} onVolver={() => setVistaModulosId(null)} />
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -101,13 +122,22 @@ export default function SuperAdminPage() {
                 <td className="px-4 py-3">{t.sedes}</td>
                 <td className="px-4 py-3">{t.usuarios}</td>
                 <td className="px-4 py-3">
-                  <button
-                    type="button"
-                    onClick={() => setSeleccionadoId(t.id)}
-                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-100"
-                  >
-                    Gestionar
-                  </button>
+                  <div className="flex gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setSeleccionadoId(t.id)}
+                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-100"
+                    >
+                      Gestionar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setVistaModulosId(t.id)}
+                      className="rounded-lg border border-orange-300 bg-orange-50 px-3 py-1.5 text-xs font-bold text-orange-700 hover:bg-orange-100"
+                    >
+                      Módulos
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -124,6 +154,127 @@ export default function SuperAdminPage() {
             recargar()
           }}
         />
+      )}
+    </div>
+  )
+}
+
+// Vista de tarjetas por módulo, agrupadas por categoría — reemplaza la
+// tabla mientras está abierta (no es un modal encima).
+function VistaModulos({ tenant, onVolver }: { tenant: TenantAdmin; onVolver: () => void }) {
+  const [modulos, setModulos] = useState<Record<ModuloOpcional, boolean> | null>(null)
+  const [ocupado, setOcupado] = useState(false)
+
+  useEffect(() => {
+    fetchModulosTenant(tenant.id).then(setModulos)
+  }, [tenant.id])
+
+  async function alternar(modulo: ModuloOpcional) {
+    if (!modulos || ocupado) return
+    const nuevoValor = !modulos[modulo]
+    setModulos({ ...modulos, [modulo]: nuevoValor }) // optimista
+    try {
+      await fijarModuloTenant(tenant.id, modulo, nuevoValor)
+    } catch {
+      setModulos(modulos) // revierte si falló
+    }
+  }
+
+  async function activarGrupo(modulosGrupo: ModuloOpcional[]) {
+    if (!modulos) return
+    setOcupado(true)
+    try {
+      await Promise.all(modulosGrupo.map((m) => fijarModuloTenant(tenant.id, m, true)))
+      setModulos({ ...modulos, ...Object.fromEntries(modulosGrupo.map((m) => [m, true])) })
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  async function aplicarPreset(plan: string) {
+    setOcupado(true)
+    try {
+      await aplicarPresetModulos(tenant.id, plan)
+      setModulos(await fetchModulosTenant(tenant.id))
+    } finally {
+      setOcupado(false)
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 p-8">
+      <button type="button" onClick={onVolver} className="mb-4 text-sm font-bold text-gray-500 hover:text-gray-800">
+        ← Volver a restaurantes
+      </button>
+
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900">Módulos — {tenant.nombre}</h1>
+          <p className="mt-1 text-sm text-gray-500">Activa o desactiva las funciones disponibles para este restaurante.</p>
+        </div>
+        <div className="flex gap-1.5">
+          <button
+            type="button"
+            onClick={() => aplicarPreset('starter')}
+            disabled={ocupado}
+            className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 disabled:opacity-50"
+          >
+            Preset Starter
+          </button>
+          <button
+            type="button"
+            onClick={() => aplicarPreset('pro')}
+            disabled={ocupado}
+            className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 disabled:opacity-50"
+          >
+            Preset Pro
+          </button>
+        </div>
+      </div>
+
+      {!modulos ? (
+        <p className="text-sm text-gray-400">Cargando módulos…</p>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {GRUPOS_MODULOS.map((grupo) => {
+            const activos = grupo.modulos.filter((m) => modulos[m]).length
+            return (
+              <section key={grupo.label} className="rounded-xl border border-gray-200 bg-white p-5">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-base font-extrabold text-gray-900">{grupo.label}</p>
+                    <p className="text-xs text-gray-400">
+                      {activos} / {grupo.modulos.length} módulos activos
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => activarGrupo(grupo.modulos)}
+                    disabled={ocupado || activos === grupo.modulos.length}
+                    className="rounded-full border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-600 disabled:opacity-40"
+                  >
+                    Activar todos
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {grupo.modulos.map((m) => (
+                    <div key={m} className="rounded-lg border border-gray-200 p-4">
+                      <div className="mb-3 flex items-start justify-between gap-2">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-lg">
+                          {INFO_MODULO[m].icono}
+                        </span>
+                        <Interruptor activo={modulos[m]} onClick={() => alternar(m)} disabled={ocupado} />
+                      </div>
+                      <p className="text-sm font-bold text-gray-900">{INFO_MODULO[m].titulo}</p>
+                      <p className="mt-0.5 text-xs text-gray-500">{INFO_MODULO[m].descripcion}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )
+          })}
+        </div>
       )}
     </div>
   )
@@ -147,33 +298,6 @@ function PanelGestionTenant({
   const [referencia, setReferencia] = useState(tenant.suscripcion?.referencia_externa ?? '')
   const [proximoCobro, setProximoCobro] = useState(tenant.suscripcion?.proximo_cobro ?? '')
   const [guardando, setGuardando] = useState(false)
-
-  const [modulos, setModulos] = useState<Record<ModuloOpcional, boolean> | null>(null)
-  const [aplicandoPreset, setAplicandoPreset] = useState(false)
-  useEffect(() => {
-    fetchModulosTenant(tenant.id).then(setModulos)
-  }, [tenant.id])
-
-  async function alternarModulo(modulo: ModuloOpcional) {
-    if (!modulos) return
-    const nuevoValor = !modulos[modulo]
-    setModulos({ ...modulos, [modulo]: nuevoValor }) // optimista
-    try {
-      await fijarModuloTenant(tenant.id, modulo, nuevoValor)
-    } catch {
-      setModulos(modulos) // revierte si falló
-    }
-  }
-
-  async function aplicarPreset(presetPlan: string) {
-    setAplicandoPreset(true)
-    try {
-      await aplicarPresetModulos(tenant.id, presetPlan)
-      setModulos(await fetchModulosTenant(tenant.id))
-    } finally {
-      setAplicandoPreset(false)
-    }
-  }
 
   async function guardar() {
     setGuardando(true)
@@ -267,42 +391,6 @@ function PanelGestionTenant({
               className="rounded-lg border border-gray-300 px-3 py-2 font-normal"
             />
           </label>
-
-          <hr className="my-1 border-gray-200" />
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-extrabold uppercase tracking-wide text-gray-400">Módulos activos</p>
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={() => aplicarPreset('starter')}
-                disabled={aplicandoPreset}
-                className="rounded-full border border-gray-300 px-2.5 py-1 text-[11px] font-bold text-gray-600 disabled:opacity-50"
-              >
-                Preset Starter
-              </button>
-              <button
-                type="button"
-                onClick={() => aplicarPreset('pro')}
-                disabled={aplicandoPreset}
-                className="rounded-full border border-gray-300 px-2.5 py-1 text-[11px] font-bold text-gray-600 disabled:opacity-50"
-              >
-                Preset Pro
-              </button>
-            </div>
-          </div>
-
-          {!modulos ? (
-            <p className="py-1 text-xs text-gray-400">Cargando módulos…</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {MODULOS_OPCIONALES.map((m) => (
-                <div key={m} className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2">
-                  <span className="text-xs font-semibold text-gray-700">{ETIQUETA_MODULO[m]}</span>
-                  <Interruptor activo={modulos[m]} onClick={() => alternarModulo(m)} disabled={aplicandoPreset} />
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className="mt-5 flex gap-2.5">
