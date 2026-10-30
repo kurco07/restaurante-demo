@@ -6,7 +6,7 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ## 2026-10-30 — Preparación de las pruebas reales de offline (Fase 8, Módulo 1)
 
-Rama: `feature/fase8-endurecimiento`. Autor: Pedro (con Claude Code). Migración `0031_fusionar_sesiones_duplicadas.sql` **pendiente de aplicar en Supabase** (SQL Editor).
+Rama: `feature/fase8-endurecimiento`. Autor: Pedro (con Claude Code). Migración `0031_fusionar_sesiones_duplicadas.sql` **aplicada en Supabase por Pedro (2026-10-30)**.
 
 ### Por qué
 
@@ -60,7 +60,7 @@ Además, `tsc -b` y `npm run build` pasan.
 
 ### Pendiente
 
-- [ ] Aplicar `0031_fusionar_sesiones_duplicadas.sql` en el SQL Editor.
+- [x] Aplicar `0031_fusionar_sesiones_duplicadas.sql` en el SQL Editor (verificado: existe `sesiones_mesa.fusionada_en`).
 - [ ] Correr la prueba con dispositivos reales (`docs/Pruebas_Offline_Fase8.md`) y el script de verificación.
 - [ ] Con eso, marcar el Módulo 1 de la Fase 8 con ✅.
 
