@@ -10,6 +10,8 @@ interface MesaCardProps {
   // mesa misma, no solo en el aviso general de arriba del mapa, para que
   // no se pierda si la mesa ya tiene mesonero asignado.
   pendienteAprobar?: boolean
+  // Se quiso cobrar sin internet: falta cobrarla (Fase 8, Módulo 1)
+  porCobrar?: boolean
   selected?: boolean
   style?: CSSProperties
   onClick?: () => void
@@ -28,6 +30,7 @@ export function MesaCard({
   estado,
   etiqueta,
   pendienteAprobar = false,
+  porCobrar = false,
   selected = false,
   style,
   onClick,
@@ -44,6 +47,14 @@ export function MesaCard({
       {pendienteAprobar && (
         <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-orange-500 text-[10px] text-white shadow">
           🔔
+        </span>
+      )}
+      {porCobrar && (
+        <span
+          title="Por cobrar: se quiso cobrar sin internet"
+          className="absolute -left-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[10px] font-extrabold text-white shadow"
+        >
+          $
         </span>
       )}
       <span className="text-sm font-extrabold leading-none">{numero}</span>

@@ -321,8 +321,17 @@ En Administración → Personal se invita a empleados por correo, con la Edge Fu
 
 ## Fase 8 — Endurecimiento y piloto
 
-**Módulo 1 — Pruebas reales de offline**
+**Módulo 1 — Pruebas reales de offline** — 🔧 *preparado, falta correr la prueba con dispositivos reales*
 Desconexión forzada, verificación de que ningún pedido se pierde o se duplica, en los tres dispositivos a la vez (mesonero, cliente, cocina).
+
+Preparado con Pedro (2026-10-30):
+- Protocolo de 9 escenarios: `docs/Pruebas_Offline_Fase8.md`.
+- Script de verificación de solo lectura: `supabase/diagnostico/verificar_offline.sql`.
+- Antes de probar, se resolvieron dos riesgos que encontró la revisión del código:
+  1. **Dos cuentas abiertas en la misma mesa** (dos mesoneros sin internet, o mesonero sin internet y cliente por QR) se **fusionan solas** (migración `0031`, decisión de Pedro).
+  2. **Cobrar sigue necesitando internet** (decisión de Pedro), pero ahora se avisa claro y la mesa se puede **marcar "por cobrar"** en el dispositivo.
+- La barra del mesonero muestra la conexión, y la de los dos indica **cuántos cambios faltan por subir**.
+- Queda escrito en el protocolo: **sin internet los dispositivos no se ven entre ellos**. Los pedidos llegan a cocina recién cuando vuelve la conexión, así que la tablet de cocina con datos móviles de respaldo es la opción práctica si eso importa.
 
 **Módulo 2 — Manejo de errores y estados de carga**
 En toda la app: qué ve el usuario cuando algo falla o está cargando.

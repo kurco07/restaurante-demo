@@ -4,6 +4,7 @@ import type { Rol, Usuario } from '../../../../models/types'
 import { puedeSupervisar } from '../../../../lib/permisos'
 import { BarraSuperior, type PestanaBarra } from '../../../components/layout/BarraSuperior'
 import { MenuUsuario } from '../../../components/layout/MenuUsuario'
+import { IndicadorConexion } from '../../../components/layout/IndicadorConexion'
 
 const ETIQUETA_ROL: Partial<Record<Rol, string>> = {
   mesonero: 'Mesonero',
@@ -67,7 +68,12 @@ export function BarraMesonero({ usuario, recomendados }: { usuario: Usuario; rec
   return (
     <BarraSuperior
       pestanas={pestanas}
-      derecha={<MenuUsuario nombre={usuario.nombre} rol={ETIQUETA_ROL[usuario.rol] ?? usuario.rol} />}
+      derecha={
+        <>
+          <IndicadorConexion />
+          <MenuUsuario nombre={usuario.nombre} rol={ETIQUETA_ROL[usuario.rol] ?? usuario.rol} />
+        </>
+      }
     />
   )
 }

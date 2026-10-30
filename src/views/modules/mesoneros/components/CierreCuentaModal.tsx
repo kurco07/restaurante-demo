@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { usePowerSyncWatch } from '../../../../controllers/usePowerSyncWatch'
 import { cerrarCuenta } from '../../../../models/services/cierreCuentaService'
+import { useEstadoConexion } from '../../../../controllers/useEstadoConexion'
+import { usePorCobrar } from '../../../../controllers/mesonero/usePorCobrar'
 import type { Usuario } from '../../../../models/types'
 import type { MesaVista } from './MapaMesas'
 
@@ -59,6 +61,11 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
   const [metodo, setMetodo] = useState<'efectivo' | 'tarjeta' | 'pago_movil'>('tarjeta')
   const [enviando, setEnviando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Cobrar necesita internet (Fase 8, Módulo 1): sin conexión se avisa y se
+  // puede dejar la mesa marcada "por cobrar" en este dispositivo
+  const { conectado } = useEstadoConexion()
+  const porCobrar = usePorCobrar()
+  const marcadaPorCobrar = porCobrar.ids.includes(mesa.id)
 
   // Lo que anuló el supervisor no se cobra (migración 0015)
   const cobrables = useMemo(() => items.filter((i) => i.estado !== 'anulado'), [items])
@@ -86,6 +93,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
         propina,
         cerrado_por: usuario.id,
       })
+      porCobrar.quitar(mesa.id)
       onCerrada()
     } catch (err) {
       setError(
@@ -210,6 +218,22 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
 
         {error && <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
 
+        {!conectado && (
+          <div className="mt-3 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700">
+            <p className="font-bold">Sin conexión: el cobro se registra cuando vuelva internet.</p>
+            <p className="mt-0.5 text-[13px]">
+              La mesa sigue abierta con su cuenta completa y se pueden seguir pidiendo platos.
+            </p>
+            <button
+              type="button"
+              onClick={() => (marcadaPorCobrar ? porCobrar.quitar(mesa.id) : porCobrar.marcar(mesa.id))}
+              className="mt-2 rounded-full border border-red-300 bg-white px-3 py-1.5 text-xs font-bold text-red-700"
+            >
+              {marcadaPorCobrar ? '✓ Marcada para cobrar al volver (quitar)' : 'Marcar para cobrar cuando vuelva internet'}
+            </button>
+          </div>
+        )}
+
         <div className="mt-5 flex gap-2.5">
           <button
             type="button"
@@ -221,10 +245,10 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           <button
             type="button"
             onClick={confirmar}
-            disabled={enviando || cobrables.length === 0 || !sesion || itemsSinTerminar.length > 0}
+            disabled={enviando || !conectado || cobrables.length === 0 || !sesion || itemsSinTerminar.length > 0}
             className="flex-[1.4] rounded-xl bg-orange-500 py-3 text-sm font-bold text-white disabled:opacity-50"
           >
-            {enviando ? 'Cerrando…' : 'Confirmar y cerrar mesa'}
+            {enviando ? 'Cerrando…' : conectado ? 'Confirmar y cerrar mesa' : 'Sin conexión para cobrar'}
           </button>
         </div>
       </div>

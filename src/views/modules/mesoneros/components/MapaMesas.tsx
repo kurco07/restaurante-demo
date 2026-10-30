@@ -6,6 +6,8 @@ import { abrirMesa, atenderMesa, marcarMesaLibre, transferirMesa } from '../../.
 import { puedeSupervisar } from '../../../../lib/permisos'
 import type { Usuario } from '../../../../models/types'
 import { MesaCard } from './MesaCard'
+import { usePorCobrar } from '../../../../controllers/mesonero/usePorCobrar'
+import { useEstadoConexion } from '../../../../controllers/useEstadoConexion'
 import { DetalleMesaPanel } from './DetalleMesaPanel'
 import { CierreCuentaModal } from './CierreCuentaModal'
 import { SolicitudesAutopedidoModal } from './SolicitudesAutopedidoModal'
@@ -47,6 +49,10 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
   const { tickets: solicitudesPorAprobar, aprobar, aprobandoId } = usePorAprobar()
 
   const mesas = useMesasSede(usuario)
+  const porCobrar = usePorCobrar()
+  const { conectado } = useEstadoConexion()
+  // Solo cuentan las que siguen con la cuenta abierta (si otro la cobró, ya no)
+  const mesasPorCobrar = mesas.filter((m) => m.sesionId && porCobrar.ids.includes(m.id))
 
   const contador = (f: Filtro) => mesas.filter((m) => coincideFiltro(m, f)).length
 
@@ -73,6 +79,18 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
 
   return (
     <div>
+      {mesasPorCobrar.length > 0 && (
+        <div
+          className={`mb-4 rounded-2xl border px-4 py-3 text-sm font-bold ${
+            conectado ? 'border-red-300 bg-red-50 text-red-700' : 'border-gray-200 bg-gray-50 text-gray-600'
+          }`}
+        >
+          {conectado ? '💲 Ya hay conexión: ' : '💲 Sin conexión todavía. '}
+          {mesasPorCobrar.length === 1 ? 'queda 1 mesa por cobrar' : `quedan ${mesasPorCobrar.length} mesas por cobrar`}:{' '}
+          {mesasPorCobrar.map((m) => m.numero).join(', ')}
+        </div>
+      )}
+
       {solicitudesPorAprobar.length > 0 && (
         <button
           type="button"
@@ -148,6 +166,10 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
             <span className="flex items-center gap-1.5">
               🔔 Tiene un pedido nuevo por aprobar
             </span>
+            <span className="flex items-center gap-1.5">
+              <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-600 text-[8px] font-extrabold text-white">$</span>
+              Por cobrar (se intentó sin internet)
+            </span>
           </div>
 
           <div className="rounded-[18px] border border-gray-200 bg-white p-4">
@@ -165,6 +187,7 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
                   numero={mesa.numero}
                   estado={mesa.estado}
                   pendienteAprobar={solicitudesPorAprobar.some((t) => t.sesionId === mesa.sesionId)}
+                  porCobrar={!!mesa.sesionId && porCobrar.ids.includes(mesa.id)}
                   etiqueta={
                     mesa.estado === 'libre'
                       ? 'Libre'

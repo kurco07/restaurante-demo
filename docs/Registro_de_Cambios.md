@@ -4,6 +4,68 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-30 — Preparación de las pruebas reales de offline (Fase 8, Módulo 1)
+
+Rama: `feature/fase8-endurecimiento`. Autor: Pedro (con Claude Code). Migración `0031_fusionar_sesiones_duplicadas.sql` **pendiente de aplicar en Supabase** (SQL Editor).
+
+### Por qué
+
+La Fase 8 empieza probando con dispositivos reales que no se pierda ni se duplique ningún pedido sin internet. Antes de probar, la revisión del código encontró dos riesgos que la prueba iba a destapar:
+1. **Nada impedía que una mesa tuviera dos cuentas abiertas.** Pasa cuando dos mesoneros sin internet abren la misma mesa, o cuando uno sin internet la abre mientras el cliente ya pidió por QR con sus datos móviles. Al volver la conexión, la cuenta quedaba partida.
+2. **Cobrar necesita internet**, porque `pagos_cierre` no está en PowerSync. Sin conexión, el mesonero podía pedir pero no cerrar la mesa, y no se le explicaba bien por qué.
+
+### Decisiones (Pedro, 2026-10-30)
+
+- Dos cuentas abiertas en la misma mesa: **fusionarlas solas**.
+- Cobrar sin internet: **no, pero avisar claro**, y dejar la mesa marcada como pendiente de cobro.
+
+### Qué cambió
+
+**Base de datos (migración `0031`):**
+- `sesiones_mesa.fusionada_en` guarda en qué sesión se fusionó una cuenta duplicada.
+- Trigger `fusionar_sesion_duplicada`, antes de insertar:
+  - si la mesa ya tiene una cuenta abierta, la que llega nace **cerrada** y apuntando a la existente;
+  - la que sobrevive se queda con el mesonero si no tenía (por ejemplo, si la abrió el QR) y pasa a "híbrido" si los orígenes eran distintos;
+  - un candado por mesa (`pg_advisory_xact_lock`) evita que dos subidas simultáneas abran dos.
+- Trigger `redirigir_plato_a_sesion_viva`: los platos que llegan para una cuenta fusionada se guardan en la que sobrevive, siguiendo la cadena si hubo más de una fusión. Otro trigger mueve los que ya estuvieran.
+- Una cuenta fusionada **no se puede reabrir**: el dispositivo que la abrió offline puede seguir mandando cambios hasta enterarse de la fusión.
+- Por qué fusionar y no rechazar: si la base rechazara la segunda cuenta, el conector de PowerSync descarta el cambio y los platos de ese dispositivo quedarían huérfanos.
+
+**Frontend:**
+- `useEstadoConexion` devuelve también **`pendientes`**: los cambios del dispositivo que faltan por subir, leídos de la cola de PowerSync cada 3 segundos. El indicador muestra **"Sin conexión · N por subir"**.
+- **La barra del mesonero ahora muestra el indicador de conexión.** Antes solo lo tenía cocina.
+- **Ventana de cobro sin internet:** avisa que el cobro se registra cuando vuelva internet, no deja confirmar, y tiene el botón **"Marcar para cobrar cuando vuelva internet"**.
+- **Mesas por cobrar** (`usePorCobrar`): es un recordatorio guardado **en el dispositivo**, no en el servidor.
+  - La mesa muestra una **$** roja en el mapa, y está en la leyenda.
+  - Arriba del mapa aparece el aviso "Ya hay conexión: quedan N mesas por cobrar".
+  - Al cobrar, la marca se quita sola.
+
+**Herramientas de prueba:**
+- `docs/Pruebas_Offline_Fase8.md`: preparación con 3 o 4 dispositivos, cómo cortar el internet, **9 escenarios** con el resultado esperado y una hoja de anotación. Deja escrito que, sin internet, **los dispositivos no se ven entre ellos**.
+- `supabase/diagnostico/verificar_offline.sql` (solo lectura) revisa:
+  - mesas con dos cuentas abiertas;
+  - cuentas fusionadas;
+  - platos que quedaron en cuentas fusionadas;
+  - posibles duplicados;
+  - un resumen por mesa y persona, para comparar con la hoja.
+
+**Verificado** en la copia local de la base:
+- La cuenta que llega tarde se fusiona y sus platos pasan a la que sobrevive (3 platos en una sola cuenta).
+- La fusionada no se puede reabrir.
+- Con el QR primero, la cuenta que sobrevive toma al mesonero y queda "híbrido".
+- Después de cobrar, abrir la mesa de nuevo es normal.
+- El script de verificación detecta las fusiones y no marca falsos duplicados.
+
+Además, `tsc -b` y `npm run build` pasan.
+
+### Pendiente
+
+- [ ] Aplicar `0031_fusionar_sesiones_duplicadas.sql` en el SQL Editor.
+- [ ] Correr la prueba con dispositivos reales (`docs/Pruebas_Offline_Fase8.md`) y el script de verificación.
+- [ ] Con eso, marcar el Módulo 1 de la Fase 8 con ✅.
+
+---
+
 ## 2026-10-28 — Fase 7: registro, marca, super-admin, empleados y módulos por restaurante (César)
 
 Hecho por César (con Claude Code) directo en `main` (commits `2fe0f6d`, `e544175` y `a7d2336`). **Esta entrada la escribió Pedro el 2026-10-30 a partir de los mensajes de esos commits**, porque en su momento no se actualizó la documentación. El detalle fino está en los commits.
