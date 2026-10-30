@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAhora } from '../../../../controllers/useAhora'
 import {
+  agruparPlatosIguales,
   useCocina,
   ETIQUETA_ESTADO,
   ACCION_SEGUN_ESTADO,
@@ -166,7 +167,7 @@ export function TableroCocina() {
                               Mesonero: {ticket.mesonero ?? 'Sin mesonero (pedido por QR)'}
                             </div>
                             <ul className="mb-3 text-sm">
-                              {ticket.items.map((item) =>
+                              {agruparPlatosIguales(ticket.items).map((item) =>
                                 item.anulado ? (
                                   <li key={item.id} className="py-0.5">
                                     <span className="text-gray-400 line-through">

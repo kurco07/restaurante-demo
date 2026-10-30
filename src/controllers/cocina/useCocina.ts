@@ -89,6 +89,24 @@ export const ACCION_SEGUN_ESTADO: Record<EstadoItemCocina, string> = {
 
 type Filtro = 'todos' | EstadoItemCocina
 
+// Dentro de un ticket, los platos iguales se muestran en una sola línea con
+// la cantidad sumada (Fase 8, Módulo 1): si dos clientes de la misma mesa
+// piden la misma hamburguesa por QR, cocina ve "2× Hamburguesa" y no dos
+// líneas de "1×". Solo se juntan los de verdad iguales: mismo plato, misma
+// nota y misma situación (un anulado nunca se junta con uno vigente). Las
+// acciones siguen siendo por ticket, así que juntarlos no cambia nada al
+// marcar en preparación, listo o entregado.
+export function agruparPlatosIguales(items: ItemCocina[]): ItemCocina[] {
+  const lineas = new Map<string, ItemCocina>()
+  for (const item of items) {
+    const clave = [item.menuItemId, item.notas ?? '', item.anulado ? `anulado:${item.motivoAnulacion ?? ''}` : 'vigente'].join('|')
+    const existente = lineas.get(clave)
+    if (existente) existente.cantidad += item.cantidad
+    else lineas.set(clave, { ...item })
+  }
+  return [...lineas.values()]
+}
+
 function agruparEnTickets(items: ItemCocina[]): TicketCocina[] {
   const grupos = new Map<string, TicketCocina>()
   for (const item of items) {

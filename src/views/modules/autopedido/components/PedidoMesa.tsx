@@ -1,4 +1,5 @@
 import type { EstadoItemPedido, ItemCarritoAutopedido, ItemPedidoCompartido } from '../../../../models/types'
+import { agruparPedidoMesa } from '../../../../controllers/autopedido/agruparPedidoMesa'
 
 interface PedidoMesaProps {
   mesa: string
@@ -11,6 +12,8 @@ interface PedidoMesaProps {
   onQuitar: (id: string) => void
   onEnviar: () => void
   enviando: boolean
+  // Se intentó enviar sin internet: se manda solo al volver la conexión
+  envioPendiente: boolean
   error: string | null
   onIrAlMenu: () => void
 }
@@ -71,21 +74,23 @@ export function PedidoMesa(props: PedidoMesaProps) {
           <p className="py-4 text-center text-[12.5px] text-gray-500">Todavía no hay nada pedido en esta mesa.</p>
         ) : (
           <div className="flex flex-col gap-2">
-            {enMesa.map((item) => (
-              <div key={item.id} className="rounded-[14px] border border-orange-100 bg-white px-3.5 py-2.5">
+            {agruparPedidoMesa(enMesa).map((item) => (
+              <div key={item.clave} className="rounded-[14px] border border-orange-100 bg-white px-3.5 py-2.5">
                 <div className="flex justify-between gap-2 text-[13px] font-bold text-gray-900">
                   <span>
                     {item.cantidad > 1 && `${item.cantidad}× `}
                     {item.nombre}
                   </span>
-                  <span>${(Number(item.precio_unitario) * item.cantidad).toFixed(2)}</span>
+                  <span>${(item.precio_unitario * item.cantidad).toFixed(2)}</span>
                 </div>
                 {item.notas && <div className="mt-0.5 text-[11px] text-gray-500">Nota: {item.notas}</div>}
                 <div className="mt-1.5 flex items-center gap-2 text-[10.5px] font-bold">
                   <span className={`rounded-full px-2 py-0.5 ${CLASE_ESTADO[item.estado]}`}>
                     {ETIQUETA_ESTADO[item.estado]}
                   </span>
-                  <span className="text-gray-400">{item.por_qr ? 'Pedido por QR' : 'Pedido con el mesonero'}</span>
+                  <span className="text-gray-400">
+                    {item.origen === 'qr' ? 'Pedido por QR' : item.origen === 'mesonero' ? 'Pedido con el mesonero' : 'Por QR y con el mesonero'}
+                  </span>
                 </div>
               </div>
             ))}
@@ -131,6 +136,12 @@ export function PedidoMesa(props: PedidoMesaProps) {
           </div>
         )}
       </Seccion>
+
+      {props.envioPendiente && (
+        <p className="mb-3 rounded-[12px] bg-amber-50 px-3.5 py-2.5 text-center text-[12.5px] font-semibold text-amber-700">
+          Sin conexión: tu pedido está guardado y se enviará solo cuando vuelva internet. No hace falta tocar nada.
+        </p>
+      )}
 
       {props.error && (
         <p className="mb-3 rounded-[12px] bg-red-50 px-3.5 py-2.5 text-center text-[12.5px] font-semibold text-red-600">

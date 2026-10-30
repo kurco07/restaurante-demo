@@ -1,5 +1,5 @@
 import type { ItemCocina, TicketCocina } from '../../../../controllers/cocina/useCocina'
-import { ACCION_SEGUN_ESTADO, ETIQUETA_ESTADO } from '../../../../controllers/cocina/useCocina'
+import { ACCION_SEGUN_ESTADO, agruparPlatosIguales, ETIQUETA_ESTADO } from '../../../../controllers/cocina/useCocina'
 
 function tiempoTranscurrido(creadoEnIso: string) {
   const minutos = Math.max(0, Math.round((Date.now() - new Date(creadoEnIso).getTime()) / 60000))
@@ -66,7 +66,7 @@ export function OrderDetailModal({
           </div>
 
           <div className="border-t border-gray-100">
-            {ticket.items.map((item) => (
+            {agruparPlatosIguales(ticket.items).map((item) => (
               <div key={item.id} className="flex items-center justify-between gap-3 border-b border-gray-100 py-3.5">
                 <div className="min-w-0">
                   <div className={`text-sm font-bold ${item.anulado ? 'text-gray-400 line-through' : 'text-gray-900'}`}>

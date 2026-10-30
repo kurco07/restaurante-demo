@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PedidoCompartidoMesa } from '../../models/types'
 import { fetchPedidoCompartidoMesa } from '../../models/services/menuPublicoService'
+import { claves, guardarLocal, leerLocal } from './guardadoLocal'
 
 // Cada cuánto el celular del cliente vuelve a leer el pedido de la mesa.
 // El cliente no tiene sesión, así que no puede suscribirse a Realtime de
@@ -11,8 +12,12 @@ const INTERVALO_MS = 5000
 
 // Pedido compartido de la mesa (Fase 3, Módulo 3): lo que cargó el
 // mesonero y lo que pidió el cliente, con su estado de cocina.
+// Lo último que se vio queda guardado en el celular (Fase 8, Módulo 1):
+// recargar sin internet sigue mostrando lo ya pedido en la mesa.
 export function usePedidoCompartido(mesaId: string | null) {
-  const [pedido, setPedido] = useState<PedidoCompartidoMesa | null>(null)
+  const [pedido, setPedido] = useState<PedidoCompartidoMesa | null>(() =>
+    mesaId ? leerLocal<PedidoCompartidoMesa>(claves.pedidoMesa(mesaId)) : null,
+  )
   const [sinConexion, setSinConexion] = useState(false)
   // La mesa tuvo una sesión abierta mientras el cliente miraba y ahora no:
   // el mesonero cerró la cuenta.
@@ -32,6 +37,7 @@ export function usePedidoCompartido(mesaId: string | null) {
         setCuentaCerrada(true)
       }
       setPedido(datos)
+      guardarLocal(claves.pedidoMesa(mesaId), datos)
     } catch {
       // Se conserva el último pedido conocido; solo se avisa.
       setSinConexion(true)
@@ -48,9 +54,11 @@ export function usePedidoCompartido(mesaId: string | null) {
       if (document.visibilityState === 'visible') void refrescar()
     }
     document.addEventListener('visibilitychange', alVolver)
+    window.addEventListener('online', alVolver)
     return () => {
       clearInterval(id)
       document.removeEventListener('visibilitychange', alVolver)
+      window.removeEventListener('online', alVolver)
     }
   }, [mesaId, refrescar])
 

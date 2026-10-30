@@ -37,7 +37,7 @@ export default function AutopedidoPage() {
         {ap.carga.estado === 'error' && (
           <Aviso
             titulo="No pudimos cargar el menú"
-            detalle="Revisa tu conexión a internet e intenta de nuevo, o pídele el menú a tu mesonero."
+            detalle="Parece que no hay internet. Lo volvemos a intentar solos en cuanto vuelva la conexión, o pídele el menú a tu mesonero."
           />
         )}
 
@@ -51,6 +51,11 @@ export default function AutopedidoPage() {
               itemsEnCarrito={ap.carrito.length}
             />
 
+            {ap.menuSinConfirmar && (
+              <p className="mx-5 mt-2 rounded-xl bg-gray-100 px-3.5 py-2 text-center text-[11.5px] font-semibold text-gray-500">
+                Sin conexión: este es el último menú que vimos. Puedes armar tu pedido y se enviará cuando vuelva internet.
+              </p>
+            )}
             <main className="flex-1 pb-24">
               {ap.pedidoEnviado ? (
                 <PedidoEnviado mesa={ap.menu.mesa.nombre_numero} onNuevoPedido={ap.nuevoPedido} />
@@ -77,6 +82,7 @@ export default function AutopedidoPage() {
                   onQuitar={ap.quitarDelCarrito}
                   onEnviar={ap.enviarPedido}
                   enviando={ap.enviando}
+                  envioPendiente={ap.envioPendiente}
                   error={ap.errorEnvio}
                   onIrAlMenu={() => ap.setVista('menu')}
                 />

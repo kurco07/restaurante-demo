@@ -4,6 +4,40 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-30 — Arreglos de la primera prueba offline (Fase 8, Módulo 1)
+
+Rama: `feature/fase8-endurecimiento`. Autor: Pedro (con Claude Code). Sin migraciones.
+
+### Lo que encontró Pedro probando
+
+1. **Cliente por QR:** al recargar la página sin conexión, la página se caía con "no hay conexión".
+2. **Cliente por QR:** al armar un pedido sin conexión y recargar, se borraban los platos por enviar.
+3. **Tiempo real:** había que recargar para ver los cambios (ver abajo, todavía en revisión).
+4. **Dos clientes de la misma mesa pidiendo lo mismo** se veían como líneas separadas, sin juntarse: en cocina, en el mesonero y en "Tu pedido" del autopedido.
+
+### Causas y arreglos
+
+- **1 y 2.** El celular del cliente no usa PowerSync (no tiene sesión), y el autopedido no guardaba nada: el menú se pedía al servidor cada vez y el carrito vivía solo en memoria. La página sí cargaba sin red (el service worker la sirve), pero sin datos. Ahora (`guardadoLocal.ts`), por mesa:
+  - **el último menú queda guardado en el celular**: recargar sin conexión lo muestra igual, con el aviso "este es el último menú que vimos";
+  - **el carrito queda guardado**: recargar no lo borra;
+  - **lo ya pedido en la mesa** también queda guardado;
+  - **enviar sin conexión deja el pedido "por enviar" y se manda solo** al volver la red (evento `online` y cada 15 s). Es seguro reintentar, porque cada plato lleva su `client_local_id` y `enviar_pedido_autopedido` ignora los repetidos;
+  - los errores de negocio (por ejemplo, "la mesa no está disponible") **no** se reintentan: se muestran;
+  - si no había ninguna copia del menú, se reintenta solo, sin recargar.
+- **3.** En el autopedido, "Tu pedido" se refrescaba cada 5 s, pero si el menú no cargaba (punto 1) la página nunca volvía a intentarlo y había que recargar. Ahora reintenta sola y también refresca al volver la conexión. Mesonero y cocina leen de PowerSync con consultas en vivo; queda por confirmar en cuál pantalla pasó.
+- **4.** Se juntan los platos de verdad iguales, en una sola línea con la cantidad sumada:
+  - **Cocina** (`agruparPlatosIguales`, en el tablero y en el detalle): mismo plato, misma nota y misma situación (un anulado nunca se junta con uno vigente). Las acciones siguen siendo por ticket.
+  - **Autopedido, "Ya pedido en la mesa"** (`agruparPedidoMesa`): mismo plato, nota, precio y estado. Si lo pidieron por QR y con el mesonero, dice "Por QR y con el mesonero".
+  - En el mesonero no se tocó: Pedro dijo que ahí no es tan importante.
+
+**Verificado:** pruebas rápidas de la agrupación y de la detección de errores de red. Esa prueba encontró un error que se arregló: en un entorno sin `navigator.onLine`, un error de negocio se tomaba como de red. Además, `tsc -b` y `npm run build` pasan.
+
+### Pendiente
+- [ ] Repetir los escenarios del cliente por QR de `docs/Pruebas_Offline_Fase8.md` con estos arreglos.
+- [ ] Confirmar en qué pantalla había que recargar para ver los cambios (punto 3).
+
+---
+
 ## 2026-10-30 — Preparación de las pruebas reales de offline (Fase 8, Módulo 1)
 
 Rama: `feature/fase8-endurecimiento`. Autor: Pedro (con Claude Code). Migración `0031_fusionar_sesiones_duplicadas.sql` **aplicada en Supabase por Pedro (2026-10-30)**.
