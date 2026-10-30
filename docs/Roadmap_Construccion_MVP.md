@@ -84,7 +84,7 @@ Ampliación de navegación (2026-10-16, ver `Registro_de_Cambios.md`): el mesone
 
 Nota prometida arriba, completada en la auditoría del 2026-10-13: el mockup original (`docs/interfaces/mockup-personalizar-plato.html`) mostraba selección de proteína, quitar ingredientes y extras con precio — el modal real (`ModalPersonalizacion.tsx` en mesoneros, `HojaPersonalizacion.tsx` en autopedido) solo tiene cantidad + nota libre. Decisión confirmada con el usuario (2026-10-07): diferirlo a propósito hasta diseñar el modelo de datos (ej. una tabla de opciones de personalización por `menu_item`: proteínas disponibles, ingredientes quitables, extras con su propio precio) — no asumir una forma de datos sin retomar esa conversación primero. Ver también `modelo-de-datos.md`, sección "Extensiones futuras".
 
-**Módulo 4 — Sincronización de comandas**
+**Módulo 4 — Sincronización de comandas** ✅ *(probado en dispositivo real por Pedro y César, 2026-10-26 y 2026-10-28: mesonero y cocina siguen funcionando sin internet; ver `docs/Nota_para_Pedro.md`)*
 Verificar en la práctica que los pedidos creados offline se suben solos al reconectar, sin duplicarse ni perderse — usando el `client_local_id` ya definido en el modelo de datos. Este módulo es principalmente de pruebas dirigidas: forzar una desconexión real y confirmar el comportamiento.
 
 Verificado contra Supabase real que el `unique(sesion_id, client_local_id)` sí impide duplicados ante un reintento (insert con el mismo `client_local_id` → error 409, la fila original queda intacta). Esto confirma el mecanismo de deduplicación, pero **no** es la misma prueba que pide este módulo: falta todavía cortar la red de verdad en un navegador, armar un pedido con la app realmente offline, reconectar, y confirmar que PowerSync sube la cola sin perder ni duplicar nada — eso solo se puede correr con acceso a navegador real.
@@ -274,28 +274,48 @@ Ninguna sugerencia se ejecuta sola — cada una queda en `sugerencias_ia` con es
 
 ---
 
-## Fase 7 — Multi-tenant, negocio y personalización
+## Fase 7 — Multi-tenant, negocio y personalización — casi completa (falta la pasarela de cobro)
 
 **Pendiente propuesto, sin módulo asignado — Fotos reales de los platos** 🔲 *(salió al cerrar la Fase 6, 2026-10-28)*
 Una foto **por plato, subida una sola vez** en Administración → Menú, guardada en un bucket público de Storage con el mismo patrón que los modelos 3D (`0013`). La usarían el menú del mesonero, el QR, los recomendados del día y la RA. No depende de la IA, que no genera imágenes. Falta decidir con Pedro en qué fase va (aquí, como personalización, o en la Fase 9, con la interfaz final) y quién sube las fotos.
 
-**Módulo 1 — Registro self-service de un restaurante nuevo**
+**Módulo 1 — Registro self-service de un restaurante nuevo** ✅ *(César, 2026-10-28)*
 Formulario de alta, sin intervención manual del equipo.
 
-**Módulo 2 — Aprovisionamiento automático del tenant**
+`/registro` crea el restaurante de verdad con la Edge Function `registrar-restaurante`. Trae 14 días de prueba.
+
+**Módulo 2 — Aprovisionamiento automático del tenant** ✅ *(César, 2026-10-28)*
 Al registrarse, se crea automáticamente el tenant, su primera sede, y el usuario administrador inicial.
 
-**Módulo 3 — Cobro y suscripción**
+Lo hace `provisionar_tenant` (migración `0027`). Desde la `0030`, un restaurante nuevo arranca en plan **Starter**, con los módulos opcionales apagados.
+
+**Módulo 3 — Cobro y suscripción** ⚠️ *a medias, por decisión del dueño (2026-10-28)*
 Integración con la pasarela de pago que corresponda según el país donde surja el primer grupo de restaurantes (ver `Estrategia_Comercial_Ejecutiva.md`, sección de pagos).
 
-**Módulo 4 — Personalización de marca**
+No se integró ninguna pasarela, porque Stripe no cubre Venezuela. El cobro es **manual**: el super-admin registra el plan, el estado y los pagos a mano. La RLS de `suscripciones` (`0026`) la limita a administración, gerencia y super-admin. La integración real queda pendiente hasta definir la pasarela.
+
+**Módulo 4 — Personalización de marca** ✅ *(César, 2026-10-28)*
 Logo, colores, nombre mostrado — self-service, como parte del panel de configuración inicial.
 
-**Módulo 5 — Panel de super-admin**
+- Editor en Administración → Configuración, con un bucket de logos `marca` (migración `0025`).
+- RLS real: lectura abierta al restaurante y escritura solo para administración y gerencia.
+- Los colores se aplican en mesonero, cocina, inicio y QR (`useAplicarMarca`), y el menú público trae la marca (`0028`).
+- **Las fotos de los platos siguen pendientes** (ver la nota de arriba).
+
+**Módulo 5 — Panel de super-admin** ✅ *(César, 2026-10-28)*
 Para el equipo del SaaS: alta y gestión de tenants, soporte, visibilidad general de uso.
 
-**Módulo 6 — Gestión de usuarios y roles**
+- Muestra la lista de restaurantes con su plan, estado, suscripción y pagos manuales. La RLS entre restaurantes para super-admin es de la migración `0026`.
+- Extra, a pedido del dueño: **interruptores de módulos por restaurante** (`tenant_modulos`, migraciones `0029` y `0030`).
+  - Los 6 opcionales son las 3 IA, las alertas, multi-sede y la RA, agrupados en tarjetas.
+  - Hay dos presets: Starter (todo apagado) y Pro (todo prendido).
+  - El núcleo operativo nunca se apaga.
+  - Las rutas lo respetan con `ProtectedRoute modulo=…`.
+
+**Módulo 6 — Gestión de usuarios y roles** ✅ *(César, 2026-10-28)*
 Dentro de cada restaurante: administración/gerencia puede crear cuentas de mesoneros y cocina, con su rol correspondiente.
+
+En Administración → Personal se invita a empleados por correo, con la Edge Function `crear-empleado`. El `tenant_id` sale siempre de la sesión de quien invita, nunca del formulario.
 
 ---
 

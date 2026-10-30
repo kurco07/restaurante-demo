@@ -4,6 +4,47 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-10-28 — Fase 7: registro, marca, super-admin, empleados y módulos por restaurante (César)
+
+Hecho por César (con Claude Code) directo en `main` (commits `2fe0f6d`, `e544175` y `a7d2336`). **Esta entrada la escribió Pedro el 2026-10-30 a partir de los mensajes de esos commits**, porque en su momento no se actualizó la documentación. El detalle fino está en los commits.
+
+### Qué se hizo
+
+- **Módulos 1 y 2, registro y alta automática:** `RegistroPage` crea el restaurante de verdad, con la Edge Function `registrar-restaurante` y `provisionar_tenant` (`0027`): tenant, primera sede y administrador, con 14 días de prueba. Antes solo navegaba a `/proximamente`.
+- **Módulo 3, cobro:** por decisión del dueño **es manual**, porque Stripe no cubre Venezuela. El super-admin marca los pagos a mano. La RLS de `suscripciones` se limita a administración y gerencia (`0026`); antes cualquier usuario del restaurante podía leer y escribir el cobro.
+- **Módulo 4, marca:** `personalizacion_marca` tiene RLS real (`0025`): lectura del restaurante y escritura solo de administración y gerencia (antes cualquier rol podía escribir).
+  - Hay un bucket `marca` para logos y un editor en Configuración.
+  - Los colores se aplican en vivo por variables CSS (`useAplicarMarca.ts`) en mesonero, cocina, `/inicio` y `/autopedido`. De paso se definieron en `:root` variables que nunca habían estado definidas.
+  - El menú público trae la marca (`0028`).
+- **Módulo 5, super-admin:** `SuperAdminPage` pasa de estar vacío a ser un panel real: restaurantes, plan, estado, suscripción y pagos manuales. La RLS entre restaurantes para super-admin (`0026`) antes no existía; solo estaba restringido en el frontend.
+- **Módulo 6, empleados:** `PersonalPage` invita empleados con la Edge Function `crear-empleado` (`inviteUserByEmail`). El `tenant_id` sale de la sesión, nunca del cuerpo de la petición.
+- **Extra, módulos por restaurante** (pedido del dueño, `0029` y `0030`):
+  - tabla `tenant_modulos`: la lee el restaurante y solo la escribe el super-admin;
+  - función `aplicar_preset_modulos`;
+  - los restaurantes que ya existían quedaron con todo prendido; los nuevos arrancan en Starter, con todo apagado;
+  - `UsuarioProvider` expone `modulosActivos`, que vale `null` mientras carga o sin red, para no bloquear por accidente;
+  - `ProtectedRoute` acepta un `modulo`;
+  - se condicionan las sugerencias de compra, los platos a preparar, los recomendados, las alertas, multi-sede y "Ver en RA";
+  - el menú público avisa si la RA y los recomendados están activos.
+- **Arreglo de la Fase 6 (`0024`):** `datos_sugerencia_compra` exige rol de gestión, igual que `datos_platos_preparar`. Antes un mesonero podía ver costos de su sede por la API.
+- **Fase 2, Módulo 4:** el modo offline quedó probado en dispositivo real también en **cocina** (`b0d22d8`).
+
+### Estado al 2026-10-30
+
+- [x] Migraciones `0024` a `0030` **aplicadas en Supabase**. Pedro lo verificó solo leyendo:
+  - un mesonero recibe `datos_sugerencia_compra` vacío;
+  - existe `tenant_modulos`, con 6 filas para el restaurante de prueba;
+  - existe el bucket `marca`;
+  - el menú público trae `marca` y `modulos`;
+  - el super-admin lee los restaurantes.
+- [ ] Desplegadas las funciones `registrar-restaurante` y `crear-empleado`, según César (no verificado aparte).
+- Pendientes:
+  - integrar una pasarela de cobro cuando se defina;
+  - las fotos de los platos;
+  - en la base quedó un restaurante de prueba de César, "Restaurante Verificación …", por borrar si ya no sirve.
+
+---
+
 ## 2026-10-28 — Recomendados del día en el menú del mesonero y el QR (Fase 6, Módulo 4)
 
 Rama: `feature/fase6-recomendados` (sale de `feature/fase6-platos-preparar`). Autor: Pedro (con Claude Code). Migración `0023_recomendados_del_dia.sql` **aplicada en Supabase por Pedro (2026-10-28)**. La Edge Function `ia-sugerir-recomendados` está desplegada.
