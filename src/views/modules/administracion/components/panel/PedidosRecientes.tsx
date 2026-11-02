@@ -9,6 +9,7 @@ interface PedidosRecientesProps {
 
 const chipPorEstado: Record<EstadoPedidoReciente, { tono: 'verde' | 'naranja' | 'rojo'; label: string }> = {
   entregado: { tono: 'verde', label: 'Entregado' },
+  listo: { tono: 'verde', label: 'Listo' },
   cocina: { tono: 'naranja', label: 'En cocina' },
   cancelado: { tono: 'rojo', label: 'Cancelado' },
 }
@@ -18,17 +19,17 @@ export function PedidosRecientes({ pedidos }: PedidosRecientesProps) {
     <PanelCard
       titulo="Pedidos recientes"
       subtitulo="Últimos pedidos de todas las mesas"
-      enlace={{ label: 'Ver todos', to: '/proximamente' }}
+      enlace={{ label: 'Ver todos', to: '/administracion/pedidos' }}
     >
       <div className="divide-y divide-[var(--border)]">
         {pedidos.map((p) => (
           <div key={p.id} className="flex items-center justify-between gap-2.5 py-3 first:pt-0.5">
             <div className="flex items-center gap-3">
               <div className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-[var(--orange-bg)] text-[12.5px] font-extrabold text-[var(--orange-dark)]">
-                {p.codigo}
+                {p.mesaNumero}
               </div>
               <div>
-                <div className="text-[13.5px] font-bold">{p.mesaNumero === null ? 'Para llevar' : `Mesa ${p.mesaNumero}`}</div>
+                <div className="text-[13.5px] font-bold">Mesa {p.mesaNumero}</div>
                 <div className="text-[11.5px] text-[var(--ink-soft)]">
                   {p.items} {p.items === 1 ? 'ítem' : 'ítems'} · {p.mesonero}
                 </div>
@@ -37,7 +38,7 @@ export function PedidosRecientes({ pedidos }: PedidosRecientesProps) {
             <div className="text-right">
               <EstadoChip tono={chipPorEstado[p.estado].tono}>{chipPorEstado[p.estado].label}</EstadoChip>
               <div className="mt-[3px] text-[11px] text-[var(--ink-soft)]">
-                {formatearMoneda(p.total)} · hace {p.minutosAtras} min
+                {formatearMoneda(p.total)} · {p.horaLabel}
               </div>
             </div>
           </div>

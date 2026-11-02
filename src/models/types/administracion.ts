@@ -17,17 +17,18 @@ export interface VentaDia {
   esHoy: boolean
 }
 
-export type EstadoPedidoReciente = 'entregado' | 'cocina' | 'cancelado'
+// Mismos 4 estados reales que PedidoAdmin (definido más abajo) — un solo
+// lugar donde se deriva el estado de un pedido, reutilizado por el
+// widget resumido del panel y por la pantalla completa de Pedidos.
+export type EstadoPedidoReciente = EstadoPedidoAdmin
 
 export interface PedidoReciente {
   id: string
-  // Número de mesa, o null si es para llevar
-  mesaNumero: number | null
-  codigo: string
+  mesaNumero: string
   items: number
   mesonero: string
   total: number
-  minutosAtras: number
+  horaLabel: string
   estado: EstadoPedidoReciente
 }
 
@@ -46,7 +47,7 @@ export interface AlertaInventario {
 }
 
 export interface MesaResumen {
-  numero: number
+  numero: string
   estado: Mesa['estado']
 }
 
@@ -67,8 +68,12 @@ export interface Empleado {
 }
 
 // ---- Pedidos (vista de administración) ----
-
-export type EstadoPedidoAdmin = 'cocina' | 'listo' | 'cuenta' | 'entregado' | 'cancelado'
+// No existe un estado real de "cuenta pedida" en el modelo de datos (no
+// hay ninguna señal de que el cliente pidió la cuenta antes de que el
+// mesonero la cierre de verdad) — se queda fuera hasta que exista esa
+// señal. "Para llevar" tampoco existe todavía: todo pedido real pasa por
+// una mesa física (ver CLAUDE.md / arquitectura.md).
+export type EstadoPedidoAdmin = 'cocina' | 'listo' | 'entregado' | 'cancelado'
 
 export interface ItemPedidoAdmin {
   nombre: string
@@ -78,8 +83,7 @@ export interface ItemPedidoAdmin {
 
 export interface PedidoAdmin {
   id: string
-  mesaNumero: number | null
-  codigoParaLlevar: string | null
+  mesaNumero: string
   mesonero: string
   items: ItemPedidoAdmin[]
   total: number

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
@@ -5,12 +6,11 @@ import { AdminLayout } from './components/layout/AdminLayout'
 import { EstadoChip } from './components/panel/EstadoChip'
 import { formatearMoneda } from '../../components/ui/constants'
 import { usePedidosAdmin } from '../../../controllers/administracion/usePedidosAdmin'
-import type { EstadoPedidoAdmin } from '../../../models/types'
+import type { EstadoPedidoAdmin, PedidoAdmin } from '../../../models/types'
 
 const chipPorEstado: Record<EstadoPedidoAdmin, { tono: 'verde' | 'naranja' | 'rojo'; label: string }> = {
   cocina: { tono: 'naranja', label: 'En cocina' },
   listo: { tono: 'verde', label: 'Listo para servir' },
-  cuenta: { tono: 'rojo', label: 'Cuenta pedida' },
   entregado: { tono: 'verde', label: 'Entregado' },
   cancelado: { tono: 'rojo', label: 'Cancelado' },
 }
@@ -22,6 +22,9 @@ export default function PedidosAdminPage() {
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+  if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
+  if (p.cargando) return <LoadingSpinner message="Cargando pedidos…" />
+  if (p.error) return <ErrorMessage message={p.error} />
 
   return (
     <AdminLayout usuario={usuario}>
@@ -94,12 +97,7 @@ export default function PedidosAdminPage() {
                       p.seleccionado?.id === pedido.id ? 'bg-[var(--surface-alt)]' : ''
                     }`}
                   >
-                    <td className="px-4 py-3 font-bold">
-                      {pedido.mesaNumero !== null ? `Mesa ${pedido.mesaNumero}` : 'Para llevar'}
-                      <span className="ml-1.5 font-normal text-[var(--ink-soft)]">
-                        {pedido.codigoParaLlevar ?? `#${pedido.id}`}
-                      </span>
-                    </td>
+                    <td className="px-4 py-3 font-bold">Mesa {pedido.mesaNumero}</td>
                     <td className="px-4 py-3 text-[var(--ink-soft)]">{pedido.mesonero}</td>
                     <td className="px-4 py-3 text-[var(--ink-soft)]">
                       {pedido.items.reduce((acc, i) => acc + i.cantidad, 0)} ítems
@@ -124,9 +122,7 @@ export default function PedidosAdminPage() {
             <>
               <div className="mb-4 flex items-start justify-between">
                 <div>
-                  <p className="text-base font-extrabold">
-                    {p.seleccionado.mesaNumero !== null ? `Mesa ${p.seleccionado.mesaNumero}` : 'Para llevar'}
-                  </p>
+                  <p className="text-base font-extrabold">Mesa {p.seleccionado.mesaNumero}</p>
                   <p className="text-[11.5px] text-[var(--ink-soft)]">
                     {p.seleccionado.mesonero} · {p.seleccionado.horaLabel}
                   </p>
@@ -157,12 +153,13 @@ export default function PedidosAdminPage() {
                 </span>
               </div>
 
-              <button
-                type="button"
-                className="mt-4 w-full rounded-lg bg-[var(--red)] py-2.5 text-[13px] font-bold text-white"
-              >
-                Cancelar pedido
-              </button>
+              {p.seleccionado.estado !== 'cancelado' && p.seleccionado.estado !== 'entregado' && (
+                <CancelarPedido
+                  pedido={p.seleccionado}
+                  cancelando={p.cancelando}
+                  onCancelar={(motivo) => p.cancelarPedido(p.seleccionado!.id, motivo)}
+                />
+              )}
             </>
           ) : (
             <p className="text-sm text-[var(--ink-soft)]">Selecciona un pedido para ver su detalle.</p>
@@ -170,5 +167,62 @@ export default function PedidosAdminPage() {
         </div>
       </div>
     </AdminLayout>
+  )
+}
+
+// Anula todos los platos activos del pedido (misma función que ya usa
+// supervisor — migración 0015 impide anular lo ya entregado, por eso el
+// botón no aparece para pedidos entregados/cancelados).
+function CancelarPedido({
+  pedido,
+  cancelando,
+  onCancelar,
+}: {
+  pedido: PedidoAdmin
+  cancelando: boolean
+  onCancelar: (motivo: string) => Promise<void>
+}) {
+  const [motivo, setMotivo] = useState('')
+  const [confirmando, setConfirmando] = useState(false)
+
+  if (!confirmando) {
+    return (
+      <button
+        type="button"
+        onClick={() => setConfirmando(true)}
+        className="mt-4 w-full rounded-lg bg-[var(--red)] py-2.5 text-[13px] font-bold text-white"
+      >
+        Cancelar pedido
+      </button>
+    )
+  }
+
+  return (
+    <div className="mt-4">
+      <textarea
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        rows={2}
+        placeholder="Motivo de la cancelación…"
+        className="w-full rounded-lg border border-[var(--border)] px-3 py-2 text-[13px]"
+      />
+      <div className="mt-2 flex gap-2">
+        <button
+          type="button"
+          onClick={() => setConfirmando(false)}
+          className="flex-1 rounded-lg border border-[var(--border)] py-2 text-[13px] font-bold text-[var(--ink-soft)]"
+        >
+          Volver
+        </button>
+        <button
+          type="button"
+          disabled={!motivo.trim() || cancelando}
+          onClick={() => onCancelar(motivo.trim())}
+          className="flex-1 rounded-lg bg-[var(--red)] py-2 text-[13px] font-bold text-white disabled:opacity-50"
+        >
+          {cancelando ? 'Cancelando…' : `Confirmar (${pedido.items.length} platos)`}
+        </button>
+      </div>
+    </div>
   )
 }

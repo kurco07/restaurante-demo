@@ -11,7 +11,7 @@ export function AlertasInventario({ alertas }: AlertasInventarioProps) {
     <PanelCard
       titulo="Alertas de inventario"
       subtitulo="Productos con bajo stock"
-      enlace={{ label: 'Ir a inventario', to: '/proximamente' }}
+      enlace={{ label: 'Ir a inventario', to: '/administracion/insumos' }}
     >
       <div className="divide-y divide-[var(--border)]">
         {alertas.map((alerta) => (

@@ -20,6 +20,9 @@ export default function AdministracionPage() {
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+  if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
+  if (panel.cargando) return <LoadingSpinner message="Cargando el panel…" />
+  if (panel.error) return <ErrorMessage message={panel.error} />
 
   return (
     <AdminLayout usuario={usuario}>
