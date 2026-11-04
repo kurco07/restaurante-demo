@@ -14,7 +14,6 @@ export type {
   ProductoMasVendido,
   AlertaInventario,
   MesaResumen,
-  PuestoEmpleado,
   Empleado,
   EstadoPedidoAdmin,
   ItemPedidoAdmin,

@@ -6,6 +6,16 @@ import { AdminLayout } from './components/layout/AdminLayout'
 import { EstadoChip } from './components/panel/EstadoChip'
 import { NuevoEmpleadoModal } from './components/personal/NuevoEmpleadoModal'
 import { usePersonal } from '../../../controllers/administracion/usePersonal'
+import type { Rol } from '../../../models/types'
+
+const ETIQUETA_ROL: Record<Rol, string> = {
+  mesonero: 'Mesonero',
+  cocina: 'Cocina',
+  supervisor: 'Supervisor de sala',
+  administracion: 'Administración',
+  gerencia: 'Gerencia',
+  super_admin: 'Super admin',
+}
 
 export default function PersonalPage() {
   const { usuario, loading, error } = useUsuario()
@@ -16,6 +26,9 @@ export default function PersonalPage() {
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+  if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
+  if (p.cargando) return <LoadingSpinner message="Cargando empleados…" />
+  if (p.error) return <ErrorMessage message={p.error} />
 
   return (
     <AdminLayout usuario={usuario}>
@@ -96,7 +109,6 @@ export default function PersonalPage() {
             <thead>
               <tr className="border-b border-[var(--border)] text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">
                 <th className="px-4 py-3">Empleado</th>
-                <th className="px-4 py-3">Turno</th>
                 <th className="px-4 py-3">Teléfono</th>
                 <th className="px-4 py-3">Estado</th>
               </tr>
@@ -116,68 +128,123 @@ export default function PersonalPage() {
                     </span>
                     <div>
                       <div className="font-bold">{emp.nombre}</div>
-                      <div className="text-[11px] text-[var(--ink-soft)]">{emp.puestoLabel}</div>
+                      <div className="text-[11px] text-[var(--ink-soft)]">{ETIQUETA_ROL[emp.rol]}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-[var(--ink-soft)]">{emp.turno}</td>
-                  <td className="px-4 py-3 text-[var(--ink-soft)]">{emp.telefono}</td>
+                  <td className="px-4 py-3 text-[var(--ink-soft)]">{emp.telefono ?? '—'}</td>
                   <td className="px-4 py-3">
                     <EstadoChip tono={emp.activo ? 'verde' : 'naranja'}>{emp.activo ? 'Activo' : 'Inactivo'}</EstadoChip>
                   </td>
                 </tr>
               ))}
+              {p.empleados.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-4 py-6 text-center text-[var(--ink-soft)]">
+                    No hay empleados que coincidan.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         <div className="h-fit rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
           {p.seleccionado ? (
-            <>
-              <p className="mb-4 text-base font-extrabold">Editor de empleado</p>
-              <div className="flex flex-col gap-3 text-[13px]">
-                <Campo label="Nombre completo" valor={p.seleccionado.nombre} />
-                <Campo label="Rol" valor={p.seleccionado.puestoLabel} />
-                <Campo label="Turno" valor={p.seleccionado.turno} />
-                <Campo label="Teléfono" valor={p.seleccionado.telefono} />
-                <Campo label="Fecha de ingreso" valor={p.seleccionado.fechaIngreso} muted />
-                <Campo label="Correo" valor={p.seleccionado.correo} />
-
-                <label className="mt-1 flex items-center justify-between text-[12.5px] font-semibold">
-                  Empleado activo
-                  <span
-                    className={`inline-flex h-5 w-9 items-center rounded-full p-0.5 ${
-                      p.seleccionado.activo ? 'bg-[var(--orange)]' : 'bg-[var(--border)]'
-                    }`}
-                  >
-                    <span
-                      className={`h-4 w-4 rounded-full bg-white transition-transform ${
-                        p.seleccionado.activo ? 'translate-x-4' : ''
-                      }`}
-                    />
-                  </span>
-                </label>
-
-                <p className="rounded-lg border border-dashed border-[var(--border)] p-3 text-[11.5px] text-[var(--ink-soft)]">
-                  Acceso a: app de {p.seleccionado.puesto === 'administracion' ? 'administración' : p.seleccionado.puestoLabel.toLowerCase()}.
-                  El rol determina qué pantallas puede usar cada empleado — un cocinero solo ve la app de cocina.
-                </p>
-
-                <div className="mt-2 flex gap-2">
-                  <button type="button" className="flex-1 rounded-lg bg-[var(--orange)] py-2.5 text-[13px] font-bold text-white">
-                    Guardar cambios
-                  </button>
-                  <button type="button" className="rounded-lg px-3 text-[13px] font-bold text-[var(--red)]">
-                    Eliminar
-                  </button>
-                </div>
-              </div>
-            </>
+            <FichaEmpleado
+              empleado={p.seleccionado}
+              actuando={p.actuando}
+              onActivarODesactivar={(activo) => p.activarODesactivar(p.seleccionado!.id, activo)}
+              onEliminar={() => p.eliminar(p.seleccionado!.id)}
+            />
           ) : (
             <p className="text-sm text-[var(--ink-soft)]">Selecciona un empleado para ver su ficha.</p>
           )}
         </div>
       </div>
     </AdminLayout>
+  )
+}
+
+function FichaEmpleado({
+  empleado,
+  actuando,
+  onActivarODesactivar,
+  onEliminar,
+}: {
+  empleado: NonNullable<ReturnType<typeof usePersonal>['seleccionado']>
+  actuando: boolean
+  onActivarODesactivar: (activo: boolean) => Promise<void>
+  onEliminar: () => Promise<void>
+}) {
+  const [confirmandoEliminar, setConfirmandoEliminar] = useState(false)
+
+  return (
+    <>
+      <p className="mb-4 text-base font-extrabold">Ficha de empleado</p>
+      <div className="flex flex-col gap-3 text-[13px]">
+        <Campo label="Nombre completo" valor={empleado.nombre} />
+        <Campo label="Rol" valor={ETIQUETA_ROL[empleado.rol]} />
+        <Campo label="Teléfono" valor={empleado.telefono ?? '—'} />
+        <Campo label="Correo" valor={empleado.email ?? '—'} />
+        <Campo label="Fecha de ingreso" valor={new Date(empleado.fechaIngreso).toLocaleDateString('es')} muted />
+
+        <label className="mt-1 flex items-center justify-between text-[12.5px] font-semibold">
+          Empleado activo
+          <button
+            type="button"
+            role="switch"
+            aria-checked={empleado.activo}
+            disabled={actuando}
+            onClick={() => onActivarODesactivar(!empleado.activo)}
+            className={`inline-flex h-5 w-9 items-center rounded-full p-0.5 transition disabled:opacity-50 ${
+              empleado.activo ? 'bg-[var(--orange)]' : 'bg-[var(--border)]'
+            }`}
+          >
+            <span
+              className={`h-4 w-4 rounded-full bg-white transition-transform ${empleado.activo ? 'translate-x-4' : ''}`}
+            />
+          </button>
+        </label>
+
+        <p className="rounded-lg border border-dashed border-[var(--border)] p-3 text-[11.5px] text-[var(--ink-soft)]">
+          Acceso a: app de {empleado.rol === 'administracion' ? 'administración' : ETIQUETA_ROL[empleado.rol].toLowerCase()}.
+          Desactivar bloquea su inicio de sesión de inmediato.
+        </p>
+
+        {!confirmandoEliminar ? (
+          <button
+            type="button"
+            onClick={() => setConfirmandoEliminar(true)}
+            className="rounded-lg px-3 py-2.5 text-[13px] font-bold text-[var(--red)]"
+          >
+            Eliminar empleado
+          </button>
+        ) : (
+          <div className="rounded-lg border border-[var(--red)] p-3">
+            <p className="mb-2 text-[12.5px] font-semibold text-[var(--red)]">
+              Esto borra su cuenta por completo. No se puede deshacer.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmandoEliminar(false)}
+                className="flex-1 rounded-lg border border-[var(--border)] py-2 text-[13px] font-bold text-[var(--ink-soft)]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={actuando}
+                onClick={onEliminar}
+                className="flex-1 rounded-lg bg-[var(--red)] py-2 text-[13px] font-bold text-white disabled:opacity-50"
+              >
+                {actuando ? 'Eliminando…' : 'Sí, eliminar'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 

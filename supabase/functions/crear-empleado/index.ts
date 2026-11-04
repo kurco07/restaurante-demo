@@ -58,6 +58,7 @@ Deno.serve(async (req) => {
     sede_id: sedeId,
     nombre,
     rol,
+    email,
   })
   if (errorUsuario) {
     console.error(errorUsuario)

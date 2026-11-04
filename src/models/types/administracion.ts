@@ -1,4 +1,5 @@
 import type { Mesa } from './mesa'
+import type { Rol } from './usuario'
 
 export type PeriodoPanel = 'hoy' | 'semana' | 'mes'
 
@@ -52,17 +53,15 @@ export interface MesaResumen {
 }
 
 // ---- Personal ----
-
-export type PuestoEmpleado = 'mesonero' | 'cocinero' | 'administracion'
+// No hay concepto de "turno" en esta app (Fase 5: reporte por día
+// calendario, no por turno) — a propósito no se agrega acá tampoco.
 
 export interface Empleado {
   id: string
   nombre: string
-  puesto: PuestoEmpleado
-  puestoLabel: string
-  turno: string
-  telefono: string
-  correo: string
+  rol: Rol
+  telefono: string | null
+  email: string | null
   fechaIngreso: string
   activo: boolean
 }
