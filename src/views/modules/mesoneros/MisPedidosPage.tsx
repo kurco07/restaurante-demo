@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
+import { useSincronizado } from '../../../controllers/useSincronizado'
+import { PrimeraSincronizacion } from '../../components/ui/PrimeraSincronizacion'
 import { useCarritos } from '../../../controllers/pedido/useCarritos'
 import { SIN_MESA } from '../../../controllers/pedido/carritoContext'
 import { useMesasSede } from '../../../controllers/mesonero/useMesasSede'
@@ -41,6 +43,7 @@ export default function MisPedidosPage() {
 
 function MisPedidos({ usuario }: { usuario: Usuario }) {
   const { items } = useMisPedidos(usuario)
+  const sincronizado = useSincronizado()
   const { borradores } = useCarritos()
   const mesas = useMesasSede(usuario)
 
@@ -81,7 +84,9 @@ function MisPedidos({ usuario }: { usuario: Usuario }) {
         </Link>
       )}
 
-      {ordenados.length === 0 && sinMesa === 0 && (
+      {ordenados.length === 0 && sinMesa === 0 && !sincronizado && <PrimeraSincronizacion />}
+
+      {ordenados.length === 0 && sinMesa === 0 && sincronizado && (
         <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] px-4 py-12 text-center text-sm text-[var(--ink-soft)]">
           No tienes pedidos en curso.{' '}
           <Link to="/mesoneros/menu" className="font-bold text-[var(--orange-dark)]">

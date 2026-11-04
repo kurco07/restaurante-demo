@@ -8,6 +8,9 @@ import type { Usuario } from '../../../../models/types'
 import { MesaCard } from './MesaCard'
 import { usePorCobrar } from '../../../../controllers/mesonero/usePorCobrar'
 import { useEstadoConexion } from '../../../../controllers/useEstadoConexion'
+import { useSincronizado } from '../../../../controllers/useSincronizado'
+import { avisar } from '../../../../controllers/avisos/avisos'
+import { PrimeraSincronizacion } from '../../../components/ui/PrimeraSincronizacion'
 import { DetalleMesaPanel } from './DetalleMesaPanel'
 import { CierreCuentaModal } from './CierreCuentaModal'
 import { SolicitudesAutopedidoModal } from './SolicitudesAutopedidoModal'
@@ -51,27 +54,38 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
   const mesas = useMesasSede(usuario)
   const porCobrar = usePorCobrar()
   const { conectado } = useEstadoConexion()
+  const sincronizado = useSincronizado()
   // Solo cuentan las que siguen con la cuenta abierta (si otro la cobró, ya no)
   const mesasPorCobrar = mesas.filter((m) => m.sesionId && porCobrar.ids.includes(m.id))
 
   const contador = (f: Filtro) => mesas.filter((m) => coincideFiltro(m, f)).length
 
   async function abrirYTomarPedido(mesa: MesaVista) {
-    if (!usuario.sede_id) return
-    // Si el cliente la abrió por QR mientras tanto, se atiende esa misma
-    // sesión en vez de abrir una segunda.
-    if (mesa.sesionId) {
-      await atenderMesa(mesa.sesionId, usuario.id)
-      navigate(`/mesoneros/menu/${mesa.id}`)
+    if (!usuario.sede_id) {
+      avisar.error('Tu usuario no tiene una sede asignada. Pídele a administración que te asigne una.')
       return
     }
-    await abrirMesa({ id: mesa.id, tenant_id: usuario.tenant_id, sede_id: usuario.sede_id }, usuario.id)
-    navigate(`/mesoneros/menu/${mesa.id}`)
+    try {
+      // Si el cliente la abrió por QR mientras tanto, se atiende esa misma
+      // sesión en vez de abrir una segunda.
+      if (mesa.sesionId) {
+        await atenderMesa(mesa.sesionId, usuario.id)
+      } else {
+        await abrirMesa({ id: mesa.id, tenant_id: usuario.tenant_id, sede_id: usuario.sede_id }, usuario.id)
+      }
+      navigate(`/mesoneros/menu/${mesa.id}`)
+    } catch (e) {
+      avisar.error(e, `No se pudo abrir la mesa ${mesa.numero}`)
+    }
   }
 
   async function marcarLibre(mesa: MesaVista) {
-    await marcarMesaLibre(mesa.id)
-    setSeleccionada(null)
+    try {
+      await marcarMesaLibre(mesa.id)
+      setSeleccionada(null)
+    } catch (e) {
+      avisar.error(e, `No se pudo marcar libre la mesa ${mesa.numero}`)
+    }
   }
 
   const mesaCierre = mesas.find((m) => m.id === mesaCierreId) ?? null
@@ -181,6 +195,15 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
                 Baños
               </div>
 
+              {mesas.length === 0 &&
+                (sincronizado ? (
+                  <p className="absolute inset-0 flex items-center justify-center px-6 text-center text-sm text-gray-500">
+                    Esta sede todavía no tiene mesas. Administración las agrega en Mesas.
+                  </p>
+                ) : (
+                  <PrimeraSincronizacion className="absolute inset-0 justify-center" />
+                ))}
+
               {mesas.map((mesa) => (
                 <MesaCard
                   key={mesa.id}
@@ -247,8 +270,12 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
           usuario={usuario}
           onTransferir={async (mesoneroId) => {
             if (!mesaTransferir.sesionId) return
-            await transferirMesa(mesaTransferir.sesionId, mesoneroId)
-            setMesaTransferirId(null)
+            try {
+              await transferirMesa(mesaTransferir.sesionId, mesoneroId)
+              setMesaTransferirId(null)
+            } catch (e) {
+              avisar.error(e, 'No se pudo transferir la mesa')
+            }
           }}
           onCerrar={() => setMesaTransferirId(null)}
         />

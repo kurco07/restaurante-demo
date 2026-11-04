@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { RedDeModulo } from '../../components/ErrorBoundary'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { usePlatosSugeridosHoy } from '../../../controllers/cocina/usePlatosSugeridosHoy'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -24,7 +25,9 @@ export default function CocinaLayout() {
     <div className="min-h-screen bg-[var(--bg)]" style={ESTILOS_CSS}>
       <BarraCocina usuario={usuario} sugeridos={sugeridos?.items.length ?? 0} />
       <main className="px-4 py-6 sm:px-7">
-        <Outlet context={sugeridos} />
+        <RedDeModulo nombre="cocina">
+          <Outlet context={sugeridos} />
+        </RedDeModulo>
       </main>
     </div>
   )

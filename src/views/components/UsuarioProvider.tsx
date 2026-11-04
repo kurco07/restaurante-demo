@@ -17,6 +17,9 @@ interface UsuarioContextValue {
   modulosActivos: Set<ModuloOpcional> | null
 }
 
+// Cuánto se espera la fila del perfil antes de avisar que algo anda mal
+const ESPERA_PERFIL_MS = 15_000
+
 export const UsuarioContext = createContext<UsuarioContextValue | undefined>(undefined)
 
 // Lee el perfil (tenant_id, sede_id, rol...) de la base local de PowerSync
@@ -36,6 +39,20 @@ export function UsuarioProvider({ children }: { children: ReactNode }) {
   // justo después de loguearse, antes de que llegue la primera sincronización
   // de PowerSync con la fila propia — no en cada re-render posterior.
   const loading = authLoading || (!!user && filas.length === 0)
+
+  // Si el perfil no llega nunca a la copia local (sin internet en un
+  // dispositivo que nunca sincronizó, o la copia de PowerSync trabada), se
+  // deja de esperar y se avisa (Fase 8, Módulo 2): ProtectedRoute muestra
+  // PerfilNoCargado con "Reiniciar datos de este dispositivo".
+  const esperandoPerfil = !!user && filas.length === 0
+  const [tardo, setTardo] = useState(false)
+  useEffect(() => {
+    setTardo(false)
+    if (!esperandoPerfil) return
+    const t = setTimeout(() => setTardo(true), ESPERA_PERFIL_MS)
+    return () => clearTimeout(t)
+  }, [esperandoPerfil])
+  const error = esperandoPerfil && tardo ? 'No se pudo cargar tu perfil en este dispositivo.' : null
 
   // La marca no es parte del camino offline crítico (mesonero/cocina/mesas
   // — CLAUDE.md): es cosmética, así que un simple fetch por red basta;
@@ -62,7 +79,7 @@ export function UsuarioProvider({ children }: { children: ReactNode }) {
   }, [usuario?.tenant_id])
 
   return (
-    <UsuarioContext.Provider value={{ usuario, loading, error: null, modulosActivos }}>
+    <UsuarioContext.Provider value={{ usuario, loading, error, modulosActivos }}>
       {children}
     </UsuarioContext.Provider>
   )

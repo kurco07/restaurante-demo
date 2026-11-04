@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useAhora } from '../../../../controllers/useAhora'
+import { useSincronizado } from '../../../../controllers/useSincronizado'
+import { PrimeraSincronizacion } from '../../../components/ui/PrimeraSincronizacion'
 import {
   agruparPlatosIguales,
   useCocina,
@@ -73,6 +75,7 @@ function ticketKey(ticket: TicketCocina) {
 
 export function TableroCocina() {
   const { tickets, filtro, setFiltro, contador, resumen, avanzarEstado, avanzandoId, confirmarAnulados } = useCocina()
+  const sincronizado = useSincronizado()
   const [ticketAbiertoKey, setTicketAbiertoKey] = useState<string | null>(null)
   const [itemReceta, setItemReceta] = useState<ItemCocina | null>(null)
   // Pantalla fija: los minutos y las alertas avanzan solos
@@ -117,7 +120,9 @@ export function TableroCocina() {
 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_250px]">
         <div>
-          {tickets.length === 0 ? (
+          {tickets.length === 0 && !sincronizado ? (
+            <PrimeraSincronizacion />
+          ) : tickets.length === 0 ? (
             <p className="py-12 text-center text-sm text-gray-500">No hay pedidos pendientes en cocina.</p>
           ) : (
             secciones

@@ -4,6 +4,31 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-04 — Manejo de errores y estados de carga, parte 1 (Fase 8, Módulo 2)
+
+Rama: `feature/fase8-errores-carga`. Autor: Pedro (con Claude Code). Sin migraciones.
+
+Se hizo la primera mitad de `docs/Pendientes_Errores_y_Carga.md`: las piezas comunes y lo de mesonero y cocina (puntos 1 a 6). El detalle de cada punto está en ese documento.
+
+### Piezas comunes (sirven para toda la app)
+- **Red contra pantalla en blanco** (`ErrorBoundary.tsx`): una global y una por módulo. Si una pantalla falla, se ve "Algo falló en esta pantalla" con Recargar y Volver a intentar, y el resto de la app sigue andando.
+- **Aviso estándar** (`controllers/avisos/avisos.ts` y `ui/Avisos.tsx`): `avisar.error(e, 'No se pudo …')` y `avisar.exito(…)`. Sale abajo al centro y se va solo, salvo los fijos. Lo puede usar también código que no es pantalla, como el conector de PowerSync.
+- **Traductor de errores** (`lib/errores.ts`, con pruebas): convierte lo que llega de Supabase o de la red en frases para el usuario. Nuestros mensajes de reglas pasan tal cual.
+- **"Sincronizando por primera vez…"** (`useSincronizado`) en vez de "no hay nada", mientras un dispositivo nuevo baja los datos.
+- **Aviso de versión nueva** (`AvisoVersionNueva.tsx`): la PWA pasó de `autoUpdate` a `prompt`.
+
+### Mesonero y cocina
+- Un cambio hecho sin internet que **la base rechaza** al subirlo ahora muestra un aviso fijo con el motivo. Antes desaparecía sin explicación.
+- **Abrir, atender, liberar y transferir mesa**, **anular plato o cuenta**, **enviar a cocina**, **avanzar estado en cocina** y **"Entendido" en anulaciones**: si fallan, lo dicen.
+- **Perfil que no carga:** a los 15 s aparece "No se pudo cargar tu perfil" con **Reiniciar datos de este dispositivo** y **Cerrar sesión**.
+
+### Pendiente
+- Puntos 7 a 10: administración (menú), login y registro, traductor en las pantallas de administración, aviso de "sin conexión" en gestión.
+- Punto 11: decidir con César las pantallas que siguen con datos de ejemplo (Personal y parte de Configuración).
+- Anotado sin tocar: un rechazo por permisos (`42501`) al subir sigue trabando la cola de ese dispositivo.
+
+---
+
 ## 2026-10-30 — Arreglos de la primera prueba offline (Fase 8, Módulo 1)
 
 Rama: `feature/fase8-endurecimiento`. Autor: Pedro (con Claude Code). Sin migraciones.
