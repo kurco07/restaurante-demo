@@ -1,15 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchMarcaPropia, guardarMarcaPropia, subirLogoMarca } from '../../../../../models/services/marcaService'
+import { FUENTES_DISPONIBLES } from '../../../../../controllers/marca/fuentesMarca'
 import { SeccionConfig } from './SeccionConfig'
 
-// Fase 7, Módulo 4 — reemplaza el mockup de colores fijos por un editor
-// real contra personalizacion_marca (migración 0025: solo
-// administracion/gerencia puede escribir, por eso esta pantalla ya está
-// gateada a ese rol vía ConfiguracionPage/rolesPorModulo).
+// Fase 7, Módulo 4 — editor real contra personalizacion_marca (migración
+// 0025: solo administracion/gerencia puede escribir). Ampliado en la
+// Ronda 1 de personalización completa (migración 0036): color de
+// acento, tipografía y marca de agua de fondo (reutiliza el logo ya
+// subido, sin imagen aparte).
 export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
   const [nombreMostrado, setNombreMostrado] = useState('')
   const [colorPrimario, setColorPrimario] = useState('#ff7a1a')
   const [colorSecundario, setColorSecundario] = useState('#e0650a')
+  const [colorAcento, setColorAcento] = useState('#e0650a')
+  const [fuente, setFuente] = useState('')
+  const [marcaAguaActiva, setMarcaAguaActiva] = useState(false)
+  const [marcaAguaOpacidad, setMarcaAguaOpacidad] = useState(0.06)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
   const [estado, setEstado] = useState<'inactivo' | 'guardando' | 'guardado' | 'error'>('inactivo')
@@ -22,6 +28,10 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
           setNombreMostrado(marca.nombre_mostrado ?? '')
           setColorPrimario(marca.color_primario ?? '#ff7a1a')
           setColorSecundario(marca.color_secundario ?? '#e0650a')
+          setColorAcento(marca.color_acento ?? '#e0650a')
+          setFuente(marca.fuente ?? '')
+          setMarcaAguaActiva(marca.marca_agua_activa)
+          setMarcaAguaOpacidad(marca.marca_agua_opacidad)
           setLogoUrl(marca.logo_url)
         }
       })
@@ -35,6 +45,10 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
         nombre_mostrado: nombreMostrado.trim() || null,
         color_primario: colorPrimario,
         color_secundario: colorSecundario,
+        color_acento: colorAcento,
+        fuente: fuente || null,
+        marca_agua_activa: marcaAguaActiva,
+        marca_agua_opacidad: marcaAguaOpacidad,
       })
       setEstado('guardado')
     } catch {
@@ -57,7 +71,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
   if (cargando) return null
 
   return (
-    <SeccionConfig titulo="Marca del restaurante" subtitulo="Se usan en la app pública, en el menú digital y en el autopedido por QR">
+    <SeccionConfig titulo="Marca del restaurante" subtitulo="Se usan en todas las pantallas: app pública, menú digital, autopedido por QR y el panel interno">
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3.5">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)]">
@@ -116,6 +130,67 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
               className="h-9 w-14 cursor-pointer rounded-md border border-[var(--border)]"
             />
           </label>
+          <label className="flex items-center gap-2.5 text-xs font-bold text-[var(--ink)]">
+            Color de acento
+            <input
+              type="color"
+              value={colorAcento}
+              onChange={(e) => setColorAcento(e.target.value)}
+              className="h-9 w-14 cursor-pointer rounded-md border border-[var(--border)]"
+            />
+          </label>
+        </div>
+
+        <label className="flex flex-col gap-1.5 text-xs font-bold text-[var(--ink)]">
+          Tipografía
+          <select
+            value={fuente}
+            onChange={(e) => setFuente(e.target.value)}
+            className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-normal"
+            style={fuente ? { fontFamily: `'${fuente}'` } : undefined}
+          >
+            <option value="">Por defecto de la plataforma</option>
+            {FUENTES_DISPONIBLES.map((f) => (
+              <option key={f.valor} value={f.valor} style={{ fontFamily: `'${f.valor}'` }}>
+                {f.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="rounded-lg border border-[var(--border)] p-3.5">
+          <label className="flex items-center justify-between text-xs font-bold text-[var(--ink)]">
+            Marca de agua de fondo (tu logo, discreto, en todas las pantallas)
+            <button
+              type="button"
+              role="switch"
+              aria-checked={marcaAguaActiva}
+              onClick={() => setMarcaAguaActiva((v) => !v)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                marcaAguaActiva ? 'bg-[var(--orange)]' : 'bg-[var(--border)]'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  marcaAguaActiva ? 'translate-x-[22px]' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </label>
+          {marcaAguaActiva && (
+            <label className="mt-3 flex flex-col gap-1 text-xs font-semibold text-[var(--ink-soft)]">
+              Qué tan visible ({Math.round(marcaAguaOpacidad * 100)}%)
+              <input
+                type="range"
+                min={0.02}
+                max={0.15}
+                step={0.01}
+                value={marcaAguaOpacidad}
+                onChange={(e) => setMarcaAguaOpacidad(Number(e.target.value))}
+              />
+              {!logoUrl && <span className="text-[var(--red)]">Sube un logo arriba primero — la marca de agua lo usa a él.</span>}
+            </label>
+          )}
         </div>
 
         <div className="flex items-center gap-3">

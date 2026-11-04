@@ -8,7 +8,7 @@ import type { Marca } from '../types/marca'
 export async function fetchMarcaPropia(): Promise<Marca | null> {
   const { data, error } = await supabase
     .from('personalizacion_marca')
-    .select('logo_url, color_primario, color_secundario, nombre_mostrado')
+    .select('logo_url, color_primario, color_secundario, color_acento, fuente, marca_agua_activa, marca_agua_opacidad, nombre_mostrado')
     .maybeSingle()
   if (error) throw error
   return data

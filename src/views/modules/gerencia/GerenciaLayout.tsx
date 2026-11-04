@@ -4,6 +4,7 @@ import { useKpisVentas } from '../../../controllers/gerencia/useKpisVentas'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
 import { ESTILOS_ADMIN } from '../../components/ui/constants'
+import { MarcaAguaFondo } from '../../components/ui/MarcaAguaFondo'
 import { GerenciaSidebar } from './components/GerenciaSidebar'
 
 // Panel de gerencia: barra lateral propia + la sección elegida. No pide
@@ -23,6 +24,7 @@ export default function GerenciaLayout() {
       className="grid min-h-screen grid-cols-[232px_1fr] bg-[var(--bg)] text-[var(--ink)]"
       style={ESTILOS_ADMIN}
     >
+      <MarcaAguaFondo />
       <GerenciaSidebar nombre={usuario.nombre} rol={usuario.rol} alertas={kpis.alertas.length} />
       <main className="min-w-0 max-w-[1280px] px-[34px] pb-10 pt-7">
         <Outlet context={kpis} />

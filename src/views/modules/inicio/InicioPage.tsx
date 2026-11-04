@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../../../lib/supabaseClient'
 import { useAplicarMarca } from '../../../controllers/marca/useAplicarMarca'
+import { MarcaAguaFondo } from '../../components/ui/MarcaAguaFondo'
+import type { MarcaPublica } from '../../../models/types/marca'
 import { HeroCarousel } from './components/HeroCarousel'
 
 // Home pública del restaurante — sin login, sin mesa. Es una vitrina (menú
@@ -35,7 +37,7 @@ interface Sede {
 
 interface MenuPublico {
   restaurante: string
-  marca: { logo_url: string | null; color_primario: string | null; color_secundario: string | null }
+  marca: MarcaPublica
   sedes: Sede[]
   categorias: Categoria[]
   platos: Plato[]
@@ -94,6 +96,7 @@ export default function InicioPage() {
 
   return (
     <div className="bg-orange-50/30">
+      <MarcaAguaFondo />
       <header className="mx-auto flex max-w-6xl items-center justify-between px-8 py-5">
         <div className="text-xl font-extrabold text-gray-900">{nombreRestaurante}</div>
         <nav className="hidden gap-7 text-sm font-medium text-gray-500 md:flex">

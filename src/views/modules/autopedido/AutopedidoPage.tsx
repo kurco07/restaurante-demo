@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useAutopedido } from '../../../controllers/autopedido/useAutopedido'
 import { useAplicarMarca } from '../../../controllers/marca/useAplicarMarca'
+import { MarcaAguaFondo } from '../../components/ui/MarcaAguaFondo'
 import { useRecomendadosMesa } from '../../../controllers/autopedido/useRecomendadosMesa'
 import { EncabezadoAutopedido } from './components/EncabezadoAutopedido'
 import { ListaPlatos } from './components/ListaPlatos'
@@ -30,6 +31,7 @@ export default function AutopedidoPage() {
   return (
     <div className="flex min-h-screen justify-center bg-[#f3ede4]">
       <div className="relative flex min-h-screen w-full max-w-[430px] flex-col bg-[#fffbf6]">
+        <MarcaAguaFondo />
         {ap.carga.estado === 'cargando' && <Aviso titulo="Cargando el menú..." />}
         {ap.carga.estado === 'no_encontrada' && (
           <Aviso titulo="Este QR no es válido" detalle="Pídele a tu mesonero el código de tu mesa." />

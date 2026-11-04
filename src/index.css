@@ -22,4 +22,15 @@
   --green-bg: #e9f8ee;
   --red: #e14434;
   --red-bg: #fdeceb;
+  /* Personalización completa, Ronda 1 (migración 0036): acento sigue el
+     mismo naranja oscuro por defecto hasta que el tenant lo personalice. */
+  --acento: #e0650a;
+}
+
+/* Si el tenant eligió una tipografía (useAplicarMarca.ts fija
+   --font-marca), se aplica a toda la app; si no, --font-marca queda sin
+   definir y este var() con fallback es un no-op — se queda la pila de
+   Tailwind de siempre. */
+body {
+  font-family: var(--font-marca, ui-sans-serif, system-ui, sans-serif);
 }

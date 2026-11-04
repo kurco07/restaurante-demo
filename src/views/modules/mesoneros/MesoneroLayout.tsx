@@ -4,6 +4,7 @@ import { CarritoProvider } from '../../../controllers/pedido/CarritoProvider'
 import { useRecomendadosHoy } from '../../../controllers/mesonero/useRecomendadosHoy'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
+import { MarcaAguaFondo } from '../../components/ui/MarcaAguaFondo'
 import { ESTILOS_CSS } from '../pedidos/components/constants'
 import { BarraMesonero } from './components/BarraMesonero'
 
@@ -32,6 +33,7 @@ export default function MesoneroLayout() {
     // se cargan de cero en vez de heredar los del anterior
     <CarritoProvider key={usuario.id} usuarioId={usuario.id}>
       <div className="min-h-screen bg-[var(--bg)]" style={ESTILOS_CSS}>
+        <MarcaAguaFondo />
         <BarraMesonero usuario={usuario} recomendados={recomendados?.items.length ?? 0} />
         <main className="px-4 py-6 sm:px-7">
           <Outlet context={recomendados} />

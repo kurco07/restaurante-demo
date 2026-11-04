@@ -3,6 +3,7 @@ import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { usePlatosSugeridosHoy } from '../../../controllers/cocina/usePlatosSugeridosHoy'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
+import { MarcaAguaFondo } from '../../components/ui/MarcaAguaFondo'
 import { ESTILOS_CSS } from '../pedidos/components/constants'
 import { BarraCocina } from './components/BarraCocina'
 
@@ -22,6 +23,7 @@ export default function CocinaLayout() {
 
   return (
     <div className="min-h-screen bg-[var(--bg)]" style={ESTILOS_CSS}>
+      <MarcaAguaFondo />
       <BarraCocina usuario={usuario} sugeridos={sugeridos?.items.length ?? 0} />
       <main className="px-4 py-6 sm:px-7">
         <Outlet context={sugeridos} />

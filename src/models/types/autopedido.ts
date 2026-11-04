@@ -1,5 +1,6 @@
 // Forma de lo que devuelve la función pública menu_publico_mesa
 // (migración 0003). Solo lo necesario para mostrar el menú al cliente.
+import type { MarcaPublica } from './marca'
 
 export interface CategoriaAutopedido {
   id: string
@@ -19,7 +20,7 @@ export interface PlatoAutopedido {
 
 export interface MenuPublicoMesa {
   restaurante: string
-  marca: { logo_url: string | null; color_primario: string | null; color_secundario: string | null }
+  marca: MarcaPublica
   modulos: { realidad_aumentada: boolean; ia_recomendados: boolean }
   mesa: { id: string; nombre_numero: string }
   categorias: CategoriaAutopedido[]
