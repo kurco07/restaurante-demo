@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { Insumo, Receta } from '../../../../models/types'
+import { mensajeDeError } from '../../../../lib/errores'
 
 const NUEVO_INSUMO = '__nuevo__'
 
@@ -24,11 +25,24 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
   const [unidad, setUnidad] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [quitandoId, setQuitandoId] = useState<string | null>(null)
 
   const esInsumoNuevo = insumoId === NUEVO_INSUMO
 
   function insumoNombre(id: string) {
     return insumos.find((i) => i.id === id)?.nombre ?? '(insumo eliminado)'
+  }
+
+  async function quitar(recetaId: string) {
+    setError(null)
+    setQuitandoId(recetaId)
+    try {
+      await onEliminarLinea(recetaId)
+    } catch (err) {
+      setError(mensajeDeError(err, 'No se pudo quitar el insumo de la receta.'))
+    } finally {
+      setQuitandoId(null)
+    }
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -56,7 +70,7 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
       setCantidad('')
       setUnidad('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo agregar el insumo a la receta.')
+      setError(mensajeDeError(err, 'No se pudo agregar el insumo a la receta.'))
     } finally {
       setSubmitting(false)
     }
@@ -80,8 +94,9 @@ export function RecetaEditor({ receta, insumos, onAgregarLinea, onEliminarLinea 
             </span>
             <button
               type="button"
-              onClick={() => onEliminarLinea(linea.id)}
-              className="rounded-full px-2 py-0.5 text-xs font-bold text-[var(--ink-soft)] hover:bg-[var(--red-bg)] hover:text-[var(--red)]"
+              onClick={() => void quitar(linea.id)}
+              disabled={quitandoId === linea.id}
+              className="rounded-full disabled:opacity-50 px-2 py-0.5 text-xs font-bold text-[var(--ink-soft)] hover:bg-[var(--red-bg)] hover:text-[var(--red)]"
             >
               Quitar
             </button>

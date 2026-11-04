@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Insumo } from '../../../../../models/types'
+import { mensajeDeError } from '../../../../../lib/errores'
 
 interface RegistrarAjustePanelProps {
   insumos: Insumo[]
@@ -47,7 +48,7 @@ export function RegistrarAjustePanel({
     try {
       await onRegistrar()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar el ajuste.')
+      setError(mensajeDeError(err, 'No se pudo registrar el ajuste.'))
     }
   }
 

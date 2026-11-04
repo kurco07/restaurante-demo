@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { OrdenCompraConDetalle } from '../../../../../models/services/compraService'
 import type { Proveedor } from '../../../../../models/types'
+import { mensajeDeError } from '../../../../../lib/errores'
 
 interface EditorProveedorProps {
   proveedor: Proveedor | null
@@ -47,7 +48,7 @@ export function EditorProveedor({
         await onGuardar(proveedor.id, form)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar.')
+      setError(mensajeDeError(err, 'No se pudo guardar.'))
     }
   }
 
@@ -58,7 +59,7 @@ export function EditorProveedor({
     try {
       await onEliminar(proveedor.id)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo eliminar el proveedor.')
+      setError(mensajeDeError(err, 'No se pudo eliminar el proveedor.'))
     }
   }
 

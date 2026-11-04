@@ -20,6 +20,8 @@ import { ErrorMessage } from '../../../components/ui/ErrorMessage'
 import { CategoriaFiltros } from './CategoriaFiltros'
 import { PlatosLista } from './PlatosLista'
 import { PlatoDetallePanel } from './PlatoDetallePanel'
+import { mensajeDeError } from '../../../../lib/errores'
+import { avisar } from '../../../../controllers/avisos/avisos'
 
 interface MenuAdminProps {
   tenantId: string
@@ -54,7 +56,7 @@ export function MenuAdmin({ tenantId, sedeId }: MenuAdminProps) {
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        setError(err instanceof Error ? err.message : 'No se pudo cargar el menú.')
+        setError(mensajeDeError(err, 'No se pudo cargar el menú.'))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -68,9 +70,11 @@ export function MenuAdmin({ tenantId, sedeId }: MenuAdminProps) {
   // Carga la receta del plato apenas se selecciona, no antes.
   useEffect(() => {
     if (!seleccionadoId || recetaPorItem[seleccionadoId]) return
-    fetchRecetaPorMenuItem(seleccionadoId).then((receta) => {
-      setRecetaPorItem((prev) => ({ ...prev, [seleccionadoId]: receta }))
-    })
+    fetchRecetaPorMenuItem(seleccionadoId)
+      .then((receta) => {
+        setRecetaPorItem((prev) => ({ ...prev, [seleccionadoId]: receta }))
+      })
+      .catch((err: unknown) => avisar.error(err, 'No se pudo cargar la receta del plato'))
   }, [seleccionadoId, recetaPorItem])
 
   const platosFiltrados = menuItems.filter((item) => {
@@ -138,6 +142,14 @@ export function MenuAdmin({ tenantId, sedeId }: MenuAdminProps) {
   }) {
     if (!seleccionadoId) return
     let insumoId = linea.insumoId
+
+    // Si ya existe un insumo con ese nombre (por ejemplo, se creó en un
+    // intento anterior y lo que falló fue agregar la línea), se reutiliza
+    // en vez de crear otro igual
+    if (!insumoId && linea.insumoNuevo) {
+      const nombre = linea.insumoNuevo.nombre.trim().toLowerCase()
+      insumoId = insumos.find((i) => i.nombre.trim().toLowerCase() === nombre)?.id
+    }
 
     if (!insumoId && linea.insumoNuevo) {
       const nuevoInsumo = await crearInsumo({ tenant_id: tenantId, sede_id: sedeId, ...linea.insumoNuevo })

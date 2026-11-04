@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../controllers/auth/useAuth'
 import { supabase } from '../../../lib/supabaseClient'
+import { mensajeDeError } from '../../../lib/errores'
+import { useEnLinea } from '../../../controllers/useEnLinea'
 import type { Rol } from '../../../models/types'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import { IconoCandado, IconoCorreo, IconoEscudo, IconoOjo, IconoOjoTachado, IconoRestaurante } from '../../components/ui/IconosAuth'
@@ -27,6 +29,7 @@ export default function LoginPage() {
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const enLinea = useEnLinea()
 
   async function iniciarSesion(correo: string, clave: string) {
     setSubmitting(true)
@@ -43,13 +46,28 @@ export default function LoginPage() {
     // Se consulta el perfil acá mismo, directo, en vez de esperar al
     // UsuarioProvider del resto de la app — así no hay carrera entre "ya
     // hay sesión" y "ya sabemos el rol" justo antes de navegar.
-    const { data: authData } = await supabase.auth.getUser()
-    const { data: perfil } = authData.user
-      ? await supabase.from('usuarios').select('rol').eq('id', authData.user.id).single()
-      : { data: null }
-
-    setSubmitting(false)
-    navigate(perfil ? (RUTA_POR_ROL[perfil.rol as Rol] ?? '/') : '/')
+    // Si falla (red, perfil borrado), se dice aquí en vez de mandar a "/",
+    // que sin rol rebota de vuelta al login sin explicación (Fase 8,
+    // Módulo 2).
+    try {
+      const { data: authData, error: errorUsuario } = await supabase.auth.getUser()
+      if (errorUsuario || !authData.user) throw errorUsuario ?? new Error('Sin usuario')
+      const { data: perfil, error: errorPerfil } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('id', authData.user.id)
+        .maybeSingle()
+      if (errorPerfil) throw errorPerfil
+      if (!perfil) {
+        setError('Tu cuenta no tiene un perfil en ningún restaurante. Pídele al administrador que te dé acceso.')
+        return
+      }
+      navigate(RUTA_POR_ROL[perfil.rol as Rol] ?? '/')
+    } catch (e) {
+      setError(mensajeDeError(e, 'Entraste, pero no se pudo cargar tu perfil. Intenta de nuevo.'))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   async function handleSubmit(event: FormEvent) {
@@ -119,6 +137,12 @@ export default function LoginPage() {
               </div>
             </label>
 
+            {!enLinea && (
+              <p className="rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-600" role="status">
+                Sin conexión: iniciar sesión necesita internet. Cuando vuelva la red, inténtalo de nuevo.
+              </p>
+            )}
+
             {error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
                 {error}
@@ -127,7 +151,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !enLinea}
               className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-orange-600 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-700 disabled:opacity-60"
             >
               {submitting ? 'Ingresando…' : 'Iniciar sesión'}
@@ -147,7 +171,7 @@ export default function LoginPage() {
           </div>
 
           {import.meta.env.DEV && (
-            <AccesosPrueba onSeleccionar={iniciarSesion} deshabilitado={submitting} />
+            <AccesosPrueba onSeleccionar={iniciarSesion} deshabilitado={submitting || !enLinea} />
           )}
         </div>
       </div>

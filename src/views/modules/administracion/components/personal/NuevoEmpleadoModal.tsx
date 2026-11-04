@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { fetchSedes } from '../../../../../models/services/kpisService'
 import { crearEmpleado, type RolEmpleadoCreable } from '../../../../../models/services/empleadoService'
 import type { SedeResumen } from '../../../../../models/types'
+import { mensajeDeError } from '../../../../../lib/errores'
 
 interface NuevoEmpleadoModalProps {
   onCreado: () => void
@@ -40,7 +41,7 @@ export function NuevoEmpleadoModal({ onCreado, onCerrar }: NuevoEmpleadoModalPro
       await crearEmpleado({ nombre: nombre.trim(), email: email.trim(), rol, sedeId: sedeId || null })
       onCreado()
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo crear el empleado.')
+      setError(mensajeDeError(e, 'No se pudo crear el empleado.'))
     } finally {
       setEnviando(false)
     }

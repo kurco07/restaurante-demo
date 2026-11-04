@@ -13,6 +13,7 @@ import {
   type OrdenCompraConDetalle,
 } from '../../models/services/compraService'
 import type { EstadoOrdenCompra, Insumo, Proveedor } from '../../models/types'
+import { mensajeDeError } from '../../lib/errores'
 
 export type FiltroCompras = 'todas' | EstadoOrdenCompra
 
@@ -68,7 +69,7 @@ export function useCompras() {
       })
       .catch((err: unknown) => {
         if (cancelado) return
-        setError(err instanceof Error ? err.message : 'No se pudieron cargar las órdenes de compra')
+        setError(mensajeDeError(err, 'No se pudieron cargar las órdenes de compra'))
         setLoading(false)
       })
     return () => {
@@ -102,7 +103,7 @@ export function useCompras() {
       setSeleccionadaId(nuevoId)
       setCreando(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear la orden')
+      setError(mensajeDeError(err, 'No se pudo crear la orden'))
       throw err
     } finally {
       setGuardando(false)
@@ -117,7 +118,7 @@ export function useCompras() {
       await actualizarItemsBorrador(ordenId, usuario.tenant_id, items)
       await cargar()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar la orden')
+      setError(mensajeDeError(err, 'No se pudo guardar la orden'))
       throw err
     } finally {
       setGuardando(false)
@@ -132,7 +133,7 @@ export function useCompras() {
       await aprobarOrden(ordenId, usuario.id)
       await cargar()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo aprobar la orden')
+      setError(mensajeDeError(err, 'No se pudo aprobar la orden'))
     } finally {
       setGuardando(false)
     }
@@ -146,7 +147,7 @@ export function useCompras() {
       await cargar()
       setSeleccionadaId(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo descartar el borrador')
+      setError(mensajeDeError(err, 'No se pudo descartar el borrador'))
     } finally {
       setGuardando(false)
     }
@@ -159,7 +160,7 @@ export function useCompras() {
       await registrarRecepcion(orden, fechasVencimiento)
       await cargar()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar la recepción')
+      setError(mensajeDeError(err, 'No se pudo registrar la recepción'))
       throw err
     } finally {
       setGuardando(false)

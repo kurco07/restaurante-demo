@@ -9,12 +9,7 @@ import {
   rechazarSugerencia,
 } from '../../models/services/sugerenciaCompraService'
 import type { ItemAprobadoCompra, Proveedor, SugerenciaCompra } from '../../models/types'
-
-function mensaje(e: unknown) {
-  if (e instanceof Error) return e.message
-  if (e && typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message)
-  return String(e)
-}
+import { mensajeDeError } from '../../lib/errores'
 
 // Bandeja de sugerencias de compra de administración (Fase 6, Módulos 2 y
 // 5): generar con la IA, revisar, aprobar (crea borradores de orden) o
@@ -52,7 +47,7 @@ export function useSugerenciasCompra() {
     setCargando(true)
     cargar()
       .catch((e: unknown) => {
-        if (!cancelado) setError(mensaje(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)
@@ -75,7 +70,7 @@ export function useSugerenciasCompra() {
       if (!r.sugerenciaId) setAviso(r.mensaje ?? 'No hace falta comprar nada por ahora.')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGenerando(false)
     }
@@ -92,7 +87,7 @@ export function useSugerenciasCompra() {
       )
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGuardando(false)
     }
@@ -107,7 +102,7 @@ export function useSugerenciasCompra() {
       setAviso('Sugerencia rechazada.')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGuardando(false)
     }

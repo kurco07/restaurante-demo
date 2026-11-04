@@ -5,6 +5,7 @@ import { fetchKpisVentas } from '../../models/services/kpisService'
 import { fetchMesas } from '../../models/services/mesaService'
 import { fetchPedidosAdminDia } from '../../models/services/pedidosAdminService'
 import { fetchInsumos, fetchInventarioSede } from '../../models/services/inventarioService'
+import { mensajeDeError } from '../../lib/errores'
 
 const DIAS_CORTOS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb']
 
@@ -130,7 +131,7 @@ export function usePanelAdmin() {
         setError(null)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setError(e instanceof Error ? e.message : 'No se pudo cargar el panel')
+        if (!cancelado) setError(mensajeDeError(e, 'No se pudo cargar el panel'))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)

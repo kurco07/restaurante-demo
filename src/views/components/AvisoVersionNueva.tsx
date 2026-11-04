@@ -25,7 +25,7 @@ export function AvisoVersionNueva() {
   if (!hayVersionNueva) return null
 
   return (
-    <div className="fixed inset-x-0 top-0 z-[1001] flex items-center justify-center gap-3 bg-[var(--ink)] px-4 py-2 text-sm text-white shadow-lg">
+    <div className="flex items-center justify-center gap-3 bg-[var(--ink)] px-4 py-2 text-sm text-white shadow-lg">
       <span>Hay una versión nueva de la app.</span>
       <button
         type="button"

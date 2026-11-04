@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { IngredienteCosteado } from '../../models/types'
 import { fetchRecetaCosteada } from '../../models/services/kpisService'
+import { mensajeDeError } from '../../lib/errores'
 
 // Receta de un plato con el costo de cada insumo, para la ficha de solo
 // lectura de gerencia. Gerencia no edita recetas: eso es de administración.
@@ -19,7 +20,7 @@ export function useRecetaCosteada(menuItemId: string, sedeId?: string) {
         if (!cancelado) setIngredientes(filas)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setError(e instanceof Error ? e.message : String(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)

@@ -9,6 +9,7 @@ import {
 import { fetchOrdenes } from '../../models/services/compraService'
 import type { OrdenCompraConDetalle } from '../../models/services/compraService'
 import type { Proveedor } from '../../models/types'
+import { mensajeDeError } from '../../lib/errores'
 
 export function useProveedores() {
   const { usuario } = useUsuario()
@@ -42,7 +43,7 @@ export function useProveedores() {
       })
       .catch((err: unknown) => {
         if (cancelado) return
-        setError(err instanceof Error ? err.message : 'No se pudieron cargar los proveedores')
+        setError(mensajeDeError(err, 'No se pudieron cargar los proveedores'))
         setLoading(false)
       })
     return () => {
@@ -71,7 +72,7 @@ export function useProveedores() {
       setSeleccionadoId(nuevo.id)
       setCreando(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el proveedor')
+      setError(mensajeDeError(err, 'No se pudo crear el proveedor'))
       throw err
     } finally {
       setGuardando(false)
@@ -85,7 +86,7 @@ export function useProveedores() {
       const actualizado = await actualizarProveedor(id, { nombre: datos.nombre, contacto: datos.contacto.trim() || null })
       setProveedores((prev) => prev.map((p) => (p.id === id ? actualizado : p)))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar el proveedor')
+      setError(mensajeDeError(err, 'No se pudo guardar el proveedor'))
       throw err
     } finally {
       setGuardando(false)
@@ -100,7 +101,7 @@ export function useProveedores() {
       setProveedores((prev) => prev.filter((p) => p.id !== id))
       setSeleccionadoId((actual) => (actual === id ? null : actual))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo eliminar el proveedor')
+      setError(mensajeDeError(err, 'No se pudo eliminar el proveedor'))
       throw err
     } finally {
       setGuardando(false)

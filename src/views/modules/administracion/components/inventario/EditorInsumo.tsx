@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Insumo, InventarioSede } from '../../../../../models/types'
 import { fetchPlatosPorInsumo } from '../../../../../models/services/inventarioService'
+import { mensajeDeError } from '../../../../../lib/errores'
 
 interface EditorInsumoProps {
   insumo: Insumo | null
@@ -93,7 +94,7 @@ export function EditorInsumo({
         await onGuardar(insumo.id, form)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar.')
+      setError(mensajeDeError(err, 'No se pudo guardar.'))
     }
   }
 
@@ -103,7 +104,7 @@ export function EditorInsumo({
     try {
       await onGuardarStockMinimo(inventario.id, stockMinimo.trim() === '' ? null : Number(stockMinimo))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar el stock mínimo.')
+      setError(mensajeDeError(err, 'No se pudo guardar el stock mínimo.'))
     }
   }
 
@@ -114,7 +115,7 @@ export function EditorInsumo({
     try {
       await onEliminar(insumo.id)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo eliminar el insumo.')
+      setError(mensajeDeError(err, 'No se pudo eliminar el insumo.'))
     }
   }
 

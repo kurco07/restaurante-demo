@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { Insumo } from '../../../../../models/types'
+import { mensajeDeError } from '../../../../../lib/errores'
 
 interface RegistrarLotePanelProps {
   insumo: Insumo
@@ -23,7 +24,7 @@ export function RegistrarLotePanel({ insumo, guardando, onRegistrar }: Registrar
       setCantidad('')
       setFechaVencimiento('')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar el lote.')
+      setError(mensajeDeError(err, 'No se pudo registrar el lote.'))
     }
   }
 

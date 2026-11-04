@@ -3,6 +3,7 @@ import { useUsuario } from '../usuario/useUsuario'
 import { fetchInsumos } from '../../models/services/inventarioService'
 import { fetchLotesPorInsumo, registrarLote } from '../../models/services/loteService'
 import type { EstadoLote, Insumo, LoteInsumo } from '../../models/types'
+import { mensajeDeError } from '../../lib/errores'
 
 const DIAS_POR_VENCER = 3
 
@@ -35,7 +36,7 @@ export function useLotesInsumo(insumoId: string | undefined) {
         if (!cancelado) setInsumos(data)
       })
       .catch((err: unknown) => {
-        if (!cancelado) setError(err instanceof Error ? err.message : 'No se pudieron cargar los insumos')
+        if (!cancelado) setError(mensajeDeError(err, 'No se pudieron cargar los insumos'))
       })
       .finally(() => {
         if (!cancelado) setLoading(false)
@@ -57,7 +58,7 @@ export function useLotesInsumo(insumoId: string | undefined) {
         if (!cancelado) setLotes(data)
       })
       .catch((err: unknown) => {
-        if (!cancelado) setError(err instanceof Error ? err.message : 'No se pudieron cargar los lotes')
+        if (!cancelado) setError(mensajeDeError(err, 'No se pudieron cargar los lotes'))
       })
     return () => {
       cancelado = true
@@ -89,7 +90,7 @@ export function useLotesInsumo(insumoId: string | undefined) {
       })
       setLotes((prev) => [nuevo, ...prev])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar el lote')
+      setError(mensajeDeError(err, 'No se pudo registrar el lote'))
     } finally {
       setGuardando(false)
     }

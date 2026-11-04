@@ -4,11 +4,11 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
-## 2026-11-04 — Manejo de errores y estados de carga, parte 1 (Fase 8, Módulo 2)
+## 2026-11-04 — Manejo de errores y estados de carga (Fase 8, Módulo 2)
 
 Rama: `feature/fase8-errores-carga`. Autor: Pedro (con Claude Code). Sin migraciones.
 
-Se hizo la primera mitad de `docs/Pendientes_Errores_y_Carga.md`: las piezas comunes y lo de mesonero y cocina (puntos 1 a 6). El detalle de cada punto está en ese documento.
+Se hicieron los puntos 1 a 10 de `docs/Pendientes_Errores_y_Carga.md`. El detalle de cada punto está en ese documento.
 
 ### Piezas comunes (sirven para toda la app)
 - **Red contra pantalla en blanco** (`ErrorBoundary.tsx`): una global y una por módulo. Si una pantalla falla, se ve "Algo falló en esta pantalla" con Recargar y Volver a intentar, y el resto de la app sigue andando.
@@ -22,9 +22,22 @@ Se hizo la primera mitad de `docs/Pendientes_Errores_y_Carga.md`: las piezas com
 - **Abrir, atender, liberar y transferir mesa**, **anular plato o cuenta**, **enviar a cocina**, **avanzar estado en cocina** y **"Entendido" en anulaciones**: si fallan, lo dicen.
 - **Perfil que no carga:** a los 15 s aparece "No se pudo cargar tu perfil" con **Reiniciar datos de este dispositivo** y **Cerrar sesión**.
 
+### Administración, gestión y entrada
+- **Traductor en todas las pantallas:** ninguna muestra ya el error crudo de Supabase.
+- **Franja "Sin conexión"** en administración, gerencia y super-admin. Al volver la red ofrece "Actualizar datos".
+- **Menú:**
+  - "Quitar" de la receta y la carga de la receta avisan si fallan;
+  - los botones no se pueden repetir mientras guardan;
+  - un insumo nuevo no se duplica al reintentar.
+- **Login:** si no se puede leer el perfil, lo explica en la pantalla, en vez de rebotar en silencio.
+- **Registro:**
+  - a los 30 s libera el botón;
+  - avisa que la cuenta pudo haberse creado;
+  - ahora muestra los mensajes de la función, como "Ya existe una cuenta con ese correo", que antes se perdían.
+
 ### Pendiente
-- Puntos 7 a 10: administración (menú), login y registro, traductor en las pantallas de administración, aviso de "sin conexión" en gestión.
-- Punto 11: decidir con César las pantallas que siguen con datos de ejemplo (Personal y parte de Configuración).
+- Probarlo en el navegador para marcar el módulo ✅.
+- El punto 11 (pantallas con datos de ejemplo) lo resuelve César al quitar los datos de prueba.
 - Anotado sin tocar: un rechazo por permisos (`42501`) al subir sigue trabando la cola de ese dispositivo.
 
 ---

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import { fetchInsumos, fetchInventarioSede, registrarAjusteManual } from '../../models/services/inventarioService'
 import type { Insumo, InventarioSede } from '../../models/types'
+import { mensajeDeError } from '../../lib/errores'
 
 export interface FilaConteo {
   insumo: Insumo
@@ -44,7 +45,7 @@ export function useConteoFisico() {
       })
       .catch((err: unknown) => {
         if (cancelado) return
-        setError(err instanceof Error ? err.message : 'No se pudieron cargar los insumos')
+        setError(mensajeDeError(err, 'No se pudieron cargar los insumos'))
         setLoading(false)
       })
     return () => {
@@ -95,7 +96,7 @@ export function useConteoFisico() {
       await cargar()
       setContados({})
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar el conteo')
+      setError(mensajeDeError(err, 'No se pudo registrar el conteo'))
       throw err
     } finally {
       setGuardando(false)

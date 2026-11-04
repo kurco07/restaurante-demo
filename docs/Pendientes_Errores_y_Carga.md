@@ -2,7 +2,7 @@
 
 Revisión hecha por Pedro con Claude Code el **2026-11-02**, sobre `main` (`69419da`).
 
-**Avance (2026-11-04, rama `feature/fase8-errores-carga`):** hechos los puntos **1 a 6**, el aviso estándar y el traductor de errores (9, listo pero aplicado solo en mesonero y cocina). Falta: **7, 8, 9 en las pantallas de administración, 10**, y decidir **11**. Cada punto hecho dice ✅ y qué quedó.
+**Avance (2026-11-04, rama `feature/fase8-errores-carga`):** hechos los puntos **1 a 10**; falta probarlos en el navegador. El **11** no se hace aquí: César está quitando todos los datos de prueba de la app. Cada punto dice ✅ y qué quedó.
 
 Qué se buscó en todo `src/`:
 - errores que nadie ve;
@@ -65,28 +65,46 @@ Va ordenada de más a menos urgente.
 
 ## Importante: pantallas de gestión (siempre necesitan internet)
 
-### 7. Administración → Menú
+### 7. Administración → Menú ✅
 - **Dónde:** `src/views/modules/administracion/components/MenuAdmin.tsx`.
 - **Problema:** **9 operaciones sin manejo de errores**: crear, editar y borrar categorías y platos, agregar y quitar líneas de receta, y crear insumos desde la receta. Si falla guardar (nombre repetido, permisos, red), no se muestra nada.
+- **✅ Hecho:** revisando de cerca, crear, editar y borrar ya tenían su mensaje en cada panel. Lo que faltaba:
+  - **"Quitar" una línea de receta** no tenía manejo de errores; ahora lo dice y el botón se desactiva mientras quita;
+  - **la receta de un plato** podía no cargar sin aviso; ahora avisa;
+  - **las categorías** se podían crear dos veces con doble clic, y **"Eliminar" plato** también se podía repetir; ahora los botones se desactivan mientras guardan;
+  - **receta con insumo nuevo:** si se creaba el insumo pero fallaba la línea, al reintentar se creaba un insumo repetido; ahora se reutiliza el que ya tiene ese nombre.
+  - Los formularios no se cierran ni se borran cuando algo falla, y los mensajes pasan por el traductor (un plato con pedidos dice "No se puede: está en uso…").
 
-### 8. Login y registro
+### 8. Login y registro ✅
 - `src/views/modules/login/LoginPage.tsx`: después de iniciar sesión, la lectura del rol (`auth.getUser` y luego `usuarios`) no tiene manejo de errores.
 - `src/views/modules/registro/RegistroPage.tsx`: si la red se cae en medio del registro, el botón puede quedar trabado en "Creando…".
+- **✅ Hecho, login:** si falla leer el perfil después de entrar, se explica en la misma pantalla en vez de mandar a "/" (que rebotaba al login sin decir nada). Una cuenta sin perfil dice que hay que pedir acceso. Los errores de Supabase Auth salen traducidos ("Correo o contraseña incorrectos").
+- **✅ Hecho, registro:**
+  - a los 30 s sin respuesta se libera el botón;
+  - sin respuesta o con la red caída, avisa que **la cuenta pudo haberse creado** y que conviene probar iniciar sesión antes de registrarse otra vez;
+  - **bug arreglado:** los mensajes de la función (por ejemplo "Ya existe una cuenta con ese correo") nunca llegaban a la pantalla, porque supabase-js no los pone en `data` cuando la respuesta es un error. Ahora se leen del cuerpo.
+- **✅ Ambos:** sin internet, los botones se desactivan con el aviso "Sin conexión: … necesita internet".
 
-### 9. Mensajes técnicos crudos
+### 9. Mensajes técnicos crudos ✅
 - **Problema:** varias pantallas muestran el error tal cual llega de Supabase, por ejemplo *"duplicate key value violates unique constraint"* o *"new row violates row-level security policy"*.
 - **Arreglo propuesto:** una función común que traduzca los errores conocidos a frases para el usuario, y un mensaje genérico para el resto.
-- **🟡 Función lista** en `src/lib/errores.ts` (`mensajeDeError`, con pruebas). Deja pasar los mensajes de nuestras reglas, que ya están en español, y traduce los técnicos: clave repetida, permisos, red, sesión vencida… Ya la usan todos los avisos nuevos. **Falta** usarla en las pantallas de administración que muestran `error.message` directo.
+- **✅ Hecho.** Función en `src/lib/errores.ts` (`mensajeDeError`, con pruebas). Deja pasar los mensajes de nuestras reglas, que ya están en español, y traduce los técnicos: clave repetida, permisos, red, sesión vencida… Ya la usan todos los avisos nuevos. Ya se usa en **todas** las pantallas: administración, gerencia, sugerencias de la IA, reporte por día, cierre de cuenta, autopedido y login. Ninguna muestra `error.message` directo.
 
-### 10. Sin aviso de "sin conexión" en administración y gerencia
+### 10. Sin aviso de "sin conexión" en administración y gerencia ✅
 - **Problema:** esos módulos no funcionan offline, a propósito, pero sin red cada pantalla falla por su lado con un "Failed to fetch".
 - **Arreglo propuesto:** un aviso general, por ejemplo "Sin conexión: esta sección necesita internet".
+- **✅ Hecho** (`AvisoSinConexion.tsx`, `useEnLinea`):
+  - en administración, gerencia y super-admin, sin red aparece una franja roja arriba: "Sin conexión: esta sección necesita internet…";
+  - al volver la red, cambia a una franja verde, "Volvió la conexión", con **Actualizar datos**. No recarga sola, para no perder un formulario a medio llenar.
 
 ---
 
 ## Para el piloto, aunque no es manejo de errores
 
-### 11. Pantallas de administración con datos de mentira
+### 11. Pantallas de administración con datos de mentira — lo hace César
+
+**Decisión de Pedro (2026-11-04):** no se toca en este módulo. César está quitando todos los datos de prueba de la app, y no tiene sentido agregar más para después borrarlos.
+
 Todavía usan datos de ejemplo (`src/controllers/administracion/mockData`):
 - ~~**Panel de inicio** de administración~~ y ~~**Pedidos**~~: **ya tienen datos reales**; los conectó César (`d645c06`, 2026-11-03).
 - **Personal**, la lista (`usePersonal.ts`). **Las invitaciones de César ya son reales.**

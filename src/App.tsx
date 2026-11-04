@@ -4,6 +4,7 @@ import { UsuarioProvider } from './views/components/UsuarioProvider'
 import { RedDeModulo } from './views/components/ErrorBoundary'
 import { Avisos } from './views/components/ui/Avisos'
 import { AvisoVersionNueva } from './views/components/AvisoVersionNueva'
+import { AvisoSinConexion } from './views/components/AvisoSinConexion'
 import { ProtectedRoute } from './controllers/auth/ProtectedRoute'
 import LoginPage from './views/modules/login/LoginPage'
 import RegistroPage from './views/modules/registro/RegistroPage'
@@ -51,7 +52,11 @@ export default function App() {
     <AuthProvider>
       <UsuarioProvider>
         <BrowserRouter>
-          <AvisoVersionNueva />
+          {/* Franjas de arriba: versión nueva y "sin conexión" en gestión */}
+          <div className="sticky top-0 z-[1001]">
+            <AvisoVersionNueva />
+            <AvisoSinConexion />
+          </div>
           <Avisos />
           <Routes>
             {/* Sin página intermedia de prueba: entrar al dominio va directo a

@@ -3,6 +3,7 @@ import type { ItemCarritoAutopedido, MenuPublicoMesa, PlatoAutopedido } from '..
 import { enviarPedidoAutopedido, fetchMenuPublicoMesa } from '../../models/services/menuPublicoService'
 import { usePedidoCompartido } from './usePedidoCompartido'
 import { claves, esErrorDeRed, guardarLocal, leerLocal } from './guardadoLocal'
+import { mensajeDeError } from '../../lib/errores'
 
 export type VistaAutopedido = 'menu' | 'pedido'
 
@@ -85,7 +86,7 @@ export function useAutopedido(mesaId: string | undefined) {
       setMenuSinConfirmar(false)
     } catch (e) {
       setCarga((actual) =>
-        actual.estado === 'lista' ? actual : { estado: 'error', mensaje: e instanceof Error ? e.message : String(e) },
+        actual.estado === 'lista' ? actual : { estado: 'error', mensaje: mensajeDeError(e) },
       )
       setMenuSinConfirmar(true)
     }
@@ -138,7 +139,7 @@ export function useAutopedido(mesaId: string | undefined) {
         setEnvioPendiente(true)
       } else {
         setEnvioPendiente(false)
-        setErrorEnvio(e instanceof Error ? e.message : 'No se pudo enviar el pedido. Intenta de nuevo.')
+        setErrorEnvio(mensajeDeError(e, 'No se pudo enviar el pedido. Intenta de nuevo.'))
       }
     } finally {
       setEnviando(false)

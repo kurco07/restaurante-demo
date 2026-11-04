@@ -6,12 +6,7 @@ import {
 } from '../../models/services/sugerenciaPlatosService'
 import { rechazarSugerencia } from '../../models/services/sugerenciaCompraService'
 import type { PlatoAprobado, SugerenciaPlatos } from '../../models/types'
-
-function mensaje(e: unknown) {
-  if (e instanceof Error) return e.message
-  if (e && typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message)
-  return String(e)
-}
+import { mensajeDeError } from '../../lib/errores'
 
 // Platos a preparar de una sede, para gerencia (Fase 6, Módulo 3):
 // generar con la IA, revisar, aprobar (cocina la ve) o rechazar.
@@ -39,7 +34,7 @@ export function useSugerenciasPlatos(sedeId: string | null) {
     setAviso(null)
     cargar()
       .catch((e: unknown) => {
-        if (!cancelado) setError(mensaje(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)
@@ -63,7 +58,7 @@ export function useSugerenciasPlatos(sedeId: string | null) {
       if (!r.sugerenciaId) setAviso(r.mensaje ?? 'No hay platos para sugerir.')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGenerando(false)
     }
@@ -78,7 +73,7 @@ export function useSugerenciasPlatos(sedeId: string | null) {
       setAviso('Lista aprobada: cocina ya la ve como "Platos sugeridos para hoy".')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGuardando(false)
     }
@@ -93,7 +88,7 @@ export function useSugerenciasPlatos(sedeId: string | null) {
       setAviso('Sugerencia rechazada.')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGuardando(false)
     }
