@@ -19,10 +19,7 @@ export type {
   EstadoPedidoAdmin,
   ItemPedidoAdmin,
   PedidoAdmin,
-  DatosRestaurante,
-  Facturacion,
-  ColorMarca,
-  PreferenciaNotificacion,
+  SedeConfig,
 } from './administracion'
 export type {
   CategoriaAutopedido,

@@ -16,32 +16,21 @@ export default function ConfiguracionPage() {
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
   if (!usuario) return <ErrorMessage message="No se encontró tu perfil (tenant/sede)." />
+  if (!usuario.sede_id) return <ErrorMessage message="Tu usuario no tiene una sede asignada." />
+  if (config.loading) return <LoadingSpinner message="Cargando configuración…" />
+  if (config.error || !config.sede) return <ErrorMessage message={config.error ?? 'No se pudo cargar la sede.'} />
 
   return (
     <AdminLayout usuario={usuario}>
       <div className="max-w-[832px]">
         <EncabezadoAdmin ruta="Administración · Configuración" titulo="Configuración" />
 
-        <DatosRestauranteSeccion datos={config.datos} />
-        <FacturacionSeccion
-          facturacion={config.facturacion}
-          metodosPago={config.metodosPago}
-          pagosActivos={config.pagosActivos}
-          onAlternarPago={config.alternarPago}
-        />
+        {/* Cada sección guarda la suya (como Colores de marca) — no hay
+            un botón único al fondo que no sabría qué de todo esto guardar. */}
+        <DatosRestauranteSeccion sede={config.sede} onGuardar={config.guardar} />
+        <FacturacionSeccion sede={config.sede} onGuardar={config.guardar} />
         <ColoresMarcaSeccion tenantId={usuario.tenant_id} />
-        <NotificacionesSeccion
-          notificaciones={config.notificaciones}
-          activas={config.alertasActivas}
-          onAlternar={config.alternarAlerta}
-        />
-
-        <button
-          type="button"
-          className="w-full max-w-[220px] rounded-xl bg-[var(--orange)] p-3.5 text-center text-sm font-bold text-white"
-        >
-          Guardar cambios
-        </button>
+        <NotificacionesSeccion sede={config.sede} onGuardar={config.guardar} />
       </div>
     </AdminLayout>
   )

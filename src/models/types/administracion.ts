@@ -93,28 +93,21 @@ export interface PedidoAdmin {
 
 
 // ---- Configuración ----
-
-export interface DatosRestaurante {
+// Lo que trae/recibe sedeService.ts, tal como vive en la tabla sedes
+// (migración 0034). Por sede, no por tenant completo — decisión del
+// dueño, consistente con que direccion ya vivía a ese nivel. La moneda
+// queda fuera a propósito (ver nota en 0002: "merece una decisión
+// propia, no una columna improvisada").
+export interface SedeConfig {
   nombre: string
-  direccion: string
-  telefono: string
-  horario: string
-}
-
-export interface Facturacion {
-  moneda: string
-  impuesto: number
-  propinaSugerida: number
-}
-
-export interface ColorMarca {
-  nombre: string
-  hex: string
-}
-
-export interface PreferenciaNotificacion {
-  id: string
-  label: string
+  direccion: string | null
+  telefono: string | null
+  horario: string | null
+  impuesto_porcentaje: number
+  propina_sugerida_pct: number
+  notif_stock_bajo: boolean
+  notif_pedidos_demorados: boolean
+  notif_resumen_diario: boolean
 }
 
 
