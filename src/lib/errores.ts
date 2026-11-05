@@ -33,7 +33,14 @@ export function esErrorDeRed(e: unknown): boolean {
 const TECNICO =
   /violates|duplicate key|row-level security|permission denied|syntax|relation |column |constraint|invalid input|JWT|PGRST|null value|foreign key|function .* does not exist|timeout|internal server error/i
 
-export function mensajeDeError(e: unknown, porDefecto = 'Algo salió mal. Intenta de nuevo.'): string {
+// enUso: qué decir si no se puede borrar porque otros registros dependen
+// de este (código 23503). Cada pantalla de borrar lo explica a su manera:
+// "este plato ya tiene pedidos…" dice más que un mensaje general.
+export function mensajeDeError(
+  e: unknown,
+  porDefecto = 'Algo salió mal. Intenta de nuevo.',
+  opciones?: { enUso?: string },
+): string {
   if (esErrorDeRed(e)) return 'Sin conexión: revisa el internet e intenta de nuevo.'
 
   const msg = texto(e).trim()
@@ -43,7 +50,7 @@ export function mensajeDeError(e: unknown, porDefecto = 'Algo salió mal. Intent
     case '23505':
       return 'Ya existe un registro con ese nombre o dato. Usa otro.'
     case '23503':
-      return 'No se puede: está en uso por otros registros, o hace referencia a algo que ya no existe.'
+      return opciones?.enUso ?? 'No se puede: hay otros registros que dependen de este.'
     case '23502':
       return 'Falta completar un dato obligatorio.'
     case '23514':

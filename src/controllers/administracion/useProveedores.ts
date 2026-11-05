@@ -11,6 +11,10 @@ import type { OrdenCompraConDetalle } from '../../models/services/compraService'
 import type { Proveedor } from '../../models/types'
 import { mensajeDeError } from '../../lib/errores'
 
+// Si no se puede borrar porque otros registros dependen de este
+const EN_USO =
+  'No se puede eliminar: el proveedor tiene órdenes de compra o lotes registrados.'
+
 export function useProveedores() {
   const { usuario } = useUsuario()
   const [proveedores, setProveedores] = useState<Proveedor[]>([])
@@ -101,7 +105,7 @@ export function useProveedores() {
       setProveedores((prev) => prev.filter((p) => p.id !== id))
       setSeleccionadoId((actual) => (actual === id ? null : actual))
     } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo eliminar el proveedor'))
+      setError(mensajeDeError(err, 'No se pudo eliminar el proveedor', { enUso: EN_USO }))
       throw err
     } finally {
       setGuardando(false)

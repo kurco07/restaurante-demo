@@ -101,7 +101,11 @@ export function PlatoDetallePanel({
       await onEliminar(plato.id)
     } catch (err) {
       // Lo más común: ya tiene pedidos, y la base no deja borrarlo
-      setError(mensajeDeError(err, 'No se pudo eliminar el plato.'))
+      setError(
+        mensajeDeError(err, 'No se pudo eliminar el plato.', {
+          enUso: 'No se puede eliminar: este plato ya tiene pedidos registrados y se necesitan para los reportes. Si ya no lo vendes, desmarca «Disponible» aquí abajo y deja de verse en el menú.',
+        }),
+      )
     } finally {
       setEliminando(false)
     }

@@ -11,6 +11,10 @@ import {
 import type { Insumo, InventarioSede } from '../../models/types'
 import { mensajeDeError } from '../../lib/errores'
 
+// Si no se puede borrar porque otros registros dependen de este
+const EN_USO =
+  'No se puede eliminar: el insumo está en la receta de algún plato o tiene compras, lotes o movimientos registrados.'
+
 export function useInsumosAdmin() {
   const { usuario } = useUsuario()
   const [insumos, setInsumos] = useState<Insumo[]>([])
@@ -114,7 +118,7 @@ export function useInsumosAdmin() {
       setInventario((prev) => prev.filter((inv) => inv.insumo_id !== id))
       setSeleccionadoId((actual) => (actual === id ? null : actual))
     } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo eliminar el insumo'))
+      setError(mensajeDeError(err, 'No se pudo eliminar el insumo', { enUso: EN_USO }))
       throw err
     } finally {
       setGuardando(false)

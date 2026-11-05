@@ -71,7 +71,11 @@ export function CategoriaFiltros({
     try {
       await onEliminar(id)
     } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo eliminar la categoría.'))
+      setError(
+        mensajeDeError(err, 'No se pudo eliminar la categoría.', {
+          enUso: 'No se puede eliminar: la categoría todavía tiene platos. Muévelos a otra categoría o elimínalos primero.',
+        }),
+      )
     } finally {
       setOcupado(false)
     }

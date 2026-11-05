@@ -27,6 +27,12 @@ test('42501 propio (con mensaje en español) se muestra tal cual', () => {
   )
 })
 
+test('borrar algo en uso: mensaje de la pantalla, o el general', () => {
+  const e = { code: '23503', message: 'update or delete on table "menu_items" violates foreign key constraint' }
+  assert.equal(mensajeDeError(e, 'x', { enUso: 'Este plato ya tiene pedidos.' }), 'Este plato ya tiene pedidos.')
+  assert.equal(mensajeDeError(e), 'No se puede: hay otros registros que dependen de este.')
+})
+
 test('error de red', () => {
   assert.match(mensajeDeError(new TypeError('Failed to fetch')), /Sin conexión/)
 })

@@ -4,6 +4,10 @@ import type { Insumo, InventarioSede } from '../../../../../models/types'
 import { fetchPlatosPorInsumo } from '../../../../../models/services/inventarioService'
 import { mensajeDeError } from '../../../../../lib/errores'
 
+// Si no se puede borrar porque otros registros dependen de este
+const EN_USO =
+  'No se puede eliminar: el insumo está en la receta de algún plato o tiene compras, lotes o movimientos registrados.'
+
 interface EditorInsumoProps {
   insumo: Insumo | null
   inventario: InventarioSede | undefined
@@ -115,7 +119,7 @@ export function EditorInsumo({
     try {
       await onEliminar(insumo.id)
     } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo eliminar el insumo.'))
+      setError(mensajeDeError(err, 'No se pudo eliminar el insumo.', { enUso: EN_USO }))
     }
   }
 

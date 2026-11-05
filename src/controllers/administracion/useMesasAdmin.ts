@@ -4,6 +4,10 @@ import { actualizarMesa, crearMesa, eliminarMesa, fetchMesas } from '../../model
 import type { Mesa } from '../../models/types'
 import { mensajeDeError } from '../../lib/errores'
 
+// Si no se puede borrar porque otros registros dependen de este
+const EN_USO =
+  'No se puede eliminar: la mesa ya tiene cuentas registradas y se necesitan para los reportes.'
+
 type Filtro = 'todas' | 'libre' | 'ocupada' | 'por_limpiar'
 
 const filtros: { key: Filtro; label: string }[] = [
@@ -100,7 +104,7 @@ export function useMesasAdmin() {
       setMesas((prev) => prev.filter((m) => m.id !== id))
       setSeleccionadaId((actual) => (actual === id ? null : actual))
     } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo eliminar la mesa'))
+      setError(mensajeDeError(err, 'No se pudo eliminar la mesa', { enUso: EN_USO }))
     } finally {
       setGuardando(false)
     }
