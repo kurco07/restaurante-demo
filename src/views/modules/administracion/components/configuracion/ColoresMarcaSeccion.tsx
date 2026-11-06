@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { fetchMarcaPropia, guardarMarcaPropia, subirLogoMarca } from '../../../../../models/services/marcaService'
 import { FUENTES_DISPONIBLES } from '../../../../../controllers/marca/fuentesMarca'
+import { useAplicarMarca } from '../../../../../controllers/marca/useAplicarMarca'
+import type { Marca } from '../../../../../models/types/marca'
 import { SeccionConfig } from './SeccionConfig'
 
 // Fase 7, Módulo 4 — editor real contra personalizacion_marca (migración
@@ -21,6 +23,15 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
   const [cargando, setCargando] = useState(true)
   const [estado, setEstado] = useState<'inactivo' | 'guardando' | 'guardado' | 'error'>('inactivo')
   const inputLogoRef = useRef<HTMLInputElement>(null)
+
+  // Lo último confirmado como guardado en la base — es lo que se aplica
+  // de inmediato a las variables CSS (useAplicarMarca), para no esperar a
+  // un reinicio de sesión para ver el cambio. A propósito NO se aplica el
+  // estado local mientras se edita (antes de guardar): si alguien cambia
+  // colores y sale sin guardar, no queremos que ese preview sin confirmar
+  // se quede pegado en el resto de la app.
+  const [marcaAplicada, setMarcaAplicada] = useState<Marca | undefined>(undefined)
+  useAplicarMarca(marcaAplicada)
 
   useEffect(() => {
     fetchMarcaPropia()
@@ -43,7 +54,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
   async function guardar() {
     setEstado('guardando')
     try {
-      await guardarMarcaPropia(tenantId, {
+      const cambios = {
         nombre_mostrado: nombreMostrado.trim() || null,
         color_primario: colorPrimario,
         color_secundario: colorSecundario,
@@ -52,8 +63,10 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
         marca_agua_activa: marcaAguaActiva,
         marca_agua_opacidad: marcaAguaOpacidad,
         marca_agua_tamano: marcaAguaTamano,
-      })
+      }
+      await guardarMarcaPropia(tenantId, cambios)
       setEstado('guardado')
+      setMarcaAplicada({ ...cambios, logo_url: logoUrl })
     } catch {
       setEstado('error')
     }
@@ -66,6 +79,17 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
       await guardarMarcaPropia(tenantId, { logo_url: url })
       setLogoUrl(url)
       setEstado('guardado')
+      setMarcaAplicada({
+        nombre_mostrado: nombreMostrado.trim() || null,
+        color_primario: colorPrimario,
+        color_secundario: colorSecundario,
+        color_acento: colorAcento,
+        fuente: fuente || null,
+        marca_agua_activa: marcaAguaActiva,
+        marca_agua_opacidad: marcaAguaOpacidad,
+        marca_agua_tamano: marcaAguaTamano,
+        logo_url: url,
+      })
     } catch {
       setEstado('error')
     }

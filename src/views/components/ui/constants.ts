@@ -2,6 +2,12 @@
 // (administración y gerencia) — antes vivían dentro de administración y
 // gerencia los importaba cruzando de módulo; movido aquí para que ambos
 // dependan de un mismo lugar y no se desincronicen entre sí.
+//
+// --orange/--orange-dark NO van acá a propósito: esos dos los personaliza
+// cada tenant (Fase 7 Módulo 4, useAplicarMarca.ts los fija en
+// document.documentElement) y de quedar fijos aquí tapan ese valor
+// dinámico en todo lo que use ESTILOS_ADMIN — se heredan solas desde la
+// raíz del documento, nunca hace falta repetirlas.
 export const ESTILOS_ADMIN = {
   '--bg': '#fffbf6',
   '--surface': '#ffffff',
@@ -9,8 +15,6 @@ export const ESTILOS_ADMIN = {
   '--border': '#f1e3d1',
   '--ink': '#2b2118',
   '--ink-soft': '#8c8175',
-  '--orange': '#ff7a1a',
-  '--orange-dark': '#e0650a',
   '--orange-bg': '#fff2e2',
   '--gray-bg': '#f2efe9',
   '--green': '#24a24a',
