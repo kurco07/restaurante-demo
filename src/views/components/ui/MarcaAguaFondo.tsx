@@ -9,10 +9,10 @@ export function MarcaAguaFondo() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0 bg-repeat"
+      className="pointer-events-none fixed inset-0 z-0 bg-center bg-no-repeat"
       style={{
         backgroundImage: 'var(--marca-agua-imagen, none)',
-        backgroundSize: '220px',
+        backgroundSize: 'min(70vmin, 520px)',
         opacity: 'var(--marca-agua-opacidad, 0)',
       }}
     />
