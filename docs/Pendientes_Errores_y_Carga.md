@@ -2,7 +2,7 @@
 
 Revisión hecha por Pedro con Claude Code el **2026-11-02**, sobre `main` (`69419da`).
 
-**Avance (2026-11-04, rama `feature/fase8-errores-carga`):** hechos los puntos **1 a 10**; falta probarlos en el navegador. El **11** no se hace aquí: César está quitando todos los datos de prueba de la app. Cada punto dice ✅ y qué quedó.
+**Avance (2026-11-04, rama `feature/fase8-errores-carga`):** hechos los puntos **1 a 10**. **Probado por Pedro el 2026-11-06**: pantalla de fallo, dirección inventada y perfil sin internet. El **11** no se hace aquí: César está quitando todos los datos de prueba de la app. Cada punto dice ✅ y qué quedó.
 
 Qué se buscó en todo `src/`:
 - errores que nadie ve;
@@ -19,7 +19,8 @@ Va ordenada de más a menos urgente.
 ### 1. No hay protección contra pantalla en blanco ✅
 - **Problema:** la app no tiene ningún Error Boundary (`componentDidCatch`). Si cualquier componente falla al dibujarse, por ejemplo con un dato inesperado, **toda la app queda en blanco**, en pleno servicio y sin forma de volver salvo recargando.
 - **Arreglo propuesto:** una red global y otra por módulo (mesonero, cocina, administración, gerencia, QR), con el mensaje "Algo falló, toca para recargar". No tiene que perder lo guardado sin internet.
-- **✅ Hecho:** `src/views/components/ErrorBoundary.tsx`. Hay una red global (`main.tsx`) y `RedDeModulo` en mesonero, cocina y gerencia (alrededor del contenido, así la barra sigue usable), en cada pantalla de administración, en super-admin y en el autopedido. Muestra "Algo falló en esta pantalla" con **Recargar** y **Volver a intentar**, y se reinicia sola al cambiar de pantalla. Recargar no pierde nada: la base local y los carritos quedan guardados.
+- **✅ Hecho:** `src/views/components/ErrorBoundary.tsx`. Hay una red global (`main.tsx`) y `RedDeModulo` en mesonero, cocina y gerencia (alrededor del contenido, así la barra sigue usable), en cada pantalla de administración, en super-admin y en el autopedido. Muestra "Algo falló en esta pantalla" con **Recargar** e **Ir al inicio**, que lleva al inicio de cada rol: mesonero a mesoneros, cocina a cocina, etc. (decisión de Pedro, 2026-11-06). Se reinicia sola al cambiar de pantalla. Recargar no pierde nada: la base local y los carritos quedan guardados.
+- **✅ Agregado (2026-11-06):** una dirección que no existe ya no deja la página en blanco: sale "Esta página no existe" con **Ir al inicio** (`NoEncontradaPage.tsx`). El inicio de cada rol está en un solo lugar, `inicioPorRol` en `rolesPorModulo.ts`, el mismo que usa el login.
 
 ### 2. Cambios que el servidor rechaza sin que nadie se entere ✅
 - **Dónde:** `src/lib/powerSyncClient.ts`, `uploadData`.

@@ -35,8 +35,15 @@ Se hicieron los puntos 1 a 10 de `docs/Pendientes_Errores_y_Carga.md`. El detall
   - avisa que la cuenta pudo haberse creado;
   - ahora muestra los mensajes de la función, como "Ya existe una cuenta con ese correo", que antes se perdían.
 
+### Ajustes después de probar (2026-11-06)
+- **Pantalla de fallo:** se quitó el texto de explicación, a pedido de Pedro. Queda "Algo falló en esta pantalla" con **Recargar** e **Ir al inicio** (el inicio de cada rol), en vez de "Volver a intentar".
+- **Dirección que no existe:** antes quedaba en blanco; ahora sale "Esta página no existe" con **Ir al inicio**.
+- **Borrar algo en uso:** cada pantalla explica por qué no se puede y qué hacer. Por ejemplo, un plato con pedidos sugiere desmarcar «Disponible».
+- **Las pruebas sin internet se hacen apagando el Wi-Fi de verdad.** La opción Offline de DevTools no corta la sincronización de PowerSync, que corre en un proceso aparte (*SharedWorker*).
+
+Pedro lo probó y funciona: pantalla de fallo, dirección inventada y perfil sin internet. **Módulo 2 ✅.**
+
 ### Pendiente
-- Probarlo en el navegador para marcar el módulo ✅.
 - El punto 11 (pantallas con datos de ejemplo) lo resuelve César al quitar los datos de prueba.
 - Anotado sin tocar: un rechazo por permisos (`42501`) al subir sigue trabando la cola de ese dispositivo.
 

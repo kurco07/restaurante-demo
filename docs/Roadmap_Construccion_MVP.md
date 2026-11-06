@@ -333,10 +333,10 @@ Preparado con Pedro (2026-10-30):
 - La barra del mesonero muestra la conexión, y la de los dos indica **cuántos cambios faltan por subir**.
 - Queda escrito en el protocolo: **sin internet los dispositivos no se ven entre ellos**. Los pedidos llegan a cocina recién cuando vuelve la conexión, así que la tablet de cocina con datos móviles de respaldo es la opción práctica si eso importa.
 
-**Módulo 2 — Manejo de errores y estados de carga**
+**Módulo 2 — Manejo de errores y estados de carga** ✅
 En toda la app: qué ve el usuario cuando algo falla o está cargando.
 
-🟡 *Construido (2026-11-04, rama `feature/fase8-errores-carga`): puntos 1 a 10 de `docs/Pendientes_Errores_y_Carga.md`. Falta que Pedro lo pruebe para marcarlo ✅. El punto 11 (pantallas con datos de ejemplo) lo resuelve César al quitar los datos de prueba.*
+*Construido entre el 2026-11-04 y el 2026-11-06 (rama `feature/fase8-errores-carga`) y probado por Pedro: puntos 1 a 10 de `docs/Pendientes_Errores_y_Carga.md`, más la página de "no encontrada". El punto 11 (pantallas con datos de ejemplo) lo resuelve César al quitar los datos de prueba.*
 
 **Módulo 3 — Optimización**
 Tamaño de la PWA, tiempos de carga, rendimiento en dispositivos de gama baja (relevante para el mercado objetivo).

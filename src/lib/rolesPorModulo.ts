@@ -12,3 +12,19 @@ export const rolesPorModulo: Record<string, Rol[]> = {
   '/gerencia': ['gerencia'],
   '/super-admin': ['super_admin'],
 }
+
+// A qué pantalla llega cada rol: al iniciar sesión, desde "Ir al inicio"
+// cuando una pantalla falla y desde la página de "no encontrada".
+export const inicioPorRol: Record<Rol, string> = {
+  mesonero: '/mesoneros',
+  cocina: '/cocina',
+  supervisor: '/mesoneros',
+  administracion: '/administracion',
+  gerencia: '/gerencia',
+  super_admin: '/super-admin',
+}
+
+// Sin sesión (o sin perfil todavía), el inicio es el login
+export function inicioDe(rol: Rol | null | undefined): string {
+  return (rol && inicioPorRol[rol]) || '/login'
+}

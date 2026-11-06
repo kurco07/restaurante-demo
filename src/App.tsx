@@ -46,6 +46,7 @@ import SuperAdminPage from './views/modules/super-admin/SuperAdminPage'
 import InicioPage from './views/modules/inicio/InicioPage'
 import ProximamentePage from './views/modules/proximamente/ProximamentePage'
 import VistaARPage from './views/modules/ar/VistaARPage'
+import NoEncontradaPage from './views/modules/no-encontrada/NoEncontradaPage'
 
 export default function App() {
   return (
@@ -315,6 +316,8 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
+            {/* Cualquier otra dirección: "Esta página no existe" en vez de en blanco */}
+            <Route path="*" element={<NoEncontradaPage />} />
           </Routes>
         </BrowserRouter>
       </UsuarioProvider>
