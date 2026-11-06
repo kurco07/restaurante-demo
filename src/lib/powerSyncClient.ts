@@ -181,13 +181,19 @@ class SupabaseConnector implements PowerSyncBackendConnector {
       } catch (error) {
         // Una regla de negocio de la base rechazó el cambio (triggers con
         // errcode P0001, p. ej. anular un plato que ya se entregó mientras
-        // el supervisor estaba sin conexión). Reintentarlo nunca va a
-        // funcionar y trabaría la cola de subida de este dispositivo, así
-        // que se descarta: la próxima sincronización trae lo que quedó en
-        // el servidor. Cualquier otro error (red, etc.) se reintenta.
+        // el supervisor estaba sin conexión) o la RLS lo rechazó por
+        // permisos (42501, p. ej. el rol de quien hizo el cambio offline ya
+        // no tiene acceso a esa fila cuando vuelve la conexión). En los dos
+        // casos reintentarlo nunca va a funcionar — y si no se descarta,
+        // PowerSync reintenta este MISMO ítem para siempre (es FIFO: nunca
+        // llega a los cambios más nuevos de la cola), dejando ese
+        // dispositivo sin poder subir nada más, en silencio. Se descarta:
+        // la próxima sincronización trae lo que quedó en el servidor.
+        // Cualquier otro error (red, etc.) sí se reintenta.
         // Fase 8, Módulo 2: el usuario se entera con un aviso fijo y el
         // motivo (los mensajes de nuestras reglas ya están en español).
-        if ((error as { code?: string }).code === 'P0001') {
+        const codigo = (error as { code?: string }).code
+        if (codigo === 'P0001' || codigo === '42501') {
           console.warn('[PowerSync] cambio rechazado por la base, se descarta:', op.table, op.id, error)
           avisar.error(error, `El servidor no aceptó ${QUE_CAMBIO[op.table] ?? 'un cambio'} hecho en este dispositivo`, {
             fijo: true,
