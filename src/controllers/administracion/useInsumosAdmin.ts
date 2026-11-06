@@ -9,6 +9,11 @@ import {
   fetchInventarioSede,
 } from '../../models/services/inventarioService'
 import type { Insumo, InventarioSede } from '../../models/types'
+import { mensajeDeError } from '../../lib/errores'
+
+// Si no se puede borrar porque otros registros dependen de este
+const EN_USO =
+  'No se puede eliminar: el insumo está en la receta de algún plato o tiene compras, lotes o movimientos registrados.'
 
 export function useInsumosAdmin() {
   const { usuario } = useUsuario()
@@ -42,7 +47,7 @@ export function useInsumosAdmin() {
       })
       .catch((err: unknown) => {
         if (cancelado) return
-        setError(err instanceof Error ? err.message : 'No se pudieron cargar los insumos')
+        setError(mensajeDeError(err, 'No se pudieron cargar los insumos'))
         setLoading(false)
       })
     return () => {
@@ -69,7 +74,7 @@ export function useInsumosAdmin() {
       await cargar()
       setCreando(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear el insumo')
+      setError(mensajeDeError(err, 'No se pudo crear el insumo'))
       throw err
     } finally {
       setGuardando(false)
@@ -84,7 +89,7 @@ export function useInsumosAdmin() {
       setInsumos((prev) => prev.map((i) => (i.id === id ? actualizado : i)))
       setSeleccionadoId(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar el insumo')
+      setError(mensajeDeError(err, 'No se pudo guardar el insumo'))
       throw err
     } finally {
       setGuardando(false)
@@ -98,7 +103,7 @@ export function useInsumosAdmin() {
       const actualizado = await actualizarStockMinimo(inventarioSedeId, stockMinimo)
       setInventario((prev) => prev.map((inv) => (inv.id === inventarioSedeId ? actualizado : inv)))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar el stock mínimo')
+      setError(mensajeDeError(err, 'No se pudo guardar el stock mínimo'))
     } finally {
       setGuardando(false)
     }
@@ -113,7 +118,7 @@ export function useInsumosAdmin() {
       setInventario((prev) => prev.filter((inv) => inv.insumo_id !== id))
       setSeleccionadoId((actual) => (actual === id ? null : actual))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo eliminar el insumo')
+      setError(mensajeDeError(err, 'No se pudo eliminar el insumo', { enUso: EN_USO }))
       throw err
     } finally {
       setGuardando(false)

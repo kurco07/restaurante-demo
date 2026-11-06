@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ComparacionSede, SedeResumen } from '../../models/types'
 import { fetchKpisRentabilidad, fetchKpisSedes } from '../../models/services/kpisService'
+import { mensajeDeError } from '../../lib/errores'
 
 export interface FilaComparacionSede extends ComparacionSede {
   // Margen bruto sobre los platos con costo completo en esa sede (mismo
@@ -42,7 +43,7 @@ export function useComparacionSedes(desde: Date, hasta: Date, sedes: SedeResumen
         setError(null)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setError(e instanceof Error ? e.message : String(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)

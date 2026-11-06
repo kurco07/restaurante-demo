@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import { usePowerSyncWatch } from '../usePowerSyncWatch'
+import { avisar } from '../avisos/avisos'
 import { useCarritos } from './useCarritos'
 import { SIN_MESA } from './carritoContext'
 import type { MesaVista } from '../mesonero/useMesasSede'
@@ -180,6 +181,10 @@ export function usePedidos(mesaId?: string) {
       )
       carritos.vaciar(clave)
       return mesa.id
+    } catch (e) {
+      // El carrito queda como estaba: se puede volver a enviar
+      avisar.error(e, `No se pudo enviar a cocina (mesa ${mesa.numero})`)
+      return null
     } finally {
       setEnviando(false)
     }

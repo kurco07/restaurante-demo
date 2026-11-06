@@ -8,6 +8,7 @@ import {
   type MovimientoConDetalle,
 } from '../../models/services/inventarioService'
 import type { Insumo, InventarioSede } from '../../models/types'
+import { mensajeDeError } from '../../lib/errores'
 
 type FiltroMovimiento = 'todos' | 'entrada' | 'salida' | 'merma_ajuste'
 
@@ -67,7 +68,7 @@ export function useMovimientos() {
       })
       .catch((err: unknown) => {
         if (cancelado) return
-        setError(err instanceof Error ? err.message : 'No se pudieron cargar los movimientos')
+        setError(mensajeDeError(err, 'No se pudieron cargar los movimientos'))
         setLoading(false)
       })
     return () => {
@@ -146,7 +147,7 @@ export function useMovimientos() {
       setNota('')
       setModalAbierto(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar el ajuste')
+      setError(mensajeDeError(err, 'No se pudo registrar el ajuste'))
       throw err
     } finally {
       setGuardando(false)

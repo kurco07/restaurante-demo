@@ -3,6 +3,7 @@ import { useUsuario } from '../usuario/useUsuario'
 import type { EstadoPedidoAdmin } from '../../models/types'
 import { fetchPedidosAdminDia } from '../../models/services/pedidosAdminService'
 import { anularSesionCompleta } from '../../models/services/pedidoService'
+import { mensajeDeError } from '../../lib/errores'
 
 type FiltroPedido = 'todos' | EstadoPedidoAdmin
 
@@ -43,7 +44,7 @@ export function usePedidosAdmin() {
         if (!cancelado) setError(null)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setError(e instanceof Error ? e.message : 'No se pudieron cargar los pedidos')
+        if (!cancelado) setError(mensajeDeError(e, 'No se pudieron cargar los pedidos'))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)

@@ -1,6 +1,10 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './views/components/AuthProvider'
 import { UsuarioProvider } from './views/components/UsuarioProvider'
+import { RedDeModulo } from './views/components/ErrorBoundary'
+import { Avisos } from './views/components/ui/Avisos'
+import { AvisoVersionNueva } from './views/components/AvisoVersionNueva'
+import { AvisoSinConexion } from './views/components/AvisoSinConexion'
 import { ProtectedRoute } from './controllers/auth/ProtectedRoute'
 import LoginPage from './views/modules/login/LoginPage'
 import RegistroPage from './views/modules/registro/RegistroPage'
@@ -48,6 +52,12 @@ export default function App() {
     <AuthProvider>
       <UsuarioProvider>
         <BrowserRouter>
+          {/* Franjas de arriba: versión nueva y "sin conexión" en gestión */}
+          <div className="sticky top-0 z-[1001]">
+            <AvisoVersionNueva />
+            <AvisoSinConexion />
+          </div>
+          <Avisos />
           <Routes>
             {/* Sin página intermedia de prueba: entrar al dominio va directo a
                 login (personal) — /inicio es la home pública de clientes. */}
@@ -56,8 +66,22 @@ export default function App() {
             <Route path="/registro" element={<RegistroPage />} />
             {/* /autopedido queda pública a propósito: es la vista del cliente por QR.
                 Sin :mesaId muestra "QR no válido". */}
-            <Route path="/autopedido" element={<AutopedidoPage />} />
-            <Route path="/autopedido/:mesaId" element={<AutopedidoPage />} />
+            <Route
+              path="/autopedido"
+              element={
+                <RedDeModulo nombre="autopedido">
+                  <AutopedidoPage />
+                </RedDeModulo>
+              }
+            />
+            <Route
+              path="/autopedido/:mesaId"
+              element={
+                <RedDeModulo nombre="autopedido">
+                  <AutopedidoPage />
+                </RedDeModulo>
+              }
+            />
             {/* Pestaña dedicada para "Ver en RA" (se abre con window.open),
                 aislada del resto de la app — ver VistaARPage.tsx */}
             <Route path="/ar" element={<VistaARPage />} />
@@ -114,7 +138,9 @@ export default function App() {
               path="/administracion"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <AdministracionPage />
+                  <RedDeModulo nombre="administración">
+                    <AdministracionPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -122,7 +148,9 @@ export default function App() {
               path="/administracion/menu"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <MenuAdminPage />
+                  <RedDeModulo nombre="administración">
+                    <MenuAdminPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -130,7 +158,9 @@ export default function App() {
               path="/administracion/proveedores"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <ProveedoresPage />
+                  <RedDeModulo nombre="administración">
+                    <ProveedoresPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -138,7 +168,9 @@ export default function App() {
               path="/administracion/personal"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <PersonalPage />
+                  <RedDeModulo nombre="administración">
+                    <PersonalPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -146,7 +178,9 @@ export default function App() {
               path="/administracion/pedidos"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <PedidosAdminPage />
+                  <RedDeModulo nombre="administración">
+                    <PedidosAdminPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -154,7 +188,9 @@ export default function App() {
               path="/administracion/movimientos"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <MovimientosPage />
+                  <RedDeModulo nombre="administración">
+                    <MovimientosPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -162,7 +198,9 @@ export default function App() {
               path="/administracion/insumos"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <InsumosPage />
+                  <RedDeModulo nombre="administración">
+                    <InsumosPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -170,7 +208,9 @@ export default function App() {
               path="/administracion/conteo-fisico"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <ConteoFisicoPage />
+                  <RedDeModulo nombre="administración">
+                    <ConteoFisicoPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -178,7 +218,9 @@ export default function App() {
               path="/administracion/insumos/:insumoId/lotes"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <LotesPage />
+                  <RedDeModulo nombre="administración">
+                    <LotesPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -186,7 +228,9 @@ export default function App() {
               path="/administracion/compras"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <ComprasPage />
+                  <RedDeModulo nombre="administración">
+                    <ComprasPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -194,7 +238,9 @@ export default function App() {
               path="/administracion/sugerencias-compra"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']} modulo="ia_sugerencias_compra">
-                  <SugerenciasCompraPage />
+                  <RedDeModulo nombre="administración">
+                    <SugerenciasCompraPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -202,7 +248,9 @@ export default function App() {
               path="/administracion/configuracion"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <ConfiguracionPage />
+                  <RedDeModulo nombre="administración">
+                    <ConfiguracionPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -210,7 +258,9 @@ export default function App() {
               path="/administracion/mesas"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
-                  <MesasAdminPage />
+                  <RedDeModulo nombre="administración">
+                    <MesasAdminPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />
@@ -259,7 +309,9 @@ export default function App() {
               path="/super-admin"
               element={
                 <ProtectedRoute allowedRoles={rolesPorModulo['/super-admin']}>
-                  <SuperAdminPage />
+                  <RedDeModulo nombre="super-admin">
+                    <SuperAdminPage />
+                  </RedDeModulo>
                 </ProtectedRoute>
               }
             />

@@ -6,12 +6,7 @@ import {
 } from '../../models/services/recomendadosService'
 import { rechazarSugerencia } from '../../models/services/sugerenciaCompraService'
 import type { RecomendadoAprobado, SugerenciaRecomendados } from '../../models/types'
-
-function mensaje(e: unknown) {
-  if (e instanceof Error) return e.message
-  if (e && typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message)
-  return String(e)
-}
+import { mensajeDeError } from '../../lib/errores'
 
 // Recomendados del día de una sede, para gerencia (Fase 6, Módulo 4):
 // generar con la IA, revisar (y editar la frase), aprobar o rechazar.
@@ -39,7 +34,7 @@ export function useSugerenciasRecomendados(sedeId: string | null) {
     setAviso(null)
     cargar()
       .catch((e: unknown) => {
-        if (!cancelado) setError(mensaje(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)
@@ -63,7 +58,7 @@ export function useSugerenciasRecomendados(sedeId: string | null) {
       if (!r.sugerenciaId) setAviso(r.mensaje ?? 'No hay platos para recomendar.')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGenerando(false)
     }
@@ -78,7 +73,7 @@ export function useSugerenciasRecomendados(sedeId: string | null) {
       setAviso('Recomendados publicados: ya se ven en el menú del mesonero y en el QR de las mesas.')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGuardando(false)
     }
@@ -93,7 +88,7 @@ export function useSugerenciasRecomendados(sedeId: string | null) {
       setAviso('Recomendados rechazados.')
       await cargar()
     } catch (e) {
-      setError(mensaje(e))
+      setError(mensajeDeError(e))
     } finally {
       setGuardando(false)
     }

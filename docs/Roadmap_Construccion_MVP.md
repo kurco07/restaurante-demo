@@ -336,6 +336,8 @@ Preparado con Pedro (2026-10-30):
 **Módulo 2 — Manejo de errores y estados de carga**
 En toda la app: qué ve el usuario cuando algo falla o está cargando.
 
+🟡 *Construido (2026-11-04, rama `feature/fase8-errores-carga`): puntos 1 a 10 de `docs/Pendientes_Errores_y_Carga.md`. Falta que Pedro lo pruebe para marcarlo ✅. El punto 11 (pantallas con datos de ejemplo) lo resuelve César al quitar los datos de prueba.*
+
 **Módulo 3 — Optimización**
 Tamaño de la PWA, tiempos de carga, rendimiento en dispositivos de gama baja (relevante para el mercado objetivo).
 

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import { useUsuario } from '../usuario/useUsuario'
+import { PerfilNoCargado } from '../../views/components/PerfilNoCargado'
 import type { Rol } from '../../models/types/usuario'
 import type { ModuloOpcional } from '../../models/services/modulosService'
 
@@ -17,7 +18,11 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ allowedRoles, modulo, children }: ProtectedRouteProps) {
   const { user, loading: authLoading } = useAuth()
-  const { usuario, loading: usuarioLoading, modulosActivos } = useUsuario()
+  const { usuario, loading: usuarioLoading, error: usuarioError, modulosActivos } = useUsuario()
+
+  if (user && !usuario && usuarioError) {
+    return <PerfilNoCargado />
+  }
 
   if (authLoading || (user && usuarioLoading)) {
     return (

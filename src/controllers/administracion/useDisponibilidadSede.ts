@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import { fetchMenuItemSede, guardarMenuItemSede } from '../../models/services/menuService'
+import { mensajeDeError } from '../../lib/errores'
 
 // Disponibilidad y precio de un plato en la sede del usuario de
 // administración (menu_item_sede). Lo leen el menú del mesonero
@@ -23,7 +24,7 @@ export function useDisponibilidadSede(menuItemId: string) {
         setPrecioSede(fila?.precio_override != null ? String(fila.precio_override) : '')
       })
       .catch((e: unknown) => {
-        if (!cancelado) setMensaje({ tipo: 'error', texto: e instanceof Error ? e.message : String(e) })
+        if (!cancelado) setMensaje({ tipo: 'error', texto: mensajeDeError(e) })
       })
       .finally(() => {
         if (!cancelado) setCargando(false)
@@ -47,7 +48,7 @@ export function useDisponibilidadSede(menuItemId: string) {
       })
       setMensaje({ tipo: 'ok', texto: 'Guardado.' })
     } catch (e) {
-      setMensaje({ tipo: 'error', texto: e instanceof Error ? e.message : String(e) })
+      setMensaje({ tipo: 'error', texto: mensajeDeError(e) })
     } finally {
       setGuardando(false)
     }

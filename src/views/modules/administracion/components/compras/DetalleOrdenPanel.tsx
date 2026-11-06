@@ -4,6 +4,7 @@ import { totalOrden, type ItemFormulario } from '../../../../../controllers/admi
 import type { Insumo, Proveedor } from '../../../../../models/types'
 import { formatearMoneda } from '../../../../components/ui/constants'
 import { Campo, FilaCampos, NotaInfo, PanelLateral } from '../comunes'
+import { mensajeDeError } from '../../../../../lib/errores'
 
 interface FilaItem {
   insumo_id: string
@@ -105,7 +106,7 @@ export function DetalleOrdenPanel({
         await onGuardarItems(orden.id, items)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar la orden.')
+      setError(mensajeDeError(err, 'No se pudo guardar la orden.'))
     }
   }
 
@@ -132,7 +133,7 @@ export function DetalleOrdenPanel({
       )
       setRecibiendo(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo registrar la recepción.')
+      setError(mensajeDeError(err, 'No se pudo registrar la recepción.'))
     }
   }
 

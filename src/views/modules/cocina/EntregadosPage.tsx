@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useEntregados } from '../../../controllers/cocina/useEntregados'
+import { useSincronizado } from '../../../controllers/useSincronizado'
+import { PrimeraSincronizacion } from '../../components/ui/PrimeraSincronizacion'
 
 function hora(iso: string) {
   return new Date(iso).toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
@@ -9,6 +11,7 @@ function hora(iso: string) {
 // reciente arriba. Solo consulta: no se puede devolver un plato a la cola.
 export default function EntregadosPage() {
   const { pedidos, platos } = useEntregados()
+  const sincronizado = useSincronizado()
   const [busqueda, setBusqueda] = useState('')
 
   const q = busqueda.trim().toLowerCase()
@@ -36,7 +39,9 @@ export default function EntregadosPage() {
         />
       </div>
 
-      {visibles.length === 0 ? (
+      {pedidos.length === 0 && !sincronizado ? (
+        <PrimeraSincronizacion />
+      ) : visibles.length === 0 ? (
         <p className="rounded-2xl border border-gray-200 bg-white py-12 text-center text-sm text-gray-500">
           {pedidos.length === 0 ? 'Todavía no se entregó nada hoy.' : 'Nada coincide con la búsqueda.'}
         </p>

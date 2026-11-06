@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { DiaHistorial, ReporteDiario } from '../../models/types'
 import { fetchHistorialDiario, fetchReporteDiario } from '../../models/services/reporteDiarioService'
-
-function mensaje(e: unknown) {
-  if (e instanceof Error) return e.message
-  if (e && typeof e === 'object' && 'message' in e) return String((e as { message: unknown }).message)
-  return String(e)
-}
+import { mensajeDeError } from '../../lib/errores'
 
 // 'YYYY-MM-DD' de una fecha en la hora local del navegador
 export function claveDia(fecha: Date) {
@@ -39,7 +34,7 @@ export function useReporteDiario(dia?: string, sedeId?: string) {
         setError(null)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setError(mensaje(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)
@@ -72,7 +67,7 @@ export function useHistorialDiario(dias: number, sedeId?: string) {
         setError(null)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setError(mensaje(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)

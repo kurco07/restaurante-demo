@@ -5,6 +5,7 @@ import { useEstadoConexion } from '../../../../controllers/useEstadoConexion'
 import { usePorCobrar } from '../../../../controllers/mesonero/usePorCobrar'
 import type { Usuario } from '../../../../models/types'
 import type { MesaVista } from './MapaMesas'
+import { mensajeDeError } from '../../../../lib/errores'
 
 interface SesionRow {
   id: string
@@ -97,9 +98,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
       onCerrada()
     } catch (err) {
       setError(
-        err instanceof Error
-          ? err.message
-          : 'No se pudo registrar el pago — revisa tu conexión e intenta de nuevo.',
+        mensajeDeError(err, 'No se pudo registrar el pago — revisa tu conexión e intenta de nuevo.'),
       )
     } finally {
       setEnviando(false)

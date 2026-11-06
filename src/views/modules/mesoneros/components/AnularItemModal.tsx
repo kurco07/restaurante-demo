@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { avisar } from '../../../../controllers/avisos/avisos'
 
 export interface ItemAnulable {
   id: string
@@ -32,6 +33,8 @@ export function AnularItemModal({ item, onConfirmar, onCerrar }: AnularItemModal
     setEnviando(true)
     try {
       await onConfirmar(motivo)
+    } catch (e) {
+      avisar.error(e, 'No se pudo anular el plato')
     } finally {
       setEnviando(false)
     }

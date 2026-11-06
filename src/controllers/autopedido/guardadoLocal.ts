@@ -32,8 +32,4 @@ export const claves = {
 
 // Un error de red (sin internet, servidor inalcanzable) se reintenta solo;
 // uno de negocio (la mesa no está disponible, plato inválido) no.
-export function esErrorDeRed(e: unknown) {
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) return true
-  const texto = e instanceof Error ? e.message : typeof e === 'object' && e && 'message' in e ? String(e.message) : String(e)
-  return /failed to fetch|networkerror|network request failed|load failed|fetch failed/i.test(texto)
-}
+export { esErrorDeRed } from '../../lib/errores'

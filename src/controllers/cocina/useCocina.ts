@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import { usePowerSyncWatch } from '../usePowerSyncWatch'
+import { avisar } from '../avisos/avisos'
 import { avanzarItemsDeSesion, confirmarAnulaciones } from '../../models/services/pedidoService'
 
 export type EstadoItemCocina = 'pendiente' | 'en_preparacion' | 'listo'
@@ -161,6 +162,8 @@ export function useCocina() {
     setAvanzandoId(`${ticket.sesionId}::${ticket.estado}`)
     try {
       await avanzarItemsDeSesion(ticket.sesionId, ticket.estado, SIGUIENTE_ESTADO[ticket.estado])
+    } catch (e) {
+      avisar.error(e, `No se pudo actualizar el pedido de la mesa ${ticket.mesa}`)
     } finally {
       setAvanzandoId(null)
     }
@@ -168,7 +171,11 @@ export function useCocina() {
 
   // "Entendido": las anulaciones del ticket dejan de verse en el tablero
   async function confirmarAnulados(ticket: TicketCocina) {
-    await confirmarAnulaciones(ticket.items.filter((i) => i.anulado).map((i) => i.id))
+    try {
+      await confirmarAnulaciones(ticket.items.filter((i) => i.anulado).map((i) => i.id))
+    } catch (e) {
+      avisar.error(e, 'No se pudo marcar la anulación como vista')
+    }
   }
 
   return {

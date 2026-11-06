@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { RedDeModulo } from '../../components/ErrorBoundary'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { useKpisVentas } from '../../../controllers/gerencia/useKpisVentas'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -27,7 +28,9 @@ export default function GerenciaLayout() {
       <MarcaAguaFondo />
       <GerenciaSidebar nombre={usuario.nombre} rol={usuario.rol} alertas={kpis.alertas.length} />
       <main className="min-w-0 max-w-[1280px] px-[34px] pb-10 pt-7">
-        <Outlet context={kpis} />
+        <RedDeModulo nombre="gerencia">
+          <Outlet context={kpis} />
+        </RedDeModulo>
       </main>
     </div>
   )

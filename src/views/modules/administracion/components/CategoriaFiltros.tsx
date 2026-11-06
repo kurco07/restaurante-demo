@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { CategoriaMenu } from '../../../../models/types'
+import { mensajeDeError } from '../../../../lib/errores'
 
 interface CategoriaFiltrosProps {
   categorias: CategoriaMenu[]
@@ -25,16 +26,22 @@ export function CategoriaFiltros({
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [nombreEditado, setNombreEditado] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // Mientras se guarda, no se repite (doble clic = dos categorías)
+  const [ocupado, setOcupado] = useState(false)
 
   async function handleCrear(event: FormEvent) {
     event.preventDefault()
+    if (ocupado || !nombreNuevo.trim()) return
     setError(null)
+    setOcupado(true)
     try {
       await onCrear(nombreNuevo.trim(), categorias.length)
       setNombreNuevo('')
       setAgregando(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear la categoría.')
+      setError(mensajeDeError(err, 'No se pudo crear la categoría.'))
+    } finally {
+      setOcupado(false)
     }
   }
 
@@ -44,22 +51,33 @@ export function CategoriaFiltros({
   }
 
   async function guardarEdicion(id: string) {
+    if (ocupado || !nombreEditado.trim()) return
     setError(null)
+    setOcupado(true)
     try {
       await onActualizar(id, nombreEditado.trim())
       setEditandoId(null)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo actualizar la categoría.')
+      setError(mensajeDeError(err, 'No se pudo actualizar la categoría.'))
+    } finally {
+      setOcupado(false)
     }
   }
 
   async function handleEliminar(id: string) {
-    if (!confirm('¿Eliminar esta categoría? Solo se puede si no tiene platos.')) return
+    if (ocupado || !confirm('¿Eliminar esta categoría? Solo se puede si no tiene platos.')) return
     setError(null)
+    setOcupado(true)
     try {
       await onEliminar(id)
     } catch (err) {
-      setError(err instanceof Error ? `No se pudo eliminar: ${err.message}` : 'No se pudo eliminar la categoría.')
+      setError(
+        mensajeDeError(err, 'No se pudo eliminar la categoría.', {
+          enUso: 'No se puede eliminar: la categoría todavía tiene platos. Muévelos a otra categoría o elimínalos primero.',
+        }),
+      )
+    } finally {
+      setOcupado(false)
     }
   }
 
@@ -91,7 +109,12 @@ export function CategoriaFiltros({
                 }}
                 className="w-28 rounded-full border border-[var(--orange)] px-3 py-1.5 text-xs"
               />
-              <button type="button" onClick={() => guardarEdicion(categoria.id)} className="text-xs font-bold text-[var(--orange-dark)]">
+              <button
+                type="button"
+                onClick={() => guardarEdicion(categoria.id)}
+                disabled={ocupado}
+                className="text-xs font-bold text-[var(--orange-dark)] disabled:opacity-50"
+              >
                 ✓
               </button>
               <button type="button" onClick={() => setEditandoId(null)} className="text-xs font-bold text-[var(--ink-soft)]">
@@ -144,8 +167,8 @@ export function CategoriaFiltros({
               onKeyDown={(e) => e.key === 'Escape' && setAgregando(false)}
               className="w-32 rounded-full border border-[var(--orange)] px-3 py-1.5 text-xs"
             />
-            <button type="submit" className="text-xs font-bold text-[var(--orange-dark)]">
-              Agregar
+            <button type="submit" disabled={ocupado} className="text-xs font-bold text-[var(--orange-dark)] disabled:opacity-50">
+              {ocupado ? 'Agregando…' : 'Agregar'}
             </button>
           </form>
         ) : (

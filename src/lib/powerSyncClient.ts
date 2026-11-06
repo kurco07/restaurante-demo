@@ -9,6 +9,7 @@ import {
   type PowerSyncCredentials,
 } from '@powersync/web'
 import { supabase } from './supabaseClient'
+import { avisar } from '../controllers/avisos/avisos'
 
 const powerSyncUrl = import.meta.env.VITE_POWERSYNC_URL
 
@@ -138,6 +139,13 @@ export const powerSync = new PowerSyncDatabase({
   },
 })
 
+// Para el aviso de un cambio rechazado: qué se intentó cambiar
+const QUE_CAMBIO: Record<string, string> = {
+  pedidos_items: 'un cambio en un plato',
+  sesiones_mesa: 'un cambio en una mesa',
+  mesas: 'un cambio en una mesa',
+}
+
 // Autentica contra la instancia de PowerSync con el mismo access token de
 // Supabase Auth, y sube los cambios locales pendientes de vuelta a Supabase.
 class SupabaseConnector implements PowerSyncBackendConnector {
@@ -177,8 +185,13 @@ class SupabaseConnector implements PowerSyncBackendConnector {
         // funcionar y trabaría la cola de subida de este dispositivo, así
         // que se descarta: la próxima sincronización trae lo que quedó en
         // el servidor. Cualquier otro error (red, etc.) se reintenta.
+        // Fase 8, Módulo 2: el usuario se entera con un aviso fijo y el
+        // motivo (los mensajes de nuestras reglas ya están en español).
         if ((error as { code?: string }).code === 'P0001') {
           console.warn('[PowerSync] cambio rechazado por la base, se descarta:', op.table, op.id, error)
+          avisar.error(error, `El servidor no aceptó ${QUE_CAMBIO[op.table] ?? 'un cambio'} hecho en este dispositivo`, {
+            fijo: true,
+          })
           continue
         }
         throw error

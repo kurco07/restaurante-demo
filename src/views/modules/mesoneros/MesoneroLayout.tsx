@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom'
+import { RedDeModulo } from '../../components/ErrorBoundary'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { CarritoProvider } from '../../../controllers/pedido/CarritoProvider'
 import { useRecomendadosHoy } from '../../../controllers/mesonero/useRecomendadosHoy'
@@ -36,7 +37,9 @@ export default function MesoneroLayout() {
         <MarcaAguaFondo />
         <BarraMesonero usuario={usuario} recomendados={recomendados?.items.length ?? 0} />
         <main className="px-4 py-6 sm:px-7">
+          <RedDeModulo nombre="mesonero">
           <Outlet context={recomendados} />
+        </RedDeModulo>
         </main>
       </div>
     </CarritoProvider>

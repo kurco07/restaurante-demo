@@ -8,6 +8,7 @@ import {
   fetchKpisVentas,
   fetchSedes,
 } from '../../models/services/kpisService'
+import { mensajeDeError } from '../../lib/errores'
 
 export type PeriodoKpi = 'hoy' | '7d' | '30d' | 'mes'
 
@@ -103,7 +104,7 @@ export function useKpisVentas() {
         setErrorAlertas(null)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setErrorAlertas(e instanceof Error ? e.message : String(e))
+        if (!cancelado) setErrorAlertas(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargandoAlertas(false)
@@ -131,7 +132,7 @@ export function useKpisVentas() {
         setError(null)
       })
       .catch((e: unknown) => {
-        if (!cancelado) setError(e instanceof Error ? e.message : String(e))
+        if (!cancelado) setError(mensajeDeError(e))
       })
       .finally(() => {
         if (!cancelado) setCargando(false)

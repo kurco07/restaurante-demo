@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import { actualizarMesa, crearMesa, eliminarMesa, fetchMesas } from '../../models/services/mesaService'
 import type { Mesa } from '../../models/types'
+import { mensajeDeError } from '../../lib/errores'
+
+// Si no se puede borrar porque otros registros dependen de este
+const EN_USO =
+  'No se puede eliminar: la mesa ya tiene cuentas registradas y se necesitan para los reportes.'
 
 type Filtro = 'todas' | 'libre' | 'ocupada' | 'por_limpiar'
 
@@ -37,7 +42,7 @@ export function useMesasAdmin() {
       })
       .catch((err: unknown) => {
         if (cancelado) return
-        setError(err instanceof Error ? err.message : 'No se pudieron cargar las mesas')
+        setError(mensajeDeError(err, 'No se pudieron cargar las mesas'))
         setLoading(false)
       })
     return () => {
@@ -59,7 +64,7 @@ export function useMesasAdmin() {
       setMesas((prev) => [...prev, nueva])
       setSeleccionadaId(nueva.id)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo crear la mesa')
+      setError(mensajeDeError(err, 'No se pudo crear la mesa'))
     } finally {
       setGuardando(false)
     }
@@ -74,7 +79,7 @@ export function useMesasAdmin() {
       const actualizada = await actualizarMesa(id, cambios)
       setMesas((prev) => prev.map((m) => (m.id === id ? actualizada : m)))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar la mesa')
+      setError(mensajeDeError(err, 'No se pudo guardar la mesa'))
     } finally {
       setGuardando(false)
     }
@@ -88,7 +93,7 @@ export function useMesasAdmin() {
       const actualizada = await actualizarMesa(id, { posicion_x: posicionX, posicion_y: posicionY })
       setMesas((prev) => prev.map((m) => (m.id === id ? actualizada : m)))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo mover la mesa')
+      setError(mensajeDeError(err, 'No se pudo mover la mesa'))
     }
   }
 
@@ -99,7 +104,7 @@ export function useMesasAdmin() {
       setMesas((prev) => prev.filter((m) => m.id !== id))
       setSeleccionadaId((actual) => (actual === id ? null : actual))
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo eliminar la mesa')
+      setError(mensajeDeError(err, 'No se pudo eliminar la mesa', { enUso: EN_USO }))
     } finally {
       setGuardando(false)
     }

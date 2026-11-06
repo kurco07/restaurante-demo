@@ -1,7 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../controllers/auth/useAuth'
+import { FunctionsHttpError } from '@supabase/supabase-js'
 import { supabase } from '../../../lib/supabaseClient'
+import { mensajeDeError } from '../../../lib/errores'
+import { useEnLinea } from '../../../controllers/useEnLinea'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import {
   IconoCandado,
@@ -17,6 +20,29 @@ import {
 // Function registrar-restaurante (clave de servicio, crea tenant + sede +
 // usuario + suscripción en trial en una sola transacción — migración
 // 0027) y después inicia sesión normal, como si ya tuviera cuenta.
+// Si el servidor no contesta en este tiempo, se libera el botón en vez de
+// dejarlo trabado en "Creando cuenta…" (Fase 8, Módulo 2)
+const ESPERA_REGISTRO_MS = 30_000
+
+type Resultado = { ok: boolean; mensaje?: string }
+
+// La Edge Function contesta 4xx/5xx con { ok: false, mensaje }; con un
+// error HTTP, supabase-js no lo pone en data, hay que leerlo del cuerpo
+async function registrar(body: Record<string, string>): Promise<Resultado | 'sin_respuesta'> {
+  const llamada = supabase.functions
+    .invoke<Resultado>('registrar-restaurante', { body })
+    .then(async ({ data, error }) => {
+      if (error instanceof FunctionsHttpError) {
+        const cuerpo = (await error.context.json().catch(() => null)) as Resultado | null
+        return cuerpo ?? { ok: false }
+      }
+      if (error) throw error
+      return data ?? { ok: false }
+    })
+  const espera = new Promise<'sin_respuesta'>((resolver) => setTimeout(() => resolver('sin_respuesta'), ESPERA_REGISTRO_MS))
+  return Promise.race([llamada, espera])
+}
+
 export default function RegistroPage() {
   const navigate = useNavigate()
   const { signIn } = useAuth()
@@ -31,6 +57,7 @@ export default function RegistroPage() {
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [enviando, setEnviando] = useState(false)
+  const enLinea = useEnLinea()
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -46,34 +73,42 @@ export default function RegistroPage() {
     }
 
     setEnviando(true)
-    const { data, error: errorFuncion } = await supabase.functions.invoke<{ ok: boolean; mensaje?: string }>(
-      'registrar-restaurante',
-      {
-        body: {
-          nombre_restaurante: nombreRestaurante,
-          nombre_usuario: nombre,
-          email,
-          password,
-          telefono,
-        },
-      },
-    )
+    // Sin respuesta o con la red caída, la cuenta pudo haberse creado igual
+    // en el servidor: se avisa que pruebe iniciar sesión antes de reintentar,
+    // para no registrar el restaurante dos veces
+    const PUDO_CREARSE =
+      'Si se alcanzó a crear, ya puedes iniciar sesión con ese correo: pruébalo antes de registrarte de nuevo.'
+    try {
+      const resultado = await registrar({
+        nombre_restaurante: nombreRestaurante,
+        nombre_usuario: nombre,
+        email,
+        password,
+        telefono,
+      })
 
-    if (errorFuncion || !data?.ok) {
+      if (resultado === 'sin_respuesta') {
+        setError(`El servidor no respondió a tiempo. ${PUDO_CREARSE}`)
+        return
+      }
+      if (!resultado.ok) {
+        setError(resultado.mensaje ?? 'No se pudo registrar tu restaurante. Intenta de nuevo.')
+        return
+      }
+
+      const { error: errorSesion } = await signIn(email, password)
+      if (errorSesion) {
+        // La cuenta sí se creó — solo falló el login automático. Que entre
+        // por /login como cualquier otra vez, en vez de quedarse atascado.
+        navigate('/login')
+        return
+      }
+      navigate('/gerencia')
+    } catch (e) {
+      setError(`${mensajeDeError(e, 'No se pudo conectar con el servidor.')} ${PUDO_CREARSE}`)
+    } finally {
       setEnviando(false)
-      setError(data?.mensaje ?? 'No se pudo registrar tu restaurante. Intenta de nuevo.')
-      return
     }
-
-    const { error: errorSesion } = await signIn(email, password)
-    setEnviando(false)
-    if (errorSesion) {
-      // La cuenta sí se creó — solo falló el login automático. Que entre
-      // por /login como cualquier otra vez, en vez de quedarse atascado.
-      navigate('/login')
-      return
-    }
-    navigate('/gerencia')
   }
 
   return (
@@ -224,6 +259,12 @@ export default function RegistroPage() {
               </span>
             </label>
 
+            {!enLinea && (
+              <p className="rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-600" role="status">
+                Sin conexión: registrar un restaurante necesita internet. Cuando vuelva la red, inténtalo de nuevo.
+              </p>
+            )}
+
             {error && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600" role="alert">
                 {error}
@@ -232,7 +273,7 @@ export default function RegistroPage() {
 
             <button
               type="submit"
-              disabled={enviando}
+              disabled={enviando || !enLinea}
               className="mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-orange-600 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-orange-700 disabled:opacity-60"
             >
               {enviando ? 'Creando cuenta…' : 'Registrar restaurante'}

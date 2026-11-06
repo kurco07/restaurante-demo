@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import type { CategoriaMenu, Insumo, MenuItem, Receta } from '../../../../models/types'
 import { RecetaEditor } from './RecetaEditor'
 import { DisponibilidadSede } from './DisponibilidadSede'
+import { mensajeDeError } from '../../../../lib/errores'
 
 interface DatosPlato {
   categoria_id: string
@@ -57,6 +58,7 @@ export function PlatoDetallePanel({
   )
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [eliminando, setEliminando] = useState(false)
 
   if (!plato && !creando) {
     return (
@@ -84,7 +86,7 @@ export function PlatoDetallePanel({
         precio_base: Number(form.precio),
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar el plato.')
+      setError(mensajeDeError(err, 'No se pudo guardar el plato.'))
     } finally {
       setSubmitting(false)
     }
@@ -92,12 +94,20 @@ export function PlatoDetallePanel({
 
   async function handleEliminar() {
     if (!plato) return
-    if (!confirm('¿Eliminar este plato?')) return
+    if (eliminando || !confirm('¿Eliminar este plato?')) return
     setError(null)
+    setEliminando(true)
     try {
       await onEliminar(plato.id)
     } catch (err) {
-      setError(err instanceof Error ? `No se pudo eliminar: ${err.message}` : 'No se pudo eliminar el plato.')
+      // Lo más común: ya tiene pedidos, y la base no deja borrarlo
+      setError(
+        mensajeDeError(err, 'No se pudo eliminar el plato.', {
+          enUso: 'No se puede eliminar: este plato ya tiene pedidos registrados y se necesitan para los reportes. Si ya no lo vendes, desmarca «Disponible» aquí abajo y deja de verse en el menú.',
+        }),
+      )
+    } finally {
+      setEliminando(false)
     }
   }
 
@@ -167,8 +177,13 @@ export function PlatoDetallePanel({
               Cancelar
             </button>
           ) : (
-            <button type="button" onClick={handleEliminar} className="rounded-lg px-3 font-bold text-[var(--red)]">
-              Eliminar
+            <button
+              type="button"
+              onClick={handleEliminar}
+              disabled={eliminando}
+              className="rounded-lg px-3 font-bold text-[var(--red)] disabled:opacity-50"
+            >
+              {eliminando ? 'Eliminando…' : 'Eliminar'}
             </button>
           )}
         </div>

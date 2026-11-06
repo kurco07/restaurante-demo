@@ -1,5 +1,6 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import { mensajeDeError } from '../../lib/errores'
 import { supabase } from '../../lib/supabaseClient'
 
 interface AuthContextValue {
@@ -120,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn: AuthContextValue['signIn'] = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error: error?.message ?? null }
+    return { error: error ? mensajeDeError(error, 'No se pudo iniciar sesión. Intenta de nuevo.') : null }
   }
 
   const signOut = async () => {

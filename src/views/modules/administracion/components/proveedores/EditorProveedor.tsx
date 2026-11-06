@@ -1,6 +1,11 @@
 import { useState } from 'react'
 import type { OrdenCompraConDetalle } from '../../../../../models/services/compraService'
 import type { Proveedor } from '../../../../../models/types'
+import { mensajeDeError } from '../../../../../lib/errores'
+
+// Si no se puede borrar porque otros registros dependen de este
+const EN_USO =
+  'No se puede eliminar: el proveedor tiene órdenes de compra o lotes registrados.'
 
 interface EditorProveedorProps {
   proveedor: Proveedor | null
@@ -47,7 +52,7 @@ export function EditorProveedor({
         await onGuardar(proveedor.id, form)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar.')
+      setError(mensajeDeError(err, 'No se pudo guardar.'))
     }
   }
 
@@ -58,7 +63,7 @@ export function EditorProveedor({
     try {
       await onEliminar(proveedor.id)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo eliminar el proveedor.')
+      setError(mensajeDeError(err, 'No se pudo eliminar el proveedor.', { enUso: EN_USO }))
     }
   }
 

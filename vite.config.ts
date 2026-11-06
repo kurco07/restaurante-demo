@@ -9,7 +9,12 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' (Fase 8, Módulo 2): la versión nueva queda esperando y la
+      // app muestra "Hay una versión nueva, toca para actualizar"
+      // (AvisoVersionNueva.tsx). Con 'autoUpdate' el dispositivo seguía con
+      // la versión vieja abierta, sin aviso, hasta cerrar todas las
+      // pestañas o recargar (a veces dos veces).
+      registerType: 'prompt',
       // Cachea el app shell (HTML/JS/CSS/assets de build) Y los .wasm de
       // PowerSync (@powersync/web empaqueta varias variantes de wa-sqlite
       // según qué soporta el navegador — OPFS, hilos, etc. — así que se

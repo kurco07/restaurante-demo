@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { avisar } from '../../../../controllers/avisos/avisos'
 import type { ItemAnulable } from './AnularItemModal'
 
 interface AnularCuentaModalProps {
@@ -22,6 +23,8 @@ export function AnularCuentaModal({ items, onConfirmar, onCerrar }: AnularCuenta
     setEnviando(true)
     try {
       await onConfirmar(motivo)
+    } catch (e) {
+      avisar.error(e, 'No se pudo anular la cuenta')
     } finally {
       setEnviando(false)
     }
