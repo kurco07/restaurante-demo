@@ -91,6 +91,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
             className="hidden"
             onChange={(e) => {
               const archivo = e.target.files?.[0]
+              e.target.value = ''
               if (archivo) subirLogo(archivo)
             }}
           />

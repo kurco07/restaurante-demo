@@ -26,12 +26,16 @@ export async function guardarMarcaPropia(tenantId: string, cambios: Partial<Marc
 // Sube el logo al bucket público `marca`, en marca/<tenant_id>/logo.<ext>
 // (migración 0025: la política de Storage exige que ese primer segmento
 // de la ruta sea el tenant de quien escribe). Siempre el mismo nombre de
-// archivo por tenant — un logo nuevo reemplaza al anterior.
+// archivo por tenant — un logo nuevo reemplaza al anterior en la misma
+// ruta, por lo que la URL pública sería idéntica a la anterior y el
+// navegador (y cualquier CDN delante del bucket) seguiría mostrando la
+// imagen vieja desde caché. Se agrega `?v=<timestamp>` para que cada
+// subida tenga una URL distinta y fuerce una descarga real.
 export async function subirLogoMarca(tenantId: string, archivo: File): Promise<string> {
   const extension = archivo.name.split('.').pop() ?? 'png'
   const ruta = `${tenantId}/logo.${extension}`
   const { error } = await supabase.storage.from('marca').upload(ruta, archivo, { upsert: true })
   if (error) throw error
   const { data } = supabase.storage.from('marca').getPublicUrl(ruta)
-  return data.publicUrl
+  return `${data.publicUrl}?v=${Date.now()}`
 }
