@@ -9,6 +9,7 @@ export interface Marca {
   fuente: string | null
   marca_agua_activa: boolean
   marca_agua_opacidad: number
+  marca_agua_tamano: number
   nombre_mostrado: string | null
 }
 
@@ -23,4 +24,5 @@ export interface MarcaPublica {
   fuente: string | null
   marca_agua_activa: boolean
   marca_agua_opacidad: number
+  marca_agua_tamano: number
 }

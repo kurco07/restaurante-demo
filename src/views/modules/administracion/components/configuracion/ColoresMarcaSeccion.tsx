@@ -16,6 +16,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
   const [fuente, setFuente] = useState('')
   const [marcaAguaActiva, setMarcaAguaActiva] = useState(false)
   const [marcaAguaOpacidad, setMarcaAguaOpacidad] = useState(0.06)
+  const [marcaAguaTamano, setMarcaAguaTamano] = useState(680)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
   const [estado, setEstado] = useState<'inactivo' | 'guardando' | 'guardado' | 'error'>('inactivo')
@@ -32,6 +33,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
           setFuente(marca.fuente ?? '')
           setMarcaAguaActiva(marca.marca_agua_activa)
           setMarcaAguaOpacidad(marca.marca_agua_opacidad)
+          setMarcaAguaTamano(marca.marca_agua_tamano)
           setLogoUrl(marca.logo_url)
         }
       })
@@ -49,6 +51,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
         fuente: fuente || null,
         marca_agua_activa: marcaAguaActiva,
         marca_agua_opacidad: marcaAguaOpacidad,
+        marca_agua_tamano: marcaAguaTamano,
       })
       setEstado('guardado')
     } catch {
@@ -178,18 +181,31 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
             </button>
           </label>
           {marcaAguaActiva && (
-            <label className="mt-3 flex flex-col gap-1 text-xs font-semibold text-[var(--ink-soft)]">
-              Qué tan visible ({Math.round(marcaAguaOpacidad * 100)}%)
-              <input
-                type="range"
-                min={0.02}
-                max={0.15}
-                step={0.01}
-                value={marcaAguaOpacidad}
-                onChange={(e) => setMarcaAguaOpacidad(Number(e.target.value))}
-              />
-              {!logoUrl && <span className="text-[var(--red)]">Sube un logo arriba primero — la marca de agua lo usa a él.</span>}
-            </label>
+            <div className="mt-3 flex flex-col gap-3">
+              <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-soft)]">
+                Qué tan visible ({Math.round(marcaAguaOpacidad * 100)}%)
+                <input
+                  type="range"
+                  min={0.02}
+                  max={0.15}
+                  step={0.01}
+                  value={marcaAguaOpacidad}
+                  onChange={(e) => setMarcaAguaOpacidad(Number(e.target.value))}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-xs font-semibold text-[var(--ink-soft)]">
+                Qué tan grande ({marcaAguaTamano}px)
+                <input
+                  type="range"
+                  min={200}
+                  max={900}
+                  step={20}
+                  value={marcaAguaTamano}
+                  onChange={(e) => setMarcaAguaTamano(Number(e.target.value))}
+                />
+              </label>
+              {!logoUrl && <span className="text-xs text-[var(--red)]">Sube un logo arriba primero — la marca de agua lo usa a él.</span>}
+            </div>
           )}
         </div>
 

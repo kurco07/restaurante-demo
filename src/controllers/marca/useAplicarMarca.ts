@@ -14,6 +14,7 @@ interface DatosMarca {
   fuente?: string | null
   marca_agua_activa?: boolean
   marca_agua_opacidad?: number
+  marca_agua_tamano?: number
   logo_url?: string | null
 }
 
@@ -51,9 +52,11 @@ function aplicar(colores: DatosMarca | null) {
   if (colores?.marca_agua_activa && colores.logo_url) {
     raiz.setProperty('--marca-agua-imagen', `url(${colores.logo_url})`)
     raiz.setProperty('--marca-agua-opacidad', String(colores.marca_agua_opacidad ?? 0.06))
+    raiz.setProperty('--marca-agua-tamano', `${colores.marca_agua_tamano ?? 680}px`)
   } else {
     raiz.removeProperty('--marca-agua-imagen')
     raiz.removeProperty('--marca-agua-opacidad')
+    raiz.removeProperty('--marca-agua-tamano')
   }
 }
 
@@ -86,6 +89,7 @@ export function useAplicarMarca(colores: DatosMarca | null | undefined) {
     colores?.fuente,
     colores?.marca_agua_activa,
     colores?.marca_agua_opacidad,
+    colores?.marca_agua_tamano,
     colores?.logo_url,
   ])
 }

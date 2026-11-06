@@ -12,7 +12,7 @@ export function MarcaAguaFondo() {
       className="pointer-events-none fixed inset-0 z-0 bg-center bg-no-repeat"
       style={{
         backgroundImage: 'var(--marca-agua-imagen, none)',
-        backgroundSize: 'min(90vmin, 680px)',
+        backgroundSize: 'min(90vmin, var(--marca-agua-tamano, 680px))',
         opacity: 'var(--marca-agua-opacidad, 0)',
       }}
     />
