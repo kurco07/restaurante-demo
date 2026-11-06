@@ -75,7 +75,7 @@ export default function MesasAdminPage() {
   return (
     <AdminLayout usuario={usuario}>
       <header className="mb-6">
-        <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Administración</div>
+        <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--acento)]">Administración</div>
         <h1 className="mt-1 text-[27px] font-extrabold">Mesas</h1>
         <p className="mt-1 text-[12.5px] text-[var(--ink-soft)]">
           Este es el mismo mapa que ve el mesonero — aquí lo configuras, ellos solo lo ven. Arrastra una mesa para

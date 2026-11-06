@@ -30,7 +30,7 @@ export default function PedidosAdminPage() {
     <AdminLayout usuario={usuario}>
       <header className="mb-6 flex flex-wrap items-center justify-between gap-3.5">
         <div>
-          <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Administración</div>
+          <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--acento)]">Administración</div>
           <h1 className="mt-1 text-[27px] font-extrabold">Pedidos</h1>
         </div>
         <input

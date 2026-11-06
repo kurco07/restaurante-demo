@@ -31,7 +31,7 @@ function ReporteDelDia({ sedeId }: { sedeId?: string }) {
     <div className="mx-auto max-w-[1100px] text-[var(--ink)]" style={ESTILOS_ADMIN}>
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3.5">
         <div>
-          <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Reporte del día</div>
+          <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--acento)]">Reporte del día</div>
           <h1 className="mt-1 text-[27px] font-extrabold first-letter:uppercase">
             {datos ? fechaLarga(datos.dia) : 'Hoy'}
           </h1>

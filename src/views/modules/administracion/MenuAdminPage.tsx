@@ -15,7 +15,7 @@ export default function MenuAdminPage() {
   return (
     <AdminLayout usuario={usuario}>
       <header className="mb-6">
-        <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Administración</div>
+        <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--acento)]">Administración</div>
         <h1 className="mt-1 text-[27px] font-extrabold">Menú y recetas</h1>
       </header>
       <MenuAdmin tenantId={usuario.tenant_id} sedeId={usuario.sede_id} />

@@ -80,7 +80,7 @@ export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
       </nav>
 
       <div className="mt-2.5 flex items-center gap-2.5 border-t border-[#423528] px-2.5 pb-1 pt-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--orange-bg)] text-[12.5px] font-bold text-[var(--orange-dark)]">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--orange-bg)] text-[12.5px] font-bold text-[var(--acento)]">
           {nombre.charAt(0).toUpperCase()}
         </div>
         <div>

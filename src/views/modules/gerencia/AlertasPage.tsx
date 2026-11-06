@@ -121,7 +121,7 @@ export default function AlertasPage() {
     <>
       <header className="mb-6 flex flex-wrap items-end justify-between gap-3.5">
         <div>
-          <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--orange-dark)]">Gerencia</div>
+          <div className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--acento)]">Gerencia</div>
           <h1 className="mt-1 text-[27px] font-extrabold">Alertas</h1>
           <p className="mt-0.5 text-xs text-[var(--ink-soft)]">Excepciones de los últimos días que conviene revisar</p>
         </div>
