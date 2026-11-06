@@ -2,24 +2,13 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../controllers/auth/useAuth'
 import { supabase } from '../../../lib/supabaseClient'
+import { inicioDe } from '../../../lib/rolesPorModulo'
 import { mensajeDeError } from '../../../lib/errores'
 import { useEnLinea } from '../../../controllers/useEnLinea'
 import type { Rol } from '../../../models/types'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import { IconoCandado, IconoCorreo, IconoEscudo, IconoOjo, IconoOjoTachado, IconoRestaurante } from '../../components/ui/IconosAuth'
 import { AccesosPrueba } from './components/AccesosPrueba'
-
-// El mapa rolesPorModulo dice QUIÉN entra a cada ruta; este dice a cuál
-// aterriza cada rol apenas inicia sesión, en vez de pasar por el "/" de
-// desarrollo (lista de módulos, ya no hace falta como paso intermedio).
-const RUTA_POR_ROL: Record<Rol, string> = {
-  mesonero: '/mesoneros',
-  cocina: '/cocina',
-  supervisor: '/mesoneros',
-  administracion: '/administracion',
-  gerencia: '/gerencia',
-  super_admin: '/super-admin',
-}
 
 export default function LoginPage() {
   const { signIn } = useAuth()
@@ -62,7 +51,7 @@ export default function LoginPage() {
         setError('Tu cuenta no tiene un perfil en ningún restaurante. Pídele al administrador que te dé acceso.')
         return
       }
-      navigate(RUTA_POR_ROL[perfil.rol as Rol] ?? '/')
+      navigate(inicioDe(perfil.rol as Rol))
     } catch (e) {
       setError(mensajeDeError(e, 'Entraste, pero no se pudo cargar tu perfil. Intenta de nuevo.'))
     } finally {
