@@ -44,7 +44,7 @@ export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
   }
 
   return (
-    <aside className="flex flex-col bg-[var(--ink)] px-4 py-[22px] text-white">
+    <aside className="flex flex-col bg-[var(--sidebar-bg)] px-4 py-[22px] text-[var(--sidebar-text)]">
       <div className="mb-7 mt-1 px-2.5 text-lg font-extrabold">
         Fast <span className="text-[var(--orange)]">&amp; Co.</span>
       </div>
@@ -62,7 +62,7 @@ export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
                 (isActive || enlace.activoEn?.some((ruta) => pathname.startsWith(ruta))) &&
                 enlace.to !== '/proximamente'
                   ? 'bg-[var(--orange)] text-white'
-                  : 'text-[#cfc6ba] hover:text-white'
+                  : 'text-[var(--sidebar-text)]/70 hover:text-[var(--sidebar-text)]'
               }`
             }
           >
@@ -79,20 +79,20 @@ export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
         ))}
       </nav>
 
-      <div className="mt-2.5 flex items-center gap-2.5 border-t border-[#423528] px-2.5 pb-1 pt-3">
+      <div className="mt-2.5 flex items-center gap-2.5 border-t border-[var(--sidebar-text)]/15 px-2.5 pb-1 pt-3">
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--orange-bg)] text-[12.5px] font-bold text-[var(--acento)]">
           {nombre.charAt(0).toUpperCase()}
         </div>
         <div>
-          <div className="text-[12.5px] font-bold text-white">{nombre}</div>
-          <div className="text-[11px] text-[#a89d8d]">{etiquetaRol[rol] ?? rol}</div>
+          <div className="text-[12.5px] font-bold text-[var(--sidebar-text)]">{nombre}</div>
+          <div className="text-[11px] text-[var(--sidebar-text)]/60">{etiquetaRol[rol] ?? rol}</div>
         </div>
       </div>
       <button
         type="button"
         onClick={cerrarSesion}
         disabled={saliendo}
-        className="mt-2 flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13.5px] font-semibold text-[#cfc6ba] hover:bg-white/5 hover:text-white disabled:opacity-50"
+        className="mt-2 flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13.5px] font-semibold text-[var(--sidebar-text)]/70 hover:bg-[var(--sidebar-text)]/5 hover:text-[var(--sidebar-text)] disabled:opacity-50"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-[17px] w-[17px] shrink-0">
           <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11" />

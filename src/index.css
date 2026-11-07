@@ -25,6 +25,11 @@
   /* Personalización completa, Ronda 1 (migración 0036): acento sigue el
      mismo naranja oscuro por defecto hasta que el tenant lo personalice. */
   --acento: #e0650a;
+  /* Ronda 1 (ajuste): color de la barra lateral de Administración/Gerencia
+     (PanelSidebar.tsx) — variable propia, no --ink, para poder abrirla sin
+     tocar el color de texto del resto de la app (ver useAplicarMarca.ts). */
+  --sidebar-bg: #2b2118;
+  --sidebar-text: #ffffff;
 }
 
 /* Si el tenant eligió una tipografía (useAplicarMarca.ts fija

@@ -6,6 +6,9 @@ export interface Marca {
   color_primario: string | null
   color_secundario: string | null
   color_acento: string | null
+  // Ronda 1 (ajuste): color de la barra lateral de Administración/Gerencia
+  // — null = se queda con el marrón oscuro por defecto de la plataforma.
+  color_sidebar: string | null
   fuente: string | null
   marca_agua_activa: boolean
   marca_agua_opacidad: number

@@ -11,11 +11,27 @@ interface DatosMarca {
   color_primario?: string | null
   color_secundario?: string | null
   color_acento?: string | null
+  color_sidebar?: string | null
   fuente?: string | null
   marca_agua_activa?: boolean
   marca_agua_opacidad?: number
   marca_agua_tamano?: number
   logo_url?: string | null
+}
+
+// Blanco o casi-negro según qué tan clara sea la barra lateral elegida —
+// así el tenant puede poner cualquier color sin arriesgar texto ilegible.
+// Fórmula de brillo percibido estándar (ITU-R BT.601), no luminancia
+// relativa exacta: de sobra para decidir blanco vs. negro en UI.
+function textoLegibleSobre(colorHex: string): string {
+  const limpio = colorHex.replace('#', '')
+  const normalizado = limpio.length === 3 ? [...limpio].map((c) => c + c).join('') : limpio
+  const r = parseInt(normalizado.slice(0, 2), 16)
+  const g = parseInt(normalizado.slice(2, 4), 16)
+  const b = parseInt(normalizado.slice(4, 6), 16)
+  if ([r, g, b].some(Number.isNaN)) return '#ffffff'
+  const brillo = (r * 299 + g * 587 + b * 114) / 1000
+  return brillo > 150 ? '#1a1410' : '#ffffff'
 }
 
 // Evita inyectar el mismo <link> de Google Fonts dos veces si varias
@@ -41,6 +57,14 @@ function aplicar(colores: DatosMarca | null) {
   else raiz.removeProperty('--orange-dark')
   if (colores?.color_acento) raiz.setProperty('--acento', colores.color_acento)
   else raiz.removeProperty('--acento')
+
+  if (colores?.color_sidebar) {
+    raiz.setProperty('--sidebar-bg', colores.color_sidebar)
+    raiz.setProperty('--sidebar-text', textoLegibleSobre(colores.color_sidebar))
+  } else {
+    raiz.removeProperty('--sidebar-bg')
+    raiz.removeProperty('--sidebar-text')
+  }
 
   if (colores?.fuente) {
     asegurarFuenteCargada(colores.fuente)
@@ -86,6 +110,7 @@ export function useAplicarMarca(colores: DatosMarca | null | undefined) {
     colores?.color_primario,
     colores?.color_secundario,
     colores?.color_acento,
+    colores?.color_sidebar,
     colores?.fuente,
     colores?.marca_agua_activa,
     colores?.marca_agua_opacidad,

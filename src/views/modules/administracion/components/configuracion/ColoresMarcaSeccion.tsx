@@ -15,6 +15,8 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
   const [colorPrimario, setColorPrimario] = useState('#ff7a1a')
   const [colorSecundario, setColorSecundario] = useState('#e0650a')
   const [colorAcento, setColorAcento] = useState('#e0650a')
+  const [sidebarPersonalizado, setSidebarPersonalizado] = useState(false)
+  const [colorSidebar, setColorSidebar] = useState('#2b2118')
   const [fuente, setFuente] = useState('')
   const [marcaAguaActiva, setMarcaAguaActiva] = useState(false)
   const [marcaAguaOpacidad, setMarcaAguaOpacidad] = useState(0.06)
@@ -41,6 +43,8 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
           setColorPrimario(marca.color_primario ?? '#ff7a1a')
           setColorSecundario(marca.color_secundario ?? '#e0650a')
           setColorAcento(marca.color_acento ?? '#e0650a')
+          setSidebarPersonalizado(!!marca.color_sidebar)
+          setColorSidebar(marca.color_sidebar ?? '#2b2118')
           setFuente(marca.fuente ?? '')
           setMarcaAguaActiva(marca.marca_agua_activa)
           setMarcaAguaOpacidad(marca.marca_agua_opacidad)
@@ -59,6 +63,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
         color_primario: colorPrimario,
         color_secundario: colorSecundario,
         color_acento: colorAcento,
+        color_sidebar: sidebarPersonalizado ? colorSidebar : null,
         fuente: fuente || null,
         marca_agua_activa: marcaAguaActiva,
         marca_agua_opacidad: marcaAguaOpacidad,
@@ -84,6 +89,7 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
         color_primario: colorPrimario,
         color_secundario: colorSecundario,
         color_acento: colorAcento,
+        color_sidebar: sidebarPersonalizado ? colorSidebar : null,
         fuente: fuente || null,
         marca_agua_activa: marcaAguaActiva,
         marca_agua_opacidad: marcaAguaOpacidad,
@@ -167,6 +173,38 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
               className="h-9 w-14 cursor-pointer rounded-md border border-[var(--border)]"
             />
           </label>
+        </div>
+
+        <div className="rounded-lg border border-[var(--border)] p-3.5">
+          <label className="flex items-center justify-between text-xs font-bold text-[var(--ink)]">
+            Color de la barra lateral (Administración y Gerencia)
+            <button
+              type="button"
+              role="switch"
+              aria-checked={sidebarPersonalizado}
+              onClick={() => setSidebarPersonalizado((v) => !v)}
+              className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+                sidebarPersonalizado ? 'bg-[var(--orange)]' : 'bg-[var(--border)]'
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                  sidebarPersonalizado ? 'translate-x-[22px]' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </label>
+          {sidebarPersonalizado && (
+            <div className="mt-3 flex items-center gap-2.5">
+              <input
+                type="color"
+                value={colorSidebar}
+                onChange={(e) => setColorSidebar(e.target.value)}
+                className="h-9 w-14 cursor-pointer rounded-md border border-[var(--border)]"
+              />
+              <span className="text-xs text-[var(--ink-soft)]">El texto se ajusta solo a blanco o negro para que se siga leyendo bien</span>
+            </div>
+          )}
         </div>
 
         <label className="flex flex-col gap-1.5 text-xs font-bold text-[var(--ink)]">
