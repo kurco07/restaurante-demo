@@ -64,7 +64,7 @@ export function TransferirMesaModal({ mesa, usuario, onTransferir, onCerrar }: T
                 type="button"
                 disabled={enviandoId !== null}
                 onClick={() => elegir(m.id)}
-                className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-left text-sm font-bold text-gray-800 hover:border-orange-400 disabled:opacity-50"
+                className="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 text-left text-sm font-bold text-gray-800 hover:border-[var(--orange)] disabled:opacity-50"
               >
                 <span>
                   {m.nombre}

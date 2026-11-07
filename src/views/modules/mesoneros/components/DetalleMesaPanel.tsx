@@ -50,7 +50,7 @@ export function DetalleMesaPanel({
               className="flex w-full items-center justify-between py-3 text-left first:pt-0"
             >
               <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-sm font-extrabold text-orange-600">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--orange-bg)] text-sm font-extrabold text-[var(--orange-dark)]">
                   {m.numero}
                 </div>
                 <div className="text-sm font-semibold text-gray-900">Mesa {m.numero}</div>
@@ -72,13 +72,13 @@ export function DetalleMesaPanel({
 
       {mesa.estado === 'libre' && (
         <div className="space-y-3 mt-3">
-          <div className="rounded-lg border border-dashed border-gray-200 bg-orange-50/40 p-3 text-xs text-gray-500">
+          <div className="rounded-lg border border-dashed border-gray-200 bg-[var(--orange-bg)]/40 p-3 text-xs text-gray-500">
             Esta mesa está libre — puedes abrirla y empezar a tomar el pedido.
           </div>
           <button
             type="button"
             onClick={() => onAbrirMesa(mesa)}
-            className="w-full rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors"
+            className="w-full rounded-xl bg-[var(--orange)] py-3 text-center text-sm font-bold text-white hover:bg-[var(--orange-dark)] transition-colors"
           >
             Abrir mesa y tomar pedido
           </button>
@@ -87,7 +87,7 @@ export function DetalleMesaPanel({
 
       {mesa.estado === 'por_limpiar' && (
         <div className="space-y-3 mt-3">
-          <div className="rounded-lg border border-dashed border-gray-200 bg-orange-50/40 p-3 text-xs text-gray-500">
+          <div className="rounded-lg border border-dashed border-gray-200 bg-[var(--orange-bg)]/40 p-3 text-xs text-gray-500">
             La cuenta ya se cerró — esta mesa está pendiente de limpieza antes de volver a usarse.
           </div>
           <button
@@ -115,11 +115,11 @@ export function DetalleMesaPanel({
           <div className="grid grid-cols-2 gap-2">
             <div>
               <div className="mb-1 text-[11px] font-semibold text-gray-500">Mesonero asignado</div>
-              <div className="rounded-lg bg-orange-50/60 px-3 py-2 text-sm font-semibold">{mesa.mesero ?? '—'}</div>
+              <div className="rounded-lg bg-[var(--orange-bg)]/60 px-3 py-2 text-sm font-semibold">{mesa.mesero ?? '—'}</div>
             </div>
             <div>
               <div className="mb-1 text-[11px] font-semibold text-gray-500">Tiempo abierta</div>
-              <div className="rounded-lg bg-orange-50/60 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
+              <div className="rounded-lg bg-[var(--orange-bg)]/60 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
             </div>
           </div>
           {onTransferir ? (
@@ -134,13 +134,13 @@ export function DetalleMesaPanel({
               <button
                 type="button"
                 onClick={() => onTransferir(mesa)}
-                className="w-full rounded-xl border border-orange-300 bg-orange-50 py-3 text-center text-sm font-bold text-orange-700 hover:bg-orange-100 transition-colors"
+                className="w-full rounded-xl border border-[var(--orange)]/40 bg-[var(--orange-bg)] py-3 text-center text-sm font-bold text-[var(--orange-dark)] hover:brightness-95 transition-colors"
               >
                 Transferir mesa
               </button>
             </>
           ) : (
-            <div className="rounded-lg border border-dashed border-gray-200 bg-orange-50/40 p-3 text-xs text-gray-500">
+            <div className="rounded-lg border border-dashed border-gray-200 bg-[var(--orange-bg)]/40 p-3 text-xs text-gray-500">
               Esta mesa la está atendiendo otro mesonero — no puedes tomar su pedido desde aquí.
             </div>
           )}
@@ -151,7 +151,7 @@ export function DetalleMesaPanel({
         <div className="space-y-3 mt-3">
           <div>
             <div className="mb-1 text-[11px] font-semibold text-gray-500">Tiempo abierta</div>
-            <div className="rounded-lg bg-orange-50/60 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
+            <div className="rounded-lg bg-[var(--orange-bg)]/60 px-3 py-2 text-sm font-semibold">{mesa.tiempoLabel}</div>
           </div>
           <button
             type="button"
@@ -171,7 +171,7 @@ export function DetalleMesaPanel({
             <button
               type="button"
               onClick={() => onTransferir(mesa)}
-              className="w-full rounded-xl border border-orange-300 bg-orange-50 py-3 text-center text-sm font-bold text-orange-700 hover:bg-orange-100 transition-colors"
+              className="w-full rounded-xl border border-[var(--orange)]/40 bg-[var(--orange-bg)] py-3 text-center text-sm font-bold text-[var(--orange-dark)] hover:brightness-95 transition-colors"
             >
               Transferir mesa
             </button>
@@ -213,7 +213,7 @@ function MesaPorQr({
           <ul className="text-sm">
             {ticket.items.map((item) => (
               <li key={item.id} className="py-0.5">
-                <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
+                <span className="mr-1.5 font-extrabold text-[var(--orange-dark)]">{item.cantidad}×</span>
                 {item.plato}
                 {item.notas && <div className="text-[10.5px] italic text-gray-500">{item.notas}</div>}
               </li>
@@ -223,7 +223,7 @@ function MesaPorQr({
             type="button"
             onClick={() => onAprobar(ticket)}
             disabled={aprobando}
-            className="w-full rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors disabled:opacity-50"
+            className="w-full rounded-xl bg-[var(--orange)] py-3 text-center text-sm font-bold text-white hover:bg-[var(--orange-dark)] transition-colors disabled:opacity-50"
           >
             {aprobando ? 'Aprobando…' : 'Aprobar y enviar a cocina'}
           </button>
@@ -236,7 +236,7 @@ function MesaPorQr({
           <button
             type="button"
             onClick={() => onAbrirMesa(mesa)}
-            className="w-full rounded-xl bg-orange-500 py-3 text-center text-sm font-bold text-white hover:bg-orange-600 transition-colors"
+            className="w-full rounded-xl bg-[var(--orange)] py-3 text-center text-sm font-bold text-white hover:bg-[var(--orange-dark)] transition-colors"
           >
             Tomar esta mesa
           </button>

@@ -66,7 +66,7 @@ export default function RecetasCocinaPage() {
             type="button"
             onClick={() => setCategoria(c.id)}
             className={`rounded-full border px-3 py-1.5 text-xs font-bold ${
-              categoria === c.id ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-200 bg-white text-gray-500'
+              categoria === c.id ? 'border-[var(--orange)] bg-[var(--orange)] text-white' : 'border-gray-200 bg-white text-gray-500'
             }`}
           >
             {c.nombre}

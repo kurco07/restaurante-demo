@@ -51,7 +51,7 @@ export function PedidoMesa(props: PedidoMesaProps) {
         <button
           type="button"
           onClick={props.onIrAlMenu}
-          className="mt-6 rounded-2xl bg-orange-500 px-6 py-3 text-[13px] font-bold text-white"
+          className="mt-6 rounded-2xl bg-[var(--orange)] px-6 py-3 text-[13px] font-bold text-white"
         >
           Ver el menú
         </button>
@@ -75,7 +75,7 @@ export function PedidoMesa(props: PedidoMesaProps) {
         ) : (
           <div className="flex flex-col gap-2">
             {agruparPedidoMesa(enMesa).map((item) => (
-              <div key={item.clave} className="rounded-[14px] border border-orange-100 bg-white px-3.5 py-2.5">
+              <div key={item.clave} className="rounded-[14px] border border-[var(--orange-bg)] bg-white px-3.5 py-2.5">
                 <div className="flex justify-between gap-2 text-[13px] font-bold text-gray-900">
                   <span>
                     {item.cantidad > 1 && `${item.cantidad}× `}
@@ -111,7 +111,7 @@ export function PedidoMesa(props: PedidoMesaProps) {
         ) : (
           <div className="flex flex-col gap-2.5">
             {items.map((item) => (
-              <div key={item.id} className="rounded-[14px] border border-orange-100 bg-white px-3.5 py-3">
+              <div key={item.id} className="rounded-[14px] border border-[var(--orange-bg)] bg-white px-3.5 py-3">
                 <div className="flex justify-between gap-2 text-[13.5px] font-bold text-gray-900">
                   <span>
                     {item.cantidad > 1 && `${item.cantidad}× `}
@@ -119,7 +119,7 @@ export function PedidoMesa(props: PedidoMesaProps) {
                   </span>
                   <span>${(item.plato.precio * item.cantidad).toFixed(2)}</span>
                 </div>
-                {item.nota && <div className="mt-1 text-[11px] font-semibold text-orange-600">Nota: {item.nota}</div>}
+                {item.nota && <div className="mt-1 text-[11px] font-semibold text-[var(--orange-dark)]">Nota: {item.nota}</div>}
                 <button
                   type="button"
                   onClick={() => props.onQuitar(item.id)}
@@ -129,7 +129,7 @@ export function PedidoMesa(props: PedidoMesaProps) {
                 </button>
               </div>
             ))}
-            <div className="flex justify-between rounded-[14px] bg-orange-50 p-3.5 text-[15px] font-extrabold text-gray-900">
+            <div className="flex justify-between rounded-[14px] bg-[var(--orange-bg)] p-3.5 text-[15px] font-extrabold text-gray-900">
               <span>Por enviar</span>
               <span>${props.total.toFixed(2)}</span>
             </div>
@@ -159,7 +159,7 @@ export function PedidoMesa(props: PedidoMesaProps) {
             type="button"
             onClick={props.onEnviar}
             disabled={items.length === 0 || props.enviando}
-            className="mb-2 w-full rounded-2xl bg-orange-500 py-3.5 text-[14px] font-bold text-white disabled:opacity-50"
+            className="mb-2 w-full rounded-2xl bg-[var(--orange)] py-3.5 text-[14px] font-bold text-white disabled:opacity-50"
           >
             {props.enviando ? 'Enviando…' : 'Enviar pedido'}
           </button>

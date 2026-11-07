@@ -113,7 +113,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
       <div className="max-h-[88vh] w-full max-w-[440px] overflow-y-auto rounded-[22px] bg-white p-6 shadow-[0_30px_70px_rgba(43,33,24,0.35)]">
         <div className="mb-1 flex items-start justify-between">
           <div>
-            <p className="text-[11.5px] font-extrabold uppercase tracking-wide text-orange-600">Mesa {mesa.numero}</p>
+            <p className="text-[11.5px] font-extrabold uppercase tracking-wide text-[var(--orange-dark)]">Mesa {mesa.numero}</p>
             <h2 className="text-2xl font-bold text-gray-900">Cerrar cuenta</h2>
           </div>
           <button type="button" onClick={onCerrar} className="text-lg text-gray-400 hover:text-gray-600">
@@ -121,14 +121,14 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           </button>
         </div>
 
-        <div className="my-4 border-t border-orange-100">
+        <div className="my-4 border-t border-[var(--orange-bg)]">
           {items.length === 0 ? (
             <p className="py-6 text-center text-sm text-gray-500">Esta mesa no tiene ítems todavía.</p>
           ) : (
             items.map((item) => (
-              <div key={item.id} className="flex justify-between border-b border-orange-100 py-2.5 text-[13.5px]">
+              <div key={item.id} className="flex justify-between border-b border-[var(--orange-bg)] py-2.5 text-[13.5px]">
                 <span className={`font-semibold ${item.estado === 'anulado' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-                  <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
+                  <span className="mr-1.5 font-extrabold text-[var(--orange-dark)]">{item.cantidad}×</span>
                   {item.nombre}
                 </span>
                 {item.estado === 'anulado' ? (
@@ -149,7 +149,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
               type="button"
               onClick={() => setPropinaPct(pct)}
               className={`flex-1 rounded-lg border-[1.5px] py-2.5 text-[13px] font-bold ${
-                propinaPct === pct ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-200 text-gray-500'
+                propinaPct === pct ? 'border-[var(--orange)] bg-[var(--orange)] text-white' : 'border-gray-200 text-gray-500'
               }`}
             >
               {Math.round(pct * 100)}% · ${(subtotal * pct).toFixed(2)}
@@ -159,7 +159,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
             type="button"
             onClick={() => setPropinaPct('otro')}
             className={`flex-1 rounded-lg border-[1.5px] py-2.5 text-[13px] font-bold ${
-              propinaPct === 'otro' ? 'border-orange-500 bg-orange-500 text-white' : 'border-gray-200 text-gray-500'
+              propinaPct === 'otro' ? 'border-[var(--orange)] bg-[var(--orange)] text-white' : 'border-gray-200 text-gray-500'
             }`}
           >
             Otro
@@ -185,7 +185,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
               type="button"
               onClick={() => setMetodo(m.key)}
               className={`rounded-xl border-[1.5px] px-3.5 py-3 text-left text-[13.5px] font-bold ${
-                metodo === m.key ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-gray-200 text-gray-700'
+                metodo === m.key ? 'border-[var(--orange)] bg-[var(--orange-bg)] text-[var(--orange-dark)]' : 'border-gray-200 text-gray-700'
               }`}
             >
               {m.label}
@@ -204,7 +204,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           </div>
           <div className="flex justify-between border-t border-gray-200 pt-2.5 text-lg font-extrabold text-gray-900">
             <span>Total a cobrar</span>
-            <span className="text-orange-600">${total.toFixed(2)}</span>
+            <span className="text-[var(--orange-dark)]">${total.toFixed(2)}</span>
           </div>
         </div>
 
@@ -237,7 +237,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
           <button
             type="button"
             onClick={onCerrar}
-            className="flex-1 rounded-xl border border-gray-200 bg-orange-50 py-3 text-sm font-bold text-gray-600"
+            className="flex-1 rounded-xl border border-gray-200 bg-[var(--orange-bg)] py-3 text-sm font-bold text-gray-600"
           >
             Cancelar
           </button>
@@ -245,7 +245,7 @@ export function CierreCuentaModal({ mesa, usuario, onCerrar, onCerrada }: Cierre
             type="button"
             onClick={confirmar}
             disabled={enviando || !conectado || cobrables.length === 0 || !sesion || itemsSinTerminar.length > 0}
-            className="flex-[1.4] rounded-xl bg-orange-500 py-3 text-sm font-bold text-white disabled:opacity-50"
+            className="flex-[1.4] rounded-xl bg-[var(--orange)] py-3 text-sm font-bold text-white disabled:opacity-50"
           >
             {enviando ? 'Cerrando…' : conectado ? 'Confirmar y cerrar mesa' : 'Sin conexión para cobrar'}
           </button>

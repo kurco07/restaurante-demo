@@ -97,13 +97,13 @@ export function TableroCocina() {
                 type="button"
                 onClick={() => setFiltro(f.key)}
                 className={`-mb-0.5 flex items-center gap-2 border-b-[3px] px-4 py-2.5 text-sm font-bold ${
-                  activo ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500'
+                  activo ? 'border-[var(--orange)] text-[var(--orange-dark)]' : 'border-transparent text-gray-500'
                 }`}
               >
                 {f.label}
                 <span
                   className={`rounded-full px-2 py-0.5 text-[11.5px] ${
-                    activo ? 'bg-orange-500 text-white' : 'bg-orange-50 text-gray-600'
+                    activo ? 'bg-[var(--orange)] text-white' : 'bg-[var(--orange-bg)] text-gray-600'
                   }`}
                 >
                   {count}
@@ -188,7 +188,7 @@ export function TableroCocina() {
                                   </li>
                                 ) : (
                                   <li key={item.id} className="py-0.5">
-                                    <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
+                                    <span className="mr-1.5 font-extrabold text-[var(--orange-dark)]">{item.cantidad}×</span>
                                     {item.plato}
                                     {item.notas && <div className="text-[10.5px] italic text-gray-500">{item.notas}</div>}
                                   </li>
@@ -238,7 +238,7 @@ export function TableroCocina() {
           {resumen.map(([plato, cantidad]) => (
             <div key={plato} className="flex justify-between border-t border-gray-100 py-2 text-sm first:border-none">
               <span className="text-gray-700">{plato}</span>
-              <span className="font-extrabold text-orange-600">{cantidad}×</span>
+              <span className="font-extrabold text-[var(--orange-dark)]">{cantidad}×</span>
             </div>
           ))}
         </div>

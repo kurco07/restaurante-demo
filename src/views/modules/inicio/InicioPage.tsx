@@ -95,7 +95,7 @@ export default function InicioPage() {
   const sedePrincipal = menu?.sedes[0]
 
   return (
-    <div className="bg-orange-50/30">
+    <div className="bg-[var(--orange-bg)]/30">
       <MarcaAguaFondo />
       <header className="mx-auto flex max-w-6xl items-center justify-between px-8 py-5">
         <div className="text-xl font-extrabold text-gray-900">{nombreRestaurante}</div>
@@ -116,7 +116,7 @@ export default function InicioPage() {
           <button
             type="button"
             onClick={() => irAlMenu()}
-            className="rounded-full bg-orange-500 px-5 py-2.5 text-sm font-bold text-white"
+            className="rounded-full bg-[var(--orange)] px-5 py-2.5 text-sm font-bold text-white"
           >
             Ver menú
           </button>
@@ -128,7 +128,7 @@ export default function InicioPage() {
       {menu && menu.categorias.length > 0 && (
         <section className="mx-auto max-w-5xl px-8 py-16">
           <div className="mb-8 text-center">
-            <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-orange-500">Elige tu antojo</p>
+            <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-[var(--orange)]">Elige tu antojo</p>
             <h2 className="text-2xl font-extrabold text-gray-900">¿Qué se te antoja hoy?</h2>
           </div>
           <div className="flex flex-wrap justify-center gap-8">
@@ -139,7 +139,7 @@ export default function InicioPage() {
                 onClick={() => irAlMenu(cat.id)}
                 className="flex flex-col items-center gap-2.5 text-center"
               >
-                <div className="flex h-18.5 w-18.5 items-center justify-center rounded-full border border-orange-200 bg-orange-100/70">
+                <div className="flex h-18.5 w-18.5 items-center justify-center rounded-full border border-[var(--orange-bg)] bg-[var(--orange-bg)]/70">
                   <IconoGenerico nombreCategoria={cat.nombre} />
                 </div>
                 <span className="max-w-24 text-sm font-semibold text-gray-800">{cat.nombre}</span>
@@ -151,13 +151,13 @@ export default function InicioPage() {
 
       <section className="mx-auto max-w-5xl rounded-[28px] bg-gray-900 px-8 py-12 md:px-14">
         <div className="mb-8 text-center">
-          <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-orange-300">Cómo funciona</p>
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-[var(--orange)]">Cómo funciona</p>
           <h2 className="text-2xl font-extrabold text-white">Pedir aquí es así de fácil</h2>
         </div>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           {PASOS.map((paso, i) => (
             <div key={paso.titulo} className="text-center text-white">
-              <div className="mx-auto mb-3 flex h-13.5 w-13.5 items-center justify-center rounded-2xl bg-orange-500 text-lg font-extrabold">
+              <div className="mx-auto mb-3 flex h-13.5 w-13.5 items-center justify-center rounded-2xl bg-[var(--orange)] text-lg font-extrabold">
                 {i + 1}
               </div>
               <p className="mb-1 text-sm font-bold">{paso.titulo}</p>
@@ -169,7 +169,7 @@ export default function InicioPage() {
 
       <section ref={menuRef} className="mx-auto max-w-5xl px-8 py-16 scroll-mt-6">
         <div className="mb-6 text-center">
-          <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-orange-500">Nuestra carta</p>
+          <p className="mb-1.5 text-xs font-bold uppercase tracking-wider text-[var(--orange)]">Nuestra carta</p>
           <h2 className="text-2xl font-extrabold text-gray-900">El menú completo</h2>
           <p className="mx-auto mt-2 max-w-md text-xs text-gray-500">
             Para pedir, escanea el código QR de tu mesa en el restaurante — este catálogo es solo para que explores
@@ -184,7 +184,7 @@ export default function InicioPage() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar un plato…"
-            className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30"
+            className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--orange)]/30"
           />
         </div>
 
@@ -195,7 +195,7 @@ export default function InicioPage() {
               onClick={() => setCategoriaActiva(null)}
               className={`rounded-full border px-3.5 py-1.5 text-xs font-bold ${
                 categoriaActiva === null
-                  ? 'border-orange-500 bg-orange-500 text-white'
+                  ? 'border-[var(--orange)] bg-[var(--orange)] text-white'
                   : 'border-gray-200 bg-white text-gray-500'
               }`}
             >
@@ -208,7 +208,7 @@ export default function InicioPage() {
                 onClick={() => setCategoriaActiva(cat.id)}
                 className={`rounded-full border px-3.5 py-1.5 text-xs font-bold ${
                   categoriaActiva === cat.id
-                    ? 'border-orange-500 bg-orange-500 text-white'
+                    ? 'border-[var(--orange)] bg-[var(--orange)] text-white'
                     : 'border-gray-200 bg-white text-gray-500'
                 }`}
               >
@@ -235,7 +235,7 @@ export default function InicioPage() {
                   <IconoHamburguesa tamaño={32} trazo="#fff" />
                 </div>
                 <p className="text-sm font-bold text-gray-900">{plato.nombre}</p>
-                <p className="text-xs font-bold text-orange-600">${plato.precio.toFixed(2)}</p>
+                <p className="text-xs font-bold text-[var(--orange-dark)]">${plato.precio.toFixed(2)}</p>
               </div>
             ))}
           </div>

@@ -109,13 +109,13 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
         <button
           type="button"
           onClick={() => setVerSolicitudes(true)}
-          className="mb-4 flex w-full items-center justify-between rounded-2xl border border-orange-300 bg-orange-50 px-4 py-3 text-left text-sm font-bold text-orange-700 hover:bg-orange-100"
+          className="mb-4 flex w-full items-center justify-between rounded-2xl border border-[var(--orange)]/40 bg-[var(--orange-bg)] px-4 py-3 text-left text-sm font-bold text-[var(--orange-dark)] hover:brightness-95"
         >
           <span>
             🔔 {solicitudesPorAprobar.length} pedido{solicitudesPorAprobar.length > 1 ? 's' : ''} de autopedido por
             aprobar
           </span>
-          <span className="rounded-full bg-orange-500 px-3 py-1 text-xs text-white">Revisar</span>
+          <span className="rounded-full bg-[var(--orange)] px-3 py-1 text-xs text-white">Revisar</span>
         </button>
       )}
 
@@ -148,7 +148,7 @@ export function MapaMesas({ usuario }: MapaMesasProps) {
                   onClick={() => setFiltro(f.key)}
                   className={`rounded-full border px-3 py-1.5 text-xs font-bold ${
                     filtro === f.key
-                      ? 'border-orange-500 bg-orange-500 text-white'
+                      ? 'border-[var(--orange)] bg-[var(--orange)] text-white'
                       : 'border-gray-200 bg-white text-gray-500'
                   }`}
                 >

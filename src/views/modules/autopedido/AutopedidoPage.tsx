@@ -95,7 +95,7 @@ export default function AutopedidoPage() {
               <button
                 type="button"
                 onClick={() => ap.setVista('pedido')}
-                className="fixed bottom-4 left-1/2 z-10 flex w-[calc(100%-30px)] max-w-[400px] -translate-x-1/2 items-center justify-between rounded-2xl bg-orange-500 px-[18px] py-3.5 text-[13.5px] font-bold text-white"
+                className="fixed bottom-4 left-1/2 z-10 flex w-[calc(100%-30px)] max-w-[400px] -translate-x-1/2 items-center justify-between rounded-2xl bg-[var(--orange)] px-[18px] py-3.5 text-[13.5px] font-bold text-white"
               >
                 <span>{ap.carrito.length} ítems en tu pedido</span>
                 <span>Ver pedido · ${ap.totalCarrito.toFixed(2)}</span>
@@ -134,7 +134,7 @@ function PedidoEnviado({ mesa, onNuevoPedido }: { mesa: string; onNuevoPedido: (
       <button
         type="button"
         onClick={onNuevoPedido}
-        className="mt-6 rounded-2xl border border-orange-200 bg-white px-5 py-3 text-[13px] font-bold text-orange-600"
+        className="mt-6 rounded-2xl border border-[var(--orange-bg)] bg-white px-5 py-3 text-[13px] font-bold text-[var(--orange-dark)]"
       >
         Agregar más platos
       </button>

@@ -38,12 +38,12 @@ export function SolicitudesAutopedidoModal({
         ) : (
           <div className="flex flex-col gap-3">
             {tickets.map((ticket) => (
-              <div key={ticket.sesionId} className="rounded-2xl border border-orange-200 bg-orange-50/40 p-4">
+              <div key={ticket.sesionId} className="rounded-2xl border border-[var(--orange-bg)] bg-[var(--orange-bg)]/40 p-4">
                 <p className="mb-2 text-[15px] font-extrabold text-gray-900">Mesa {ticket.mesa}</p>
                 <ul className="mb-3 text-sm">
                   {ticket.items.map((item) => (
                     <li key={item.id} className="py-0.5">
-                      <span className="mr-1.5 font-extrabold text-orange-600">{item.cantidad}×</span>
+                      <span className="mr-1.5 font-extrabold text-[var(--orange-dark)]">{item.cantidad}×</span>
                       {item.plato}
                       {item.notas && <div className="text-[10.5px] italic text-gray-500">{item.notas}</div>}
                     </li>
@@ -53,7 +53,7 @@ export function SolicitudesAutopedidoModal({
                   type="button"
                   onClick={() => onAprobar(ticket)}
                   disabled={aprobandoId === ticket.sesionId}
-                  className="w-full rounded-lg bg-orange-500 py-2.5 text-center text-[13px] font-bold text-white disabled:opacity-50"
+                  className="w-full rounded-lg bg-[var(--orange)] py-2.5 text-center text-[13px] font-bold text-white disabled:opacity-50"
                 >
                   {aprobandoId === ticket.sesionId ? 'Aprobando…' : 'Aprobar y enviar a cocina'}
                 </button>

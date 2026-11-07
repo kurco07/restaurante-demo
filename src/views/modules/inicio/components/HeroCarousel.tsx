@@ -16,7 +16,7 @@ const slides: Slide[] = [
     badgeClase: 'bg-red-500',
     heading: (
       <>
-        Rápido, fresco <span className="text-orange-500">y sin vueltas.</span>
+        Rápido, fresco <span className="text-[var(--orange)]">y sin vueltas.</span>
       </>
     ),
     texto: 'Hamburguesas, pepitos y papas hechos al momento — pide desde tu mesa o llévalo contigo.',
@@ -33,7 +33,7 @@ const slides: Slide[] = [
     badgeClase: 'bg-orange-600',
     heading: (
       <>
-        Conoce el <span className="text-orange-500">Triroof.</span>
+        Conoce el <span className="text-[var(--orange)]">Triroof.</span>
       </>
     ),
     texto: 'Nuestra hamburguesa insignia: carne, pollo y chuleta ahumada en un solo plato.',
@@ -50,7 +50,7 @@ const slides: Slide[] = [
     badgeClase: 'bg-amber-600',
     heading: (
       <>
-        Postres de la casa <span className="text-orange-500">a mitad de precio.</span>
+        Postres de la casa <span className="text-[var(--orange)]">a mitad de precio.</span>
       </>
     ),
     texto: 'Marquesa de chocolate y pie de la casa, con descuento solo sábado y domingo.',
@@ -80,7 +80,7 @@ export function HeroCarousel({ onVerMenu, sedeNombre }: HeroCarouselProps) {
   const slide = slides[indice]
 
   return (
-    <section className="mx-auto max-w-5xl overflow-hidden rounded-[28px] bg-orange-100/70 p-10 md:p-14">
+    <section className="mx-auto max-w-5xl overflow-hidden rounded-[28px] bg-[var(--orange-bg)]/70 p-10 md:p-14">
       <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">
         <div>
           <span className={`mb-3 inline-block rounded-full px-3.5 py-1.5 text-xs font-bold text-white ${slide.badgeClase}`}>
@@ -92,7 +92,7 @@ export function HeroCarousel({ onVerMenu, sedeNombre }: HeroCarouselProps) {
             <button
               type="button"
               onClick={onVerMenu}
-              className="rounded-full bg-orange-500 px-7 py-3.5 text-sm font-bold text-white"
+              className="rounded-full bg-[var(--orange)] px-7 py-3.5 text-sm font-bold text-white"
             >
               {slide.ctaLabel}
             </button>
@@ -111,7 +111,7 @@ export function HeroCarousel({ onVerMenu, sedeNombre }: HeroCarouselProps) {
             type="button"
             onClick={() => setIndice(i)}
             aria-label={`Ir a la promoción ${i + 1}`}
-            className={`h-2 rounded-full transition-all ${i === indice ? 'w-6 bg-orange-500' : 'w-2 bg-orange-300'}`}
+            className={`h-2 rounded-full transition-all ${i === indice ? 'w-6 bg-[var(--orange)]' : 'w-2 bg-[var(--orange)]/40'}`}
           />
         ))}
       </div>

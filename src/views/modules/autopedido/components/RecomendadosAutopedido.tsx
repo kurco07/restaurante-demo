@@ -19,11 +19,11 @@ export function RecomendadosAutopedido({ items, onAbrirPlato }: RecomendadosAuto
             key={plato.id}
             type="button"
             onClick={() => onAbrirPlato(plato)}
-            className="w-[210px] shrink-0 rounded-2xl border border-orange-100 bg-orange-50 px-3.5 py-2.5 text-left"
+            className="w-[210px] shrink-0 rounded-2xl border border-[var(--orange-bg)] bg-[var(--orange-bg)] px-3.5 py-2.5 text-left"
           >
             <span className="flex items-baseline justify-between gap-2">
               <span className="text-[13.5px] font-extrabold text-gray-800">{plato.nombre}</span>
-              <span className="shrink-0 text-[12.5px] font-bold text-orange-600">${plato.precio.toFixed(2)}</span>
+              <span className="shrink-0 text-[12.5px] font-bold text-[var(--orange-dark)]">${plato.precio.toFixed(2)}</span>
             </span>
             <span className="mt-0.5 block text-[12px] leading-snug text-gray-500 line-clamp-2">{frase}</span>
           </button>

@@ -22,7 +22,7 @@ export function ListaPlatos({ categorias, categoria, onCambiarCategoria, platos,
             type="button"
             onClick={() => onCambiarCategoria(c.id)}
             className={`shrink-0 rounded-full border px-[15px] py-[7px] text-xs font-semibold ${
-              c.id === categoria ? 'border-orange-500 bg-orange-500 text-white' : 'border-orange-100 bg-white text-gray-500'
+              c.id === categoria ? 'border-[var(--orange)] bg-[var(--orange)] text-white' : 'border-[var(--orange-bg)] bg-white text-gray-500'
             }`}
           >
             {c.nombre}
@@ -33,7 +33,7 @@ export function ListaPlatos({ categorias, categoria, onCambiarCategoria, platos,
       <div className="flex flex-col gap-3 px-5">
         {platos.length === 0 && <p className="py-10 text-center text-[13px] text-gray-500">No hay platos en esta categoría.</p>}
         {platos.map((plato) => (
-          <div key={plato.id} className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-white p-3">
+          <div key={plato.id} className="flex items-center gap-3 rounded-2xl border border-[var(--orange-bg)] bg-white p-3">
             <div
               className="flex h-[62px] w-[62px] shrink-0 items-center justify-center rounded-xl"
               style={{ background: fondoPlato(plato.imagen_url) }}
@@ -46,11 +46,11 @@ export function ListaPlatos({ categorias, categoria, onCambiarCategoria, platos,
               <p className="mb-0.5 text-sm font-bold text-gray-900">{plato.nombre}</p>
               {plato.descripcion && <p className="mb-1.5 text-[11px] leading-[1.3] text-gray-500">{plato.descripcion}</p>}
               <div className="flex items-center justify-between">
-                <span className="text-[13.5px] font-bold text-orange-600">${Number(plato.precio).toFixed(2)}</span>
+                <span className="text-[13.5px] font-bold text-[var(--orange-dark)]">${Number(plato.precio).toFixed(2)}</span>
                 <button
                   type="button"
                   onClick={() => onAbrirPlato(plato)}
-                  className="rounded-full bg-orange-500 px-[13px] py-1.5 text-[11.5px] font-bold text-white"
+                  className="rounded-full bg-[var(--orange)] px-[13px] py-1.5 text-[11.5px] font-bold text-white"
                 >
                   Agregar
                 </button>

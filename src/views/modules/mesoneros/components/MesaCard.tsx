@@ -42,10 +42,10 @@ export function MesaCard({
       style={style}
       className={`absolute flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-xl border-2 text-center shadow-sm transition-shadow hover:shadow-md ${
         claseSegunEstado[estado]
-      } ${selected ? 'ring-2 ring-orange-300 ring-offset-1' : ''}`}
+      } ${selected ? 'ring-2 ring-[var(--orange)]/50 ring-offset-1' : ''}`}
     >
       {pendienteAprobar && (
-        <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-orange-500 text-[10px] text-white shadow">
+        <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 animate-pulse items-center justify-center rounded-full bg-[var(--orange)] text-[10px] text-white shadow">
           🔔
         </span>
       )}

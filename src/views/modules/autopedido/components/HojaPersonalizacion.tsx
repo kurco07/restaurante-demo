@@ -66,7 +66,7 @@ export function HojaPersonalizacion(props: HojaPersonalizacionProps) {
                   <button
                     type="button"
                     onClick={() => abrirVistaAR(plato.modelo_ar_glb_url!, plato.nombre)}
-                    className="mt-2 w-full rounded-xl bg-orange-500 py-2.5 text-sm font-extrabold text-white"
+                    className="mt-2 w-full rounded-xl bg-[var(--orange)] py-2.5 text-sm font-extrabold text-white"
                   >
                     Ver en RA
                   </button>
@@ -88,16 +88,16 @@ export function HojaPersonalizacion(props: HojaPersonalizacionProps) {
               onChange={(e) => props.onCambiarNota(e.target.value)}
               rows={2}
               placeholder="Nota para este plato (opcional)..."
-              className="mt-4 w-full resize-none rounded-[10px] border border-orange-100 px-3 py-2.5 text-[12.5px] outline-none focus:border-orange-400"
+              className="mt-4 w-full resize-none rounded-[10px] border border-[var(--orange-bg)] px-3 py-2.5 text-[12.5px] outline-none focus:border-[var(--orange)]"
             />
           </div>
         </div>
 
-        <div className="border-t border-orange-100 px-5 py-3.5">
+        <div className="border-t border-[var(--orange-bg)] px-5 py-3.5">
           <button
             type="button"
             onClick={props.onAgregar}
-            className="w-full rounded-xl bg-orange-500 p-3.5 text-center text-sm font-extrabold text-white"
+            className="w-full rounded-xl bg-[var(--orange)] p-3.5 text-center text-sm font-extrabold text-white"
           >
             Agregar al pedido — ${props.precio.toFixed(2)}
           </button>
@@ -112,7 +112,7 @@ function BotonCantidad({ onClick, children }: { onClick: () => void; children: s
     <button
       type="button"
       onClick={onClick}
-      className="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] border border-orange-100 bg-orange-50 text-base font-bold text-orange-600"
+      className="flex h-[30px] w-[30px] items-center justify-center rounded-[9px] border border-[var(--orange-bg)] bg-[var(--orange-bg)] text-base font-bold text-[var(--orange-dark)]"
     >
       {children}
     </button>

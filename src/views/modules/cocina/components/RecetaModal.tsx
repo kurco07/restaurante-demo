@@ -53,13 +53,13 @@ export function RecetaModal({ menuItemId, plato, onVolver, onCerrar }: RecetaMod
           </button>
         </div>
 
-        <div className="mb-5 flex h-[160px] items-center justify-center rounded-2xl bg-orange-500">
+        <div className="mb-5 flex h-[160px] items-center justify-center rounded-2xl bg-[var(--orange)]">
           <svg width={56} height={56} viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={1.3}>
             <path d="M3 10h18M3 14h18M4 10a8 6 0 0116 0M4 14a1 1 0 001 1h14a1 1 0 001-1" />
           </svg>
         </div>
 
-        <span className="mb-2 inline-block text-xs font-extrabold uppercase tracking-wider text-orange-600">
+        <span className="mb-2 inline-block text-xs font-extrabold uppercase tracking-wider text-[var(--orange-dark)]">
           Ficha de receta
         </span>
         <h1 className="mb-4 text-2xl font-extrabold text-gray-900">{plato}</h1>
@@ -76,7 +76,7 @@ export function RecetaModal({ menuItemId, plato, onVolver, onCerrar }: RecetaMod
                 className="flex items-center justify-between gap-3.5 border-b border-gray-100 py-3 last:border-none"
               >
                 <span className="text-sm font-semibold text-gray-800">{ing.nombre}</span>
-                <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-[10.5px] font-bold text-orange-600">
+                <span className="rounded-full bg-[var(--orange-bg)] px-2.5 py-0.5 text-[10.5px] font-bold text-[var(--orange-dark)]">
                   {ing.cantidadRequerida} {ing.unidad}
                 </span>
               </div>
