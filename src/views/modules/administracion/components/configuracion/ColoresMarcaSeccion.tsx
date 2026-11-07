@@ -21,6 +21,11 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
   const [marcaAguaActiva, setMarcaAguaActiva] = useState(false)
   const [marcaAguaOpacidad, setMarcaAguaOpacidad] = useState(0.06)
   const [marcaAguaTamano, setMarcaAguaTamano] = useState(680)
+  const [redInstagram, setRedInstagram] = useState('')
+  const [redWhatsapp, setRedWhatsapp] = useState('')
+  const [redFacebook, setRedFacebook] = useState('')
+  const [redEnlaceLibre, setRedEnlaceLibre] = useState('')
+  const [redEnlaceLibreEtiqueta, setRedEnlaceLibreEtiqueta] = useState('')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
   const [estado, setEstado] = useState<'inactivo' | 'guardando' | 'guardado' | 'error'>('inactivo')
@@ -49,6 +54,11 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
           setMarcaAguaActiva(marca.marca_agua_activa)
           setMarcaAguaOpacidad(marca.marca_agua_opacidad)
           setMarcaAguaTamano(marca.marca_agua_tamano)
+          setRedInstagram(marca.red_instagram ?? '')
+          setRedWhatsapp(marca.red_whatsapp ?? '')
+          setRedFacebook(marca.red_facebook ?? '')
+          setRedEnlaceLibre(marca.red_enlace_libre ?? '')
+          setRedEnlaceLibreEtiqueta(marca.red_enlace_libre_etiqueta ?? '')
           setLogoUrl(marca.logo_url)
         }
       })
@@ -68,6 +78,11 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
         marca_agua_activa: marcaAguaActiva,
         marca_agua_opacidad: marcaAguaOpacidad,
         marca_agua_tamano: marcaAguaTamano,
+        red_instagram: redInstagram.trim() || null,
+        red_whatsapp: redWhatsapp.trim() || null,
+        red_facebook: redFacebook.trim() || null,
+        red_enlace_libre: redEnlaceLibre.trim() || null,
+        red_enlace_libre_etiqueta: redEnlaceLibreEtiqueta.trim() || null,
       }
       await guardarMarcaPropia(tenantId, cambios)
       setEstado('guardado')
@@ -94,6 +109,11 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
         marca_agua_activa: marcaAguaActiva,
         marca_agua_opacidad: marcaAguaOpacidad,
         marca_agua_tamano: marcaAguaTamano,
+        red_instagram: redInstagram.trim() || null,
+        red_whatsapp: redWhatsapp.trim() || null,
+        red_facebook: redFacebook.trim() || null,
+        red_enlace_libre: redEnlaceLibre.trim() || null,
+        red_enlace_libre_etiqueta: redEnlaceLibreEtiqueta.trim() || null,
         logo_url: url,
       })
     } catch {
@@ -270,6 +290,64 @@ export function ColoresMarcaSeccion({ tenantId }: { tenantId: string }) {
               {!logoUrl && <span className="text-xs text-[var(--red)]">Sube un logo arriba primero — la marca de agua lo usa a él.</span>}
             </div>
           )}
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-lg border border-[var(--border)] p-3.5">
+          <p className="text-xs font-bold text-[var(--ink)]">
+            Redes sociales <span className="font-normal text-[var(--ink-soft)]">— aparecen en la página pública, se dejan vacías para no mostrarlas</span>
+          </p>
+          <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--ink-soft)]">
+            Instagram
+            <input
+              type="text"
+              value={redInstagram}
+              onChange={(e) => setRedInstagram(e.target.value)}
+              placeholder="https://instagram.com/turestaurante"
+              className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-normal text-[var(--ink)]"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--ink-soft)]">
+            WhatsApp (botón de contacto — los pedidos se siguen haciendo solo por QR en la mesa)
+            <input
+              type="text"
+              value={redWhatsapp}
+              onChange={(e) => setRedWhatsapp(e.target.value)}
+              placeholder="Número con código de país, ej. 584141234567"
+              className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-normal text-[var(--ink)]"
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-xs font-semibold text-[var(--ink-soft)]">
+            Facebook
+            <input
+              type="text"
+              value={redFacebook}
+              onChange={(e) => setRedFacebook(e.target.value)}
+              placeholder="https://facebook.com/turestaurante"
+              className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-normal text-[var(--ink)]"
+            />
+          </label>
+          <div className="flex flex-wrap gap-3">
+            <label className="flex flex-1 flex-col gap-1.5 text-xs font-semibold text-[var(--ink-soft)]">
+              Enlace libre (TikTok, sitio propio, Google Maps…)
+              <input
+                type="text"
+                value={redEnlaceLibre}
+                onChange={(e) => setRedEnlaceLibre(e.target.value)}
+                placeholder="https://..."
+                className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-normal text-[var(--ink)]"
+              />
+            </label>
+            <label className="flex w-36 flex-col gap-1.5 text-xs font-semibold text-[var(--ink-soft)]">
+              Etiqueta
+              <input
+                type="text"
+                value={redEnlaceLibreEtiqueta}
+                onChange={(e) => setRedEnlaceLibreEtiqueta(e.target.value)}
+                placeholder="TikTok"
+                className="rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-normal text-[var(--ink)]"
+              />
+            </label>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

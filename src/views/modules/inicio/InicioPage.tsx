@@ -4,6 +4,7 @@ import { useAplicarMarca } from '../../../controllers/marca/useAplicarMarca'
 import { MarcaAguaFondo } from '../../components/ui/MarcaAguaFondo'
 import type { MarcaPublica } from '../../../models/types/marca'
 import { HeroCarousel } from './components/HeroCarousel'
+import { RedesSociales } from './components/RedesSociales'
 
 // Home pública del restaurante — sin login, sin mesa. Es una vitrina (menú
 // real, navegable) para que alguien conozca el restaurante antes de ir;
@@ -242,11 +243,18 @@ export default function InicioPage() {
         )}
       </section>
 
-      <footer className="mx-auto flex max-w-6xl flex-col items-center gap-2 border-t border-gray-200 px-8 py-8 text-xs text-gray-500 md:flex-row md:justify-between">
+      <footer className="mx-auto flex max-w-6xl flex-col items-center gap-3 border-t border-gray-200 px-8 py-8 text-xs text-gray-500 md:flex-row md:justify-between">
         <span>
           © 2026 {nombreRestaurante}
           {sedePrincipal ? ` · ${sedePrincipal.nombre}` : ''}
         </span>
+        <RedesSociales
+          instagram={menu?.marca.red_instagram}
+          whatsapp={menu?.marca.red_whatsapp}
+          facebook={menu?.marca.red_facebook}
+          enlaceLibre={menu?.marca.red_enlace_libre}
+          enlaceLibreEtiqueta={menu?.marca.red_enlace_libre_etiqueta}
+        />
       </footer>
     </div>
   )
