@@ -26,8 +26,27 @@ Todas las páginas de `App.tsx` pasaron a `lazy()`, salvo el login. El paquete p
 - `useEstadoConexion` es un solo estado compartido: un temporizador para toda la app, y no uno por cada pantalla que lo usa (en mesonero había 3).
 - `usePowerSyncWatch` no redibuja si el resultado no cambió. PowerSync vuelve a correr las consultas con cualquier cambio en la tabla.
 
+### Índices en la base local
+En `powerSyncClient.ts`, por las columnas que filtran mesonero y cocina:
+- `pedidos_items`: sesión; sede y estado;
+- `sesiones_mesa`: mesa y estado; sede y estado; mesonero y estado;
+- `mesas`: sede;
+- `menu_item_sede`: plato y sede;
+- `recetas`: plato.
+
+PowerSync los crea solo al abrir la app.
+
+### Decidido y sin construir: 2 días de historial por dispositivo
+Hoy cada dispositivo baja todo el historial de todas las sedes, y eso con meses de uso hace lenta la sincronización y las consultas. **Decisión de Pedro (2026-11-09):** cada dispositivo guarda solo lo de su sede, las cuentas abiertas y lo de los últimos **2 días**. Como las reglas de PowerSync no pueden usar `now()`, hace falta:
+- una columna `archivada`;
+- un trabajo diario con pg_cron;
+- un cambio en las reglas de sincronización.
+
+Plan completo para verlo con César en `docs/Nota_para_Cesar_Fase8_Optimizacion.md`.
+
 ### Pendiente
 - Que Pedro lo pruebe, sobre todo **recargar mesonero y cocina sin internet** (con el Wi-Fi apagado de verdad), para confirmar que no falta nada guardado.
+- Construir lo de los 2 días con César.
 
 ---
 
