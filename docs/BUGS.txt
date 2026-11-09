@@ -1,1 +1,8 @@
-Se duplica el identificador de mesa actual si se selceiona otra mesa, esto pasa indefinidamente
+RESUELTO (revisado 2026-11-09 por Pedro con Claude Code):
+"Se duplica el identificador de mesa actual si se selecciona otra mesa, esto pasa indefinidamente"
+- Causa: la fila de botones de mesas (MesaSwitcher) de la pantalla de pedidos usaba datos de ejemplo:
+  crearMesasActivas() devolvía siempre la mesa actual + una lista fija (7, 9, 3, 2), así que al elegir
+  una de esas mesas salía repetida, una vez por cada cambio.
+- Se anotó el 2026-10-06 (4f786ff) y ese mismo día el commit 2a62b20 ("toma de pedidos del mesonero
+  real y offline-first") borró MesaSwitcher y los datos de ejemplo. Hoy el cambio de mesa usa
+  SelectorMesaModal con las mesas reales de la sede (una por id).
