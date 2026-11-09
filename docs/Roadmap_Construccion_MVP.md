@@ -342,6 +342,11 @@ En toda la app: qué ve el usuario cuando algo falla o está cargando.
 **Módulo 3 — Optimización**
 Tamaño de la PWA, tiempos de carga, rendimiento en dispositivos de gama baja (relevante para el mercado objetivo).
 
+🟡 *Construido el 2026-11-09 (rama `feature/fase8-optimizacion`); falta que Pedro lo pruebe, sobre todo sin internet:*
+- *Lo que cada dispositivo guarda para funcionar offline bajó de **9,8 MB a 4,0 MB**. Se dejaron fuera las variantes de SQLite que PowerSync nunca carga con nuestra configuración y el visor 3D, que sin internet no sirve.*
+- *Cada pantalla se carga aparte: el paquete principal bajó de **987 KB a 257 KB**, y una tablet de cocina ya no baja ni interpreta el código de gerencia o administración.*
+- *En segundo plano: un solo temporizador para el estado de conexión (antes había uno por pantalla), y las listas en vivo ya no se redibujan si sus datos no cambiaron.*
+
 **Módulo 4 — Piloto beta**
 Con restaurantes reales, según lo ya definido en `Estrategia_Comercial_Ejecucion.md`.
 

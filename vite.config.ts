@@ -35,7 +35,24 @@ export default defineConfig({
         // de Draco/Basis) pesa varios MB y se carga solo bajo demanda — la
         // RA por marcador necesita cámara + internet en el momento de todas
         // formas, así que no gana nada estando precacheado para offline.
-        globIgnores: ['**/VisorARMarcador-*.js'],
+        //
+        // Fase 8, Módulo 3 (optimización): tampoco se guardan
+        // - VisorAR (visor 3D, ~1 MB): igual que el de marcador, los modelos
+        //   3D vienen de internet, así que offline no sirve de nada;
+        // - las variantes de SQLite que PowerSync nunca carga con nuestra
+        //   configuración (~5 MB). Usa la base en IndexedDB
+        //   (IDBBatchAtomicVFS, su valor por defecto), que solo carga
+        //   wa-sqlite-async. Las "mc-" son para bases cifradas
+        //   (encryptionKey) y la wa-sqlite simple es para las variantes OPFS.
+        //   Si algún día se configura cifrado o un vfs OPFS en
+        //   powerSyncClient.ts, hay que sacarlas de esta lista.
+        //   (`????????` = el hash de 8 letras; así no toca wa-sqlite-async)
+        globIgnores: [
+          '**/VisorARMarcador-*.js',
+          '**/VisorAR-*.js',
+          '**/mc-wa-sqlite*',
+          '**/wa-sqlite-????????.{wasm,js}',
+        ],
       },
       manifest: {
         name: 'Plataforma de Restaurantes',

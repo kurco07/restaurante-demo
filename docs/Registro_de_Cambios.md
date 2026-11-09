@@ -4,6 +4,33 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-09 — Optimización (Fase 8, Módulo 3) y bug de la mesa duplicada
+
+Rama: `feature/fase8-optimizacion`. Autor: Pedro (con Claude Code). Sin migraciones.
+
+### Bug de `docs/BUGS.txt` ("se duplica el identificador de mesa actual")
+Ya no existía. Venía de la fila de mesas con datos de ejemplo (`MesaSwitcher` y `crearMesasActivas`), que el commit `2a62b20` borró el mismo día que se anotó el bug. Queda explicado en `BUGS.txt`.
+
+### Lo que se guarda para funcionar sin internet: de 9,8 MB a 4,0 MB
+PowerSync guarda la base local en IndexedDB (`IDBBatchAtomicVFS`, su valor por defecto), y con eso solo carga `wa-sqlite-async`. Se dejaron de guardar:
+- las variantes "mc-", que son para bases cifradas;
+- la variante simple, que es para OPFS;
+- el visor 3D (`VisorAR`), cuyos modelos vienen de internet de todas formas.
+
+Está comentado en `vite.config.ts`: si algún día se activa el cifrado o un vfs OPFS, hay que volver a incluir esas variantes.
+
+### Cada pantalla se carga aparte
+Todas las páginas de `App.tsx` pasaron a `lazy()`, salvo el login. El paquete principal bajó de 987 KB a 257 KB. El service worker igual guarda todas las partes al instalar, así que sin internet nada cambia. Si una parte no carga (por ejemplo, una versión vieja después de publicar), la red del Módulo 2 muestra "Algo falló" con Recargar.
+
+### Menos trabajo en segundo plano
+- `useEstadoConexion` es un solo estado compartido: un temporizador para toda la app, y no uno por cada pantalla que lo usa (en mesonero había 3).
+- `usePowerSyncWatch` no redibuja si el resultado no cambió. PowerSync vuelve a correr las consultas con cualquier cambio en la tabla.
+
+### Pendiente
+- Que Pedro lo pruebe, sobre todo **recargar mesonero y cocina sin internet** (con el Wi-Fi apagado de verdad), para confirmar que no falta nada guardado.
+
+---
+
 ## 2026-11-04 — Manejo de errores y estados de carga (Fase 8, Módulo 2)
 
 Rama: `feature/fase8-errores-carga`. Autor: Pedro (con Claude Code). Sin migraciones.

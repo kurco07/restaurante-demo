@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { SqliteRecord } from '@powersync/web'
 import { powerSync } from '../lib/powerSyncClient'
 
@@ -11,15 +11,27 @@ export function usePowerSyncWatch<T = SqliteRecord>(
   parameters: unknown[] = [],
 ): T[] {
   const [filas, setFilas] = useState<T[]>([])
+  // Último resultado, para no volver a dibujar si no cambió nada (Fase 8,
+  // Módulo 3). PowerSync vuelve a correr la consulta con cualquier cambio en
+  // la tabla, aunque no toque estas filas: sin esto, cada plato que avanza en
+  // cocina redibujaba todas las pantallas que leen pedidos_items, lo que se
+  // nota en tablets de gama baja.
+  const ultimo = useRef<string | null>(null)
 
   useEffect(() => {
     const controller = new AbortController()
+    ultimo.current = null
 
     powerSync.watch(
       sql,
       parameters,
       {
-        onResult: (result) => setFilas(result.array as T[]),
+        onResult: (result) => {
+          const json = JSON.stringify(result.array)
+          if (json === ultimo.current) return
+          ultimo.current = json
+          setFilas(result.array as T[])
+        },
         onError: (error) => console.error('[PowerSync watch]', sql, error),
       },
       { signal: controller.signal },
