@@ -44,9 +44,10 @@ Hoy cada dispositivo baja todo el historial de todas las sedes, y eso con meses 
 
 Plan completo para verlo con César en `docs/Nota_para_Cesar_Fase8_Optimizacion.md`.
 
+Pedro lo probó, también recargando mesonero y cocina sin internet, y funciona. **Módulo 3 ✅.**
+
 ### Pendiente
-- Que Pedro lo pruebe, sobre todo **recargar mesonero y cocina sin internet** (con el Wi-Fi apagado de verdad), para confirmar que no falta nada guardado.
-- Construir lo de los 2 días con César.
+- Construir lo de los 2 días con César (ver la nota).
 
 ---
 
