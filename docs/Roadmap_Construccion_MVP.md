@@ -300,7 +300,8 @@ Logo, colores, nombre mostrado — self-service, como parte del panel de configu
 - Editor en Administración → Configuración, con un bucket de logos `marca` (migración `0025`).
 - RLS real: lectura abierta al restaurante y escritura solo para administración y gerencia.
 - Los colores se aplican en mesonero, cocina, inicio y QR (`useAplicarMarca`), y el menú público trae la marca (`0028`).
-- **Las fotos de los platos siguen pendientes** (ver la nota de arriba).
+- Ampliado 2026-11 con una "personalización completa" (César, migraciones `0036`–`0042`): color de acento, tipografía, marca de agua configurable, color de la barra lateral de administración/gerencia y redes sociales en la página pública. Detalle completo, incluyendo qué falta y qué se dejó fuera a propósito, en `Nota_para_Pedro_Personalizacion.md`.
+- **Las fotos de los platos siguen pendientes** (ver la nota de arriba y `Nota_para_Pedro_Personalizacion.md`).
 
 **Módulo 5 — Panel de super-admin** ✅ *(César, 2026-10-28)*
 Para el equipo del SaaS: alta y gestión de tenants, soporte, visibilidad general de uso.
