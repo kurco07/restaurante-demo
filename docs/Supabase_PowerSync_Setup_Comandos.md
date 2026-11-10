@@ -138,6 +138,50 @@ Solo se incluyen aquí las tablas que de verdad necesitan estar disponibles sin 
 4. En el dashboard de PowerSync, define las reglas de sincronización (Sync Rules) en su editor. Esta es la base según nuestro modelo de tenant — ajusta el nombre de las columnas si cambia algo:
 
 ```yaml
+config:
+  edition: 3
+
+streams:
+  # Catálogo y datos chicos: todo el restaurante del usuario
+  catalogo:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM sedes WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+      - SELECT * FROM usuarios WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+      - SELECT * FROM categorias_menu WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+      - SELECT * FROM menu_items WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+      - SELECT * FROM menu_item_sede WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+      - SELECT * FROM mesas WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+      - SELECT * FROM insumos WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+      - SELECT * FROM recetas WHERE tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id())
+
+  # Cuentas y pedidos: solo la sede del usuario y solo lo no archivado
+  # (cuentas abiertas + cerradas de los últimos 2 días, migración 0043)
+  operacion_por_sede:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM sesiones_mesa WHERE archivada_en IS NULL AND sede_id IN (SELECT sede_id FROM usuarios WHERE id = auth.user_id() AND sede_id IS NOT NULL)
+      - SELECT * FROM pedidos_items WHERE archivado_en IS NULL AND sede_id IN (SELECT sede_id FROM usuarios WHERE id = auth.user_id() AND sede_id IS NOT NULL)
+
+  # Usuarios sin sede fija (gerencia de una cadena): todas las sedes,
+  # también solo lo no archivado
+  operacion_sin_sede:
+    auto_subscribe: true
+    queries:
+      - SELECT * FROM sesiones_mesa WHERE archivada_en IS NULL AND tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id() AND sede_id IS NULL)
+      - SELECT * FROM pedidos_items WHERE archivado_en IS NULL AND tenant_id IN (SELECT tenant_id FROM usuarios WHERE id = auth.user_id() AND sede_id IS NULL)
+```
+
+**Actualizado el 2026-11-10: formato Sync Streams.** PowerSync dejará de aceptar el formato `bucket_definitions` en su próxima versión mayor, así que las reglas se reescribieron como *Sync Streams* (`config: edition: 3`). Son las mismas reglas: las mismas tablas y los mismos filtros. Lo que cambia es la forma:
+- cada "parameter query" ahora es una subconsulta `IN (SELECT … FROM usuarios WHERE id = auth.user_id())`;
+- `auth.user_id()` reemplaza a `token_parameters.user_id`;
+- `auto_subscribe: true` hace que cada dispositivo reciba todo sin cambios en la app. Pide `@powersync/web` ≥ 1.27; usamos la 2.3.
+
+Con la edición 3, las fechas bajan en formato ISO (`2026-11-10T14:29:30.000000` en vez de `2026-11-10 14:29:30`), igual que las que escribe la app sin internet. No rompe nada (revisado en el código).
+
+<details><summary>Reglas anteriores, formato bucket_definitions (por si hay que volver atrás)</summary>
+
+```yaml
 bucket_definitions:
   # Catálogo y datos chicos: todo el restaurante
   por_tenant:
@@ -168,6 +212,8 @@ bucket_definitions:
       - select * from sesiones_mesa where tenant_id = bucket.tenant_id and archivada_en is null
       - select * from pedidos_items where tenant_id = bucket.tenant_id and archivado_en is null
 ```
+
+</details>
 
 Esto hace que cada dispositivo solo descargue y sincronice los datos de su propio tenant, nunca los de otro restaurante.
 

@@ -42,6 +42,11 @@ Rama: `feature/fase8-historial-2-dias`. Autor: Pedro (con Claude Code). Migraci�
   Cada tablet pasa de guardar casi 1.900 pedidos a solo los de los últimos 2 días de su sede.
 - Pedro confirmó en el SQL Editor el proceso programado: `archivar-historial-diario`, `0 8 * * *`, activo.
 
+### Paso a Sync Streams (2026-11-10)
+Para quitar el aviso de formato obsoleto, se reescribieron las mismas reglas como *Sync Streams* (`config: edition: 3`, `streams:` con `auto_subscribe: true` y subconsultas sobre `usuarios` con `auth.user_id()`). Están en `docs/Supabase_PowerSync_Setup_Comandos.md`, con las anteriores guardadas por si hay que volver atrás. No requiere cambios en la app.
+
+Con la edición 3, las fechas bajan en formato ISO (`…T…`), igual que las que escribe la app. **Pendiente:** Pedro las despliega en el panel y prueba mesonero y cocina.
+
 ---
 
 ## 2026-11-09 — Optimización (Fase 8, Módulo 3) y bug de la mesa duplicada
