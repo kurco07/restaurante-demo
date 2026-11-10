@@ -34,10 +34,10 @@ Se puede hacer en la misma pasada, con dos buckets:
 - un bucket por sede, para usuarios con `sede_id`;
 - uno por restaurante completo, para quienes no tienen sede (gerencia de cadena, que también entra a `/mesoneros` y `/cocina`).
 
-Si un usuario cambia de sede, su dispositivo vuelve a sincronizar solo. Pedro aprobó la idea junto con lo de los 2 días; falta definir los detalles al construirlo.
+Si un usuario cambia de sede, su dispositivo vuelve a sincronizar solo. **Así quedó construido:** `operacion_por_sede` y `operacion_sin_sede` en las reglas nuevas. El catálogo (menú, mesas, usuarios, recetas) sigue bajando completo por restaurante, porque es chico.
 
-### Por qué no se hizo ya
-Toca la base del funcionamiento sin internet: las reglas de PowerSync, una migración y un trabajo programado. Conviene hacerlo con calma y **probarlo con dispositivos reales**, igual que la prueba offline del Módulo 1. Pedro quiso dejarlo anotado para que lo vean juntos.
+### Ojo al probarlo
+Toca la base del funcionamiento sin internet. Conviene confirmarlo también en la prueba con dispositivos reales del Módulo 1.
 
 ---
 
