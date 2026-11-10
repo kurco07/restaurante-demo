@@ -40,6 +40,7 @@ Rama: `feature/fase8-historial-2-dias`. Autor: Pedro (con Claude Code). Migraci�
   - 0 cuentas mal clasificadas.
 
   Cada tablet pasa de guardar casi 1.900 pedidos a solo los de los últimos 2 días de su sede.
+- Pedro confirmó en el SQL Editor el proceso programado: `archivar-historial-diario`, `0 8 * * *`, activo.
 
 ---
 
