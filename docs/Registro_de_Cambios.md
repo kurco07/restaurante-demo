@@ -31,10 +31,15 @@ Rama: `feature/fase8-historial-2-dias`. Autor: Pedro (con Claude Code). Migraci�
 - No cambia el estado de ningún plato, y ningún trigger se dispara (todos dependen de cambios de estado, mesonero o fusión).
 - Solo la puede ejecutar el sistema: ni `anon` ni `authenticated`.
 
-### Pendiente
-1. Pedro aplica la `0043` en el SQL Editor.
-2. Cambia las reglas en el panel de PowerSync.
-3. Prueba: mesonero y cocina funcionan igual, y las cuentas viejas desaparecen de los dispositivos.
+### Aplicado (2026-11-10)
+- Pedro aplicó la `0043` y desplegó las reglas nuevas en PowerSync. La app de mesonero y cocina funciona igual.
+- PowerSync avisa que el formato `bucket_definitions` quedará obsoleto en una versión futura. Es solo un aviso, que ya salía con las reglas anteriores. **Pendiente para más adelante:** pasar a *Sync Streams* (https://docs.powersync.com/sync/rules/migrate-to-sync-streams) antes de que PowerSync quite el formato viejo.
+- Verificado con una consulta de solo lectura:
+  - de 742 cuentas, 740 quedaron archivadas (cerradas hace 3,5 a 49 días) y 2 vigentes (cerradas hoy);
+  - de 1.872 platos, 1.870 archivados;
+  - 0 cuentas mal clasificadas.
+
+  Cada tablet pasa de guardar casi 1.900 pedidos a solo los de los últimos 2 días de su sede.
 
 ---
 
