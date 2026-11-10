@@ -347,7 +347,7 @@ Tamaño de la PWA, tiempos de carga, rendimiento en dispositivos de gama baja (r
 - *Cada pantalla se carga aparte: el paquete principal bajó de **987 KB a 257 KB**, y una tablet de cocina ya no baja ni interpreta el código de gerencia o administración.*
 - *En segundo plano: un solo temporizador para el estado de conexión (antes había uno por pantalla), y las listas en vivo ya no se redibujan si sus datos no cambiaron.*
 - *Índices en la base local para las consultas de mesonero y cocina.*
-- *⚠️ **Decidido y sin construir:** cada dispositivo guardará solo lo de su sede y los **últimos 2 días** (decisión de Pedro, 2026-11-09). Hoy baja todo el historial de todas las sedes. Necesita una migración, pg_cron y un cambio en las reglas de PowerSync. Plan completo en `docs/Nota_para_Cesar_Fase8_Optimizacion.md`.*
+- *🟡 **Construido, falta aplicarlo y probarlo** (rama `feature/fase8-historial-2-dias`, 2026-11-10): cada dispositivo guarda solo lo de su sede, las cuentas abiertas y lo de los **últimos 2 días** (decisión de Pedro, 2026-11-09). Antes bajaba todo el historial de todas las sedes. Migración `0043` (columnas de archivado + proceso diario con pg_cron) y reglas nuevas de PowerSync en `docs/Supabase_PowerSync_Setup_Comandos.md`.*
 
 **Módulo 4 — Piloto beta**
 Con restaurantes reales, según lo ya definido en `Estrategia_Comercial_Ejecucion.md`.

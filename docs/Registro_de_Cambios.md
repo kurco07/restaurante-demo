@@ -4,6 +4,40 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-10 — Cada dispositivo guarda solo lo reciente (Fase 8, Módulo 3)
+
+Rama: `feature/fase8-historial-2-dias`. Autor: Pedro (con Claude Code). Migración `0043`.
+
+**Decisión de Pedro (2026-11-09):** las tablets y celulares de mesonero y cocina guardan solo lo de su sede, las cuentas abiertas y lo de los últimos 2 días. Antes PowerSync les mandaba todo el historial de todas las sedes.
+
+### Cómo
+- **Migración `0043_archivar_historial.sql`:**
+  - agrega `sesiones_mesa.archivada_en` y `pedidos_items.archivado_en` (nulo = se sincroniza);
+  - `archivar_historial()` marca las cuentas **cerradas** de hace más de 2 días y sus platos, incluidos los que llegan tarde de un dispositivo que estuvo sin internet;
+  - pg_cron la corre todos los días a las 08:00 UTC (4 a. m. en Venezuela), y la migración la corre una vez al aplicarse.
+- **Reglas nuevas de PowerSync** (`docs/Supabase_PowerSync_Setup_Comandos.md`):
+  - el catálogo sigue siendo por restaurante;
+  - cuentas y pedidos van por sede y solo los no archivados, con un caso aparte para usuarios sin sede (gerencia de cadena).
+- No borra nada: el historial completo sigue en el servidor para gerencia y los reportes.
+
+### Verificado
+- Todas las migraciones (0001 a 0043) se aplican en una base local. pg_cron no está en local, así que esa parte se prueba en Supabase.
+- Escenarios probados:
+  - una cuenta abierta de hace 5 días no se archiva;
+  - una cerrada hace 3 días se archiva;
+  - una cerrada ayer no se archiva;
+  - un plato que llega tarde a una cuenta archivada se archiva en la corrida siguiente.
+- Correrla de nuevo no repite nada.
+- No cambia el estado de ningún plato, y ningún trigger se dispara (todos dependen de cambios de estado, mesonero o fusión).
+- Solo la puede ejecutar el sistema: ni `anon` ni `authenticated`.
+
+### Pendiente
+1. Pedro aplica la `0043` en el SQL Editor.
+2. Cambia las reglas en el panel de PowerSync.
+3. Prueba: mesonero y cocina funcionan igual, y las cuentas viejas desaparecen de los dispositivos.
+
+---
+
 ## 2026-11-09 — Optimización (Fase 8, Módulo 3) y bug de la mesa duplicada
 
 Rama: `feature/fase8-optimizacion`. Autor: Pedro (con Claude Code). Sin migraciones.

@@ -4,7 +4,11 @@ De: Pedro (con Claude Code). Fecha: 2026-11-09. Rama: `feature/fase8-optimizacio
 
 ## ⚠️ Decisión importante: cada dispositivo guarda solo 2 días de historial
 
-**Decisión de Pedro (2026-11-09):** las tablets y celulares de mesonero y cocina guardan **solo lo de su sede y solo lo reciente**: las cuentas abiertas y lo de los **últimos 2 días**. **Todavía no está construido**: esta nota explica por qué hace falta y cómo hacerlo.
+**Decisión de Pedro (2026-11-09):** las tablets y celulares de mesonero y cocina guardan **solo lo de su sede y solo lo reciente**: las cuentas abiertas y lo de los **últimos 2 días**. **Actualización 2026-11-10: lo construimos Pedro y Claude Code** (rama `feature/fase8-historial-2-dias`):
+- la migración `0043_archivar_historial.sql`, probada en una base local con todas las migraciones;
+- las reglas nuevas, en `docs/Supabase_PowerSync_Setup_Comandos.md`.
+
+Primero se aplica la migración y después las reglas en el panel de PowerSync. Abajo queda la explicación original del porqué.
 
 ### Por qué
 Hoy las reglas de sincronización de PowerSync (`docs/Supabase_PowerSync_Setup_Comandos.md`, `bucket_definitions`) mandan a **cada dispositivo todo el historial de todas las sedes**: todos los `pedidos_items` y `sesiones_mesa` desde el primer día. Con pocos datos no se nota. Con unos meses de uso:
@@ -18,11 +22,11 @@ Mesonero y cocina trabajan con las cuentas abiertas de hoy. El historial lo cons
 Las reglas de sincronización **no pueden usar `now()`**: PowerSync evalúa cada fila solo cuando la fila cambia, no a medida que pasa el tiempo. Una regla como `where cerrada_en > now() - interval '2 days'` no existe. La forma estándar de resolverlo:
 
 1. **Migración nueva:**
-   - una columna `archivada boolean not null default false` en `sesiones_mesa` y otra `archivado` en `pedidos_items`, con su índice;
+   - una columna en `sesiones_mesa` y otra en `pedidos_items` (al construirlo se usaron fechas, `archivada_en`/`archivado_en`, en vez de booleanos: nulo = se sincroniza; así el filtro de PowerSync es un simple `is null`), con su índice;
    - una función que marque como archivadas las sesiones **cerradas** con `cerrada_en` de hace más de 2 días, y sus platos. Una sesión **abierta nunca se archiva**, tenga la edad que tenga;
    - programarla con **pg_cron** en Supabase, una vez al día (por ejemplo a las 4 a. m., cuando no hay servicio).
-2. **Cambiar las reglas en el panel de PowerSync**: agregar `and archivada = false` (o `archivado = false`) a las consultas de esas dos tablas. Cuando una fila pasa a archivada, PowerSync **la borra sola** de los dispositivos.
-3. **Revisar los triggers de `pedidos_items` antes de marcar `archivado`.** Hay varios (descuento de inventario, validación de anulaciones, fusión de sesiones). Hay que confirmar que un `update` que solo toca esa columna no dispare nada que no corresponde.
+2. **Cambiar las reglas en el panel de PowerSync**: agregar `and archivada_en is null` (o `archivado_en is null`) a las consultas de esas dos tablas. Cuando una fila pasa a archivada, PowerSync **la borra sola** de los dispositivos.
+3. **Revisar los triggers de `pedidos_items` antes de marcar `archivado`.** Hay varios (descuento de inventario, validación de anulaciones, fusión de sesiones). **Revisado:** todos solo actúan si cambia el estado, el mesonero o `fusionada_en`, así que archivar no dispara ninguno.
 4. **Actualizar `docs/Supabase_PowerSync_Setup_Comandos.md`** con las reglas nuevas.
 
 ### "Solo su sede"

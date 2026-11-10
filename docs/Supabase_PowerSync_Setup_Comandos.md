@@ -139,6 +139,7 @@ Solo se incluyen aquí las tablas que de verdad necesitan estar disponibles sin 
 
 ```yaml
 bucket_definitions:
+  # Catálogo y datos chicos: todo el restaurante
   por_tenant:
     parameters: select tenant_id from usuarios where id = token_parameters.user_id
     data:
@@ -148,13 +149,29 @@ bucket_definitions:
       - select * from menu_items where tenant_id = bucket.tenant_id
       - select * from menu_item_sede where tenant_id = bucket.tenant_id
       - select * from mesas where tenant_id = bucket.tenant_id
-      - select * from sesiones_mesa where tenant_id = bucket.tenant_id
-      - select * from pedidos_items where tenant_id = bucket.tenant_id
       - select * from insumos where tenant_id = bucket.tenant_id
       - select * from recetas where tenant_id = bucket.tenant_id
+
+  # Cuentas y pedidos: solo la sede del usuario y solo lo no archivado
+  # (cuentas abiertas + cerradas de los últimos 2 días, migración 0043)
+  operacion_por_sede:
+    parameters: select sede_id from usuarios where id = token_parameters.user_id and sede_id is not null
+    data:
+      - select * from sesiones_mesa where sede_id = bucket.sede_id and archivada_en is null
+      - select * from pedidos_items where sede_id = bucket.sede_id and archivado_en is null
+
+  # Usuarios sin sede fija (gerencia de una cadena): todas las sedes,
+  # también solo lo no archivado
+  operacion_sin_sede:
+    parameters: select tenant_id from usuarios where id = token_parameters.user_id and sede_id is null
+    data:
+      - select * from sesiones_mesa where tenant_id = bucket.tenant_id and archivada_en is null
+      - select * from pedidos_items where tenant_id = bucket.tenant_id and archivado_en is null
 ```
 
-Esto hace que cada dispositivo solo descargue y sincronice los datos de su propio tenant — nunca los de otro restaurante.
+Esto hace que cada dispositivo solo descargue y sincronice los datos de su propio tenant, nunca los de otro restaurante.
+
+**Actualizado el 2026-11-10 (Fase 8, Módulo 3):** cuentas y pedidos ya no bajan completos. Cada dispositivo recibe solo los de **su sede** y solo los **no archivados**: las cuentas abiertas y las cerradas de los últimos 2 días. La migración `0043` agrega `archivada_en`/`archivado_en` y un proceso diario con pg_cron que los marca. PowerSync no puede filtrar por fecha (no acepta `now()`), por eso se hace con esas columnas. Cuando una fila se archiva, PowerSync la borra sola de los dispositivos. El historial completo sigue en el servidor para gerencia y los reportes. **Orden para aplicarlo:** primero la migración `0043`, después estas reglas.
 
 5. Copia la URL de tu instancia de PowerSync a la variable que faltaba en el `.env`:
 
