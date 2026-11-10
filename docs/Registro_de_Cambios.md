@@ -33,7 +33,7 @@ Rama: `feature/fase8-historial-2-dias`. Autor: Pedro (con Claude Code). Migraci�
 
 ### Aplicado (2026-11-10)
 - Pedro aplicó la `0043` y desplegó las reglas nuevas en PowerSync. La app de mesonero y cocina funciona igual.
-- PowerSync avisa que el formato `bucket_definitions` quedará obsoleto en una versión futura. Es solo un aviso, que ya salía con las reglas anteriores. **Pendiente para más adelante:** pasar a *Sync Streams* (https://docs.powersync.com/sync/rules/migrate-to-sync-streams) antes de que PowerSync quite el formato viejo.
+- PowerSync avisa que el formato `bucket_definitions` quedará obsoleto en una versión futura. Es solo un aviso, que ya salía con las reglas anteriores. ✅ Hecho el mismo día: se pasó a *Sync Streams* (ver abajo).
 - Verificado con una consulta de solo lectura:
   - de 742 cuentas, 740 quedaron archivadas (cerradas hace 3,5 a 49 días) y 2 vigentes (cerradas hoy);
   - de 1.872 platos, 1.870 archivados;
@@ -45,7 +45,7 @@ Rama: `feature/fase8-historial-2-dias`. Autor: Pedro (con Claude Code). Migraci�
 ### Paso a Sync Streams (2026-11-10)
 Para quitar el aviso de formato obsoleto, se reescribieron las mismas reglas como *Sync Streams* (`config: edition: 3`, `streams:` con `auto_subscribe: true` y subconsultas sobre `usuarios` con `auth.user_id()`). Están en `docs/Supabase_PowerSync_Setup_Comandos.md`, con las anteriores guardadas por si hay que volver atrás. No requiere cambios en la app.
 
-Con la edición 3, las fechas bajan en formato ISO (`…T…`), igual que las que escribe la app. **Pendiente:** Pedro las despliega en el panel y prueba mesonero y cocina.
+Con la edición 3, las fechas bajan en formato ISO (`…T…`), igual que las que escribe la app. ✅ Pedro las desplegó en el panel y probó mesonero y cocina: todo funciona.
 
 ---
 
