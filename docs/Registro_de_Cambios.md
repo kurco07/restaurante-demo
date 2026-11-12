@@ -4,6 +4,31 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-12 — Prueba offline real (Fase 8, Módulo 1): bug crítico de fusión encontrado y arreglado
+
+Autor: César (con Claude Code), sobre la prueba hecha con Pedro. Migración `0044`.
+
+**Hallazgo grave:** la función `fusionar_sesion_duplicada()` (migración `0031`, endurecida en `0032`) **nunca se disparó correctamente en producción** desde que existe. La versión que corría de verdad en la base le faltaban dos líneas respecto al archivo del repositorio (`new.cerrada_en := now()` y `new.fusionada_en := v_existente.id`) — alguien pegó una versión incompleta directo en el SQL Editor en algún momento, sin pasar por una migración, y nadie lo notó porque nunca se había probado con dispositivos reales de verdad hasta hoy.
+
+### Qué causaba
+Sin `fusionada_en`, el trigger que redirige los platos a la sesión que sobrevive (`redirigir_plato_a_sesion_viva`) no tenía a dónde apuntar. Resultado: cuando dos mesoneros (o un mesonero y un cliente por QR) abrían la misma mesa sin internet, **cada sesión quedaba separada para siempre** — los platos de la "perdedora" aparecían en cocina (que no mira el estado de la sesión) pero nunca llegaban a la cuenta real ni se cobraban. Confirmado en la prueba de hoy: la mesa 2 terminó con 7 sesiones distintas entre 3 personas en 28 minutos, ninguna fusionada.
+
+### Arreglo
+Migración `0044`: vuelve a dejar `fusionar_sesion_duplicada()` exactamente como dice `0032` (no cambia el diseño, repone lo que faltaba). Se verificó que las otras tres funciones de la cadena (`redirigir_plato_a_sesion_viva`, `mover_platos_de_sesion_fusionada`, `validar_sesion_fusionada`) sí coinciden con el repositorio — el problema era solo esa.
+
+### Auditoría (buena noticia)
+Se revisó si hubo mesas reales afectadas desde el 30 de octubre (consulta de solo lectura, sin tocar nada): **solo aparece la prueba de hoy**, con las cuentas de prueba (`Prueba mesonero`, `Prueba supervisor`, `Cesar Velasquez`). Ninguna mesa de un restaurante real quedó con platos huérfanos sin cobrar en estas dos semanas.
+
+### De paso, dos huecos de UX encontrados en la misma prueba
+- `usePorAprobar.ts` avisaba un pedido nuevo del cliente por QR a **todos** los mesoneros de la sede, incluso con la mesa ya asignada a uno — ahora solo le llega al asignado (si todavía no tiene mesonero, sigue siendo para cualquiera, como ya estaba decidido).
+- `ResumenPedido.tsx` ("Ver/editar pedido") mostraba el estado "Por aprobar" de un pedido nuevo por QR pero no tenía botón para aprobarlo ahí — solo desde la campanita general. Se agregó "Aprobar pedido del cliente", reutilizando `aprobarPedidoAutopedido`.
+
+### Pendiente
+- Repetir el escenario de dos mesoneros en la misma mesa sin internet una vez más, ya con el arreglo puesto, para confirmar que fusiona correctamente y cerrar del todo el Módulo 1 de la Fase 8.
+- Las 3 filas huérfanas de la prueba de hoy (mesa 1, platos ya "entregados" pero nunca cobrados) siguen ahí — son basura de prueba, no urgente, se pueden anular cuando quieran.
+
+---
+
 ## 2026-11-10 — Cada dispositivo guarda solo lo reciente (Fase 8, Módulo 3)
 
 Rama: `feature/fase8-historial-2-dias`. Autor: Pedro (con Claude Code). Migración `0043`.
