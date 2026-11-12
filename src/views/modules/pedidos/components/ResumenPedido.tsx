@@ -36,6 +36,11 @@ interface ResumenPedidoProps {
   onAnular?: (item: ItemEnviado) => void
   // Mismo permiso: anular todos los platos activos de la mesa de una vez
   onAnularTodo?: () => void
+  // Pedidos nuevos del cliente por QR después de que ya tomaste la mesa
+  // (Fase 8, Módulo 1): antes solo se podían aprobar desde la campanita
+  // general, no había forma de hacerlo desde "ver/editar pedido"
+  onAprobarPendientes?: () => void
+  aprobandoPendientes?: boolean
 }
 
 export function ResumenPedido({
@@ -49,8 +54,11 @@ export function ResumenPedido({
   subtotal,
   onAnular,
   onAnularTodo,
+  onAprobarPendientes,
+  aprobandoPendientes,
 }: ResumenPedidoProps) {
   const hayAnulables = itemsEnviados.some((item) => ESTADOS_ANULABLES.has(item.estado))
+  const hayPorAprobar = itemsEnviados.some((item) => item.estado === 'por_aprobar')
   return (
     <aside className="flex flex-col gap-4" aria-label="Resumen del pedido">
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
@@ -77,6 +85,16 @@ export function ResumenPedido({
                   className="rounded-md border border-red-200 px-1.5 py-0.5 text-[10.5px] font-bold text-[var(--red)] hover:bg-red-50"
                 >
                   Anular cuenta completa
+                </button>
+              )}
+              {onAprobarPendientes && hayPorAprobar && (
+                <button
+                  type="button"
+                  onClick={onAprobarPendientes}
+                  disabled={aprobandoPendientes}
+                  className="rounded-md border border-[var(--orange)]/40 bg-[var(--orange-bg)] px-1.5 py-0.5 text-[10.5px] font-bold text-[var(--orange-dark)] hover:brightness-95 disabled:opacity-50"
+                >
+                  {aprobandoPendientes ? 'Aprobando…' : 'Aprobar pedido del cliente'}
                 </button>
               )}
             </div>

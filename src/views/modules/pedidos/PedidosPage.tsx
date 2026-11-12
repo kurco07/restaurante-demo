@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useOutletContext, useParams } from 'react-rou
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { usePedidos } from '../../../controllers/pedido/usePedidos'
 import { aceptaPedido, useMesasSede, type MesaVista } from '../../../controllers/mesonero/useMesasSede'
-import { anularItem, anularSesionCompleta } from '../../../models/services/pedidoService'
+import { anularItem, anularSesionCompleta, aprobarPedidoAutopedido } from '../../../models/services/pedidoService'
 import { puedeSupervisar } from '../../../lib/permisos'
 import type { RecomendadosHoy, Usuario } from '../../../models/types'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
@@ -45,6 +45,7 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
   const [selector, setSelector] = useState<'enviar' | 'mover' | null>(null)
   const [itemAnular, setItemAnular] = useState<ItemEnviado | null>(null)
   const [anularTodo, setAnularTodo] = useState(false)
+  const [aprobandoPendientes, setAprobandoPendientes] = useState(false)
   const esSupervisor = puedeSupervisar(usuario.rol)
 
   const p = usePedidos(mesaId)
@@ -74,6 +75,16 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
   if (mesaId && !mesa) return <LoadingSpinner message="Cargando mesa…" />
 
   const mesaValida = mesa && aceptaPedido(mesa) ? mesa : undefined
+
+  async function aprobarPendientes() {
+    if (!p.sesion) return
+    setAprobandoPendientes(true)
+    try {
+      await aprobarPedidoAutopedido(p.sesion.id, usuario.id)
+    } finally {
+      setAprobandoPendientes(false)
+    }
+  }
 
   async function enviarA(destino: MesaVista) {
     setSelector(null)
@@ -141,6 +152,8 @@ function TomaDePedido({ usuario }: { usuario: Usuario }) {
           subtotal={subtotal}
           onAnular={esSupervisor ? setItemAnular : undefined}
           onAnularTodo={esSupervisor ? () => setAnularTodo(true) : undefined}
+          onAprobarPendientes={p.sesion ? aprobarPendientes : undefined}
+          aprobandoPendientes={aprobandoPendientes}
         />
       </div>
 

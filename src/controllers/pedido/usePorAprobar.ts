@@ -18,10 +18,14 @@ export interface TicketPorAprobar {
   items: ItemPorAprobar[]
 }
 
-// Pedidos de autopedido que todavía no confirmó ningún mesonero — "para
-// cualquier mesonero disponible de la sede", no asignado a uno en
-// particular (decisión confirmada con el usuario). Se agrupan por mesa
-// igual que el tablero de cocina.
+// Pedidos de autopedido que todavía no confirmó ningún mesonero. Si la
+// mesa todavía no tiene mesonero asignado (el cliente la abrió por QR y
+// nadie la tomó), es "para cualquier mesonero disponible de la sede"
+// (decisión confirmada con el usuario) — pero si la mesa YA tiene un
+// mesonero asignado, el pedido nuevo del cliente le llega solo a ese
+// mesonero, no a todos (ajustado 2026-11-12: antes le llegaba a todos
+// incluso con mesa ya asignada). Se agrupan por mesa igual que el
+// tablero de cocina.
 const SQL = `
   select
     pi.id as id,
@@ -36,6 +40,7 @@ const SQL = `
   join sesiones_mesa sm on sm.id = pi.sesion_id
   join mesas m on m.id = sm.mesa_id
   where pi.tenant_id = ? and pi.sede_id = ? and pi.estado = 'por_aprobar'
+    and (sm.mesonero_id is null or sm.mesonero_id = ?)
   order by pi.creado_en
 `
 
@@ -44,6 +49,7 @@ export function usePorAprobar() {
   const items = usePowerSyncWatch<ItemPorAprobar & { sesionId: string; mesa: string }>(SQL, [
     usuario?.tenant_id ?? '',
     usuario?.sede_id ?? '',
+    usuario?.id ?? '',
   ])
   const [aprobandoId, setAprobandoId] = useState<string | null>(null)
 
