@@ -322,7 +322,7 @@ En Administración → Personal se invita a empleados por correo, con la Edge Fu
 
 ## Fase 8 — Endurecimiento y piloto
 
-**Módulo 1 — Pruebas reales de offline** — 🔧 *prueba corrida el 2026-11-12, encontró un bug crítico ya arreglado — falta repetir un escenario para cerrar*
+**Módulo 1 — Pruebas reales de offline** ✅ *(prueba completa el 2026-11-12; la unión de cuentas se repitió y confirmó ese mismo día con el arreglo `0044`)*
 Desconexión forzada, verificación de que ningún pedido se pierde o se duplica, en los tres dispositivos a la vez (mesonero, cliente, cocina).
 
 Preparado con Pedro (2026-10-30):
@@ -334,7 +334,7 @@ Preparado con Pedro (2026-10-30):
 - La barra del mesonero muestra la conexión, y la de los dos indica **cuántos cambios faltan por subir**.
 - Queda escrito en el protocolo: **sin internet los dispositivos no se ven entre ellos**. Los pedidos llegan a cocina recién cuando vuelve la conexión, así que la tablet de cocina con datos móviles de respaldo es la opción práctica si eso importa.
 
-**Corrida el 2026-11-12** (César + Pedro): la fusión del punto 1 **nunca funcionó en producción** — la función desplegada en Supabase no coincidía con la migración `0032` del repositorio, le faltaban dos líneas. Arreglado en la migración `0044`. Auditoría confirmó cero mesas reales afectadas desde el 30 de octubre, solo la prueba de hoy. Detalle completo en `docs/Nota_para_Pedro_Bug_Fusion.md` y `docs/Registro_de_Cambios.md`. De paso se corrigieron dos huecos de UX en las solicitudes de autopedido (aviso solo al mesonero asignado, botón de aprobar desde "Ver/editar pedido"). **Falta:** repetir el escenario de dos mesoneros en la misma mesa una vez más, ya con el arreglo, para confirmar la fusión y recién ahí marcar el módulo ✅.
+**Corrida el 2026-11-12** (César + Pedro): la fusión del punto 1 **nunca funcionó en producción** — la función desplegada en Supabase no coincidía con la migración `0032` del repositorio, le faltaban dos líneas. Arreglado en la migración `0044`. Auditoría confirmó cero mesas reales afectadas desde el 30 de octubre, solo la prueba de hoy. Detalle completo en `docs/Nota_para_Pedro_Bug_Fusion.md` y `docs/Registro_de_Cambios.md`. De paso se corrigieron dos huecos de UX en las solicitudes de autopedido (aviso solo al mesonero asignado, botón de aprobar desde "Ver/editar pedido"). **Repetido el 2026-11-12 por la tarde** (Pedro, con dispositivos reales y el internet cortado de verdad): los escenarios 5 (dos dispositivos en la misma mesa) y 6 (cliente QR + mesonero en la misma mesa) **unen las cuentas correctamente**. `verificar_offline.sql`: bloques 1, 3 y 4 vacíos; bloque 2 con las dos cuentas unidas (mesas 2 y 3); bloque 5 coincide con lo cargado. **Módulo ✅.**
 
 **Módulo 2 — Manejo de errores y estados de carga** ✅
 En toda la app: qué ve el usuario cuando algo falla o está cargando.

@@ -4,6 +4,30 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-12 (tarde) — Se repite la prueba de unión de cuentas: Fase 8, Módulo 1 ✅
+
+Autor: Pedro (con Claude Code). Sin cambios de código.
+
+Con el arreglo `0044` puesto, Pedro repitió con dispositivos reales (PC y celular, el internet cortado de verdad) los dos escenarios que habían fallado en la prueba de la madrugada.
+
+### Antes de probar
+- Se confirmó en el SQL Editor que la función desplegada en Supabase ya tiene `new.fusionada_en := v_existente.id` (`prosrc like …` → `true`).
+- Se cerraron las 3 cuentas que habían quedado abiertas de la prueba anterior (mesas 1, 2 y 5), con sus platos pendientes anulados ("Limpieza tras prueba offline 2026-11-12"), y se liberaron las mesas. Quedaron 0 cuentas abiertas.
+
+### Resultados
+- **Escenario 5:** mesonero (PC) y supervisor (celular) abrieron la mesa 2 sin internet y cargaron 2 platos + 1 plato. Al volver la conexión, la mesa aparece una sola vez y la cuenta tiene los 3 platos, también al cobrar. ✅
+- **Escenario 6:** el cliente por QR (celular con datos móviles) pidió 2 platos en la mesa 3 mientras el mesonero (PC sin internet) cargaba 1. Al volver, una sola cuenta con los 3 platos, a nombre del mesonero, y los del QR aprobados con el botón nuevo. ✅
+- **`verificar_offline.sql`:**
+  - bloques 1, 3 y 4 vacíos;
+  - bloque 2 con las dos cuentas unidas (mesa 2, abierta por el supervisor; mesa 3, abierta por el mesonero);
+  - bloque 5: mesa 2 con 2 platos del mesonero y 1 del supervisor, mesa 3 con 2 platos del QR y 1 del mesonero, todos en cocina.
+
+**La unión de cuentas funciona en producción. Fase 8, Módulo 1 ✅.**
+
+Desde ahora, cada migración que cree o cambie una función viene con una consulta para confirmar que lo que corre en Supabase es igual al archivo. Así se habría detectado antes el problema de la `0031`/`0032`.
+
+---
+
 ## 2026-11-12 — Prueba offline real (Fase 8, Módulo 1): bug crítico de fusión encontrado y arreglado
 
 Autor: César (con Claude Code), sobre la prueba hecha con Pedro. Migración `0044`.
