@@ -20,10 +20,11 @@ export function esOrigenLocal(origen: string) {
 }
 
 // Datos de la hoja imprimible de QR (Fase 8, Módulo 4, piloto): una
-// tarjeta por mesa de la sede, con el enlace del autopedido de esa mesa
-// (/autopedido/:mesaId, el mismo de "Enlace del QR" en Mesas) y la marca
-// del restaurante. Necesita internet, como todo administración.
-export function useHojaQR() {
+// tarjeta por mesa de la sede, o solo la de soloMesaId para reponer un QR.
+// Cada una con el enlace del autopedido de esa mesa (/autopedido/:mesaId,
+// el mismo de "Enlace del QR" en Mesas) y la marca del restaurante.
+// Necesita internet, como todo administración.
+export function useHojaQR(soloMesaId?: string | null) {
   const { usuario } = useUsuario()
   const [tarjetas, setTarjetas] = useState<TarjetaQR[]>([])
   const [restaurante, setRestaurante] = useState<{ nombre: string | null; logo: string | null }>({
@@ -41,7 +42,8 @@ export function useHojaQR() {
 
     Promise.all([fetchMesas(usuario.tenant_id, usuario.sede_id), fetchMarcaPropia().catch(() => null)])
       .then(async ([mesas, marca]) => {
-        const ordenadas = [...mesas].sort((a, b) =>
+        const elegidas = soloMesaId ? mesas.filter((m) => m.id === soloMesaId) : mesas
+        const ordenadas = [...elegidas].sort((a, b) =>
           a.nombre_numero.localeCompare(b.nombre_numero, 'es', { numeric: true }),
         )
         const listas = await Promise.all(
@@ -67,7 +69,7 @@ export function useHojaQR() {
     return () => {
       cancelado = true
     }
-  }, [usuario?.tenant_id, usuario?.sede_id, origen])
+  }, [usuario?.tenant_id, usuario?.sede_id, origen, soloMesaId])
 
   return { usuario, tarjetas, restaurante, cargando, error, origenLocal: esOrigenLocal(origen) }
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useHojaQR } from '../../../controllers/administracion/useHojaQR'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
@@ -16,10 +16,13 @@ const TAMANOS: Record<Tamano, { etiqueta: string; columnas: string; qr: string; 
 // Hoja imprimible con el QR de cada mesa (Fase 8, Módulo 4, piloto). Cada
 // tarjeta lleva el nombre y el logo del restaurante, el número de mesa y
 // el QR de su autopedido. Página propia, sin la barra de administración,
-// para que al imprimir salgan solo las tarjetas.
+// para que al imprimir salgan solo las tarjetas. Con ?mesa=<id> muestra
+// solo esa mesa ("Ver QR de esta mesa" en Mesas), para reponer un QR.
 export default function HojaQRPage() {
-  const { usuario, tarjetas, restaurante, cargando, error, origenLocal } = useHojaQR()
-  const [tamano, setTamano] = useState<Tamano>('mediano')
+  const [params] = useSearchParams()
+  const soloMesaId = params.get('mesa')
+  const { usuario, tarjetas, restaurante, cargando, error, origenLocal } = useHojaQR(soloMesaId)
+  const [tamano, setTamano] = useState<Tamano>(soloMesaId ? 'grande' : 'mediano')
   const t = TAMANOS[tamano]
 
   if (!usuario) return <LoadingSpinner message="Cargando tu perfil…" />
@@ -33,9 +36,20 @@ export default function HojaQRPage() {
             <Link to="/administracion/mesas" className="text-xs font-bold text-[var(--orange-dark)]">
               ← Volver a Mesas
             </Link>
-            <h1 className="mt-1 text-2xl font-extrabold">QR de las mesas</h1>
+            <h1 className="mt-1 text-2xl font-extrabold">
+              {soloMesaId && tarjetas[0] ? `QR de la mesa ${tarjetas[0].mesa}` : 'QR de las mesas'}
+            </h1>
             <p className="text-[12.5px] text-[var(--ink-soft)]">
-              Una tarjeta por mesa. El cliente escanea y ve el menú de esa mesa para pedir.
+              {soloMesaId ? (
+                <>
+                  Para reponer el QR de una sola mesa.{' '}
+                  <Link to="/administracion/mesas/qr" className="font-bold text-[var(--orange-dark)]">
+                    Ver todas las mesas
+                  </Link>
+                </>
+              ) : (
+                'Una tarjeta por mesa. El cliente escanea y ve el menú de esa mesa para pedir.'
+              )}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -74,7 +88,9 @@ export default function HojaQRPage() {
           <LoadingSpinner message="Preparando los QR…" />
         ) : tarjetas.length === 0 && !error ? (
           <p className="py-12 text-center text-sm text-[var(--ink-soft)]">
-            Esta sede todavía no tiene mesas. Agrégalas en Administración → Mesas.
+            {soloMesaId
+              ? 'Esa mesa no existe o es de otra sede.'
+              : 'Esta sede todavía no tiene mesas. Agrégalas en Administración → Mesas.'}
           </p>
         ) : (
           <div className={`grid gap-4 ${t.columnas} print:gap-3`}>

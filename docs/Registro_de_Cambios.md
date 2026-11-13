@@ -13,6 +13,7 @@ Primera pieza del piloto con Roof (`docs/Plan_Piloto_Roof.md`). En **Administrac
 - **El enlace:** el QR apunta al autopedido de esa mesa (`/autopedido/:mesaId`), el mismo enlace que "Enlace del QR".
 - **Tamaños:** grande (2 por hoja), mediano (4) o chico (9). El botón **Imprimir** usa el diálogo del navegador; al imprimir salen solo las tarjetas, sin barras ni avisos.
 - **Aviso de copia local:** si se abre desde `localhost`, avisa que esos QR apuntarían a la computadora y no a la app publicada.
+- **Una sola mesa:** en el panel de cada mesa, junto a "Copiar enlace" y "Abrir vista del cliente" (que se quedan), hay un enlace nuevo, **"Ver QR de esta mesa"**. Abre la misma hoja solo con esa tarjeta, en tamaño grande, para reponer un QR roto o perdido.
 - **Cómo se dibuja:** el QR se genera con la librería `qrcode` como SVG, nítido a cualquier tamaño, con corrección de errores media para que aguante manchas o dobleces. La página se carga aparte y solo al abrirla (28 KB).
 
 ---

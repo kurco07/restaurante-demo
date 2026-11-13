@@ -308,7 +308,7 @@ function EnlaceAutopedido({ mesaId }: { mesaId: string }) {
     <div>
       <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">Enlace del QR</p>
       <p className="break-all rounded-lg bg-[var(--surface-alt)] px-3 py-2 text-[11.5px]">{url}</p>
-      <div className="mt-1.5 flex gap-3 text-[12px] font-bold text-[var(--orange-dark)]">
+      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[12px] font-bold text-[var(--orange-dark)]">
         <button
           type="button"
           onClick={() =>
@@ -323,6 +323,8 @@ function EnlaceAutopedido({ mesaId }: { mesaId: string }) {
         <a href={url} target="_blank" rel="noreferrer">
           Abrir vista del cliente
         </a>
+        {/* La misma hoja de QR, solo con esta mesa: para reponer un QR roto o perdido */}
+        <Link to={`/administracion/mesas/qr?mesa=${mesaId}`}>Ver QR de esta mesa</Link>
       </div>
     </div>
   )
