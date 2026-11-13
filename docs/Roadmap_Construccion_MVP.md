@@ -352,7 +352,15 @@ Tamaño de la PWA, tiempos de carga, rendimiento en dispositivos de gama baja (r
 - *✅ **Aplicado y verificado** (rama `feature/fase8-historial-2-dias`, 2026-11-10): cada dispositivo guarda solo lo de su sede, las cuentas abiertas y lo de los **últimos 2 días** (decisión de Pedro, 2026-11-09). Antes bajaba todo el historial de todas las sedes. Migración `0043` (columnas de archivado + proceso diario con pg_cron) y reglas nuevas de PowerSync, ya en formato *Sync Streams*, en `docs/Supabase_PowerSync_Setup_Comandos.md`.*
 
 **Módulo 4 — Piloto beta**
-Con restaurantes reales, según lo ya definido en `Estrategia_Comercial_Ejecucion.md`.
+Con restaurantes reales, según lo ya definido en `Estrategia_Comercial_Ejecutiva.md`.
+
+🟡 *Planeado el 2026-11-13 (Pedro), plan completo en `docs/Plan_Piloto_Roof.md`:*
+- *El piloto es **Roof, una sede**.*
+- *La carga de datos la hacen Pedro y César.*
+- *Los QR salen de una hoja imprimible en la app.*
+- *Capacitación con una sesión y una guía de 1 página por rol.*
+- *Soporte por WhatsApp directo, con un botón "Ayuda" en la app.*
+- *Se mide con pedidos sin errores, inventario que cuadra contra un conteo físico, uso real de la app y una encuesta al dueño y al personal.*
 
 Nota honesta sobre el orden: esto significa que el piloto beta se corre con la interfaz de pruebas, no con la versión pulida de la Fase 9. Es una decisión válida — valida primero que la propuesta central funcione (que no se pierda un pedido, que el inventario cuadre) sin el costo de pulir una pantalla que todavía puede cambiar por feedback real. La contrapartida es que los restaurantes del piloto van a ver algo funcional pero visualmente básico, así que hay que ser claro con ellos en la oferta piloto sobre eso.
 
