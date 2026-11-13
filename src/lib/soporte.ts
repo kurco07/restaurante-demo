@@ -9,7 +9,7 @@ export interface ContactoSoporte {
 
 export const CONTACTOS_SOPORTE: ContactoSoporte[] = [
   { nombre: 'Pedro', telefono: '584249527732' },
-  { nombre: 'César', telefono: '58410884122' },
+  { nombre: 'César', telefono: '584120884122' },
 ]
 
 // Enlace de WhatsApp con el mensaje ya escrito (funciona en el celular, con

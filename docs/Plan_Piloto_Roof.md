@@ -30,7 +30,7 @@ Se usa con la interfaz actual: funcional pero básica. **Hay que decírselo clar
 ## Qué hay que preparar
 ### Para construir
 - [x] Hoja imprimible de QR por mesa: Administración → Mesas → **"Imprimir QR de las mesas"** (`/administracion/mesas/qr`). Construida el 2026-11-13, **falta que Pedro la pruebe**.
-- [x] Botón **"Ayuda"** que abre el WhatsApp de soporte: en las barras de mesonero y cocina y en la barra lateral de administración y gerencia. Los contactos están en `src/lib/soporte.ts`: hoy Pedro (+58 424 9527732) y César. Más adelante puede cambiar, por ejemplo a la jefa del equipo; basta con editar esa lista.
+- [x] Botón **"Ayuda"** que abre el WhatsApp de soporte: en las barras de mesonero y cocina y en la barra lateral de administración y gerencia. Los contactos están en `src/lib/soporte.ts`: hoy Pedro (+58 424 9527732) y César (+58 412 0884122). Más adelante puede cambiar, por ejemplo a la jefa del equipo; basta con editar esa lista.
 - [ ] Consultas de medición del piloto, de solo lectura (puntos 1 y 3 de arriba).
 
 ### Para escribir
@@ -48,7 +48,7 @@ Se usa con la interfaz actual: funcional pero básica. **Hay que decírselo clar
 - [ ] Explicarle a Roof qué es el piloto y que la interfaz es básica.
 
 ## Falta
-- ~~Número de WhatsApp de soporte~~: los dos, Pedro y César (2026-11-13). **Falta confirmar el número de César** (como se pasó, `+5841-0884122`, le falta un dígito).
+- ~~Número de WhatsApp de soporte~~: los dos, Pedro y César (2026-11-13).
 - **Qué sede de Roof**, cuántas mesas tiene y quiénes del personal van a usar la app (nombres y roles).
 - **Fecha de inicio** de los 14 días.
 - **Quién va a la sesión de capacitación** y si alguien acompaña el primer servicio.
