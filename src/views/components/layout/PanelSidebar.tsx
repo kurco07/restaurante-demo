@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../controllers/auth/useAuth'
+import { BotonAyuda } from './BotonAyuda'
 import type { Rol } from '../../../models/types'
 
 export interface EnlaceSidebar {
@@ -88,11 +89,14 @@ export function PanelSidebar({ enlaces, nombre, rol }: PanelSidebarProps) {
           <div className="text-[11px] text-[var(--sidebar-text)]/60">{etiquetaRol[rol] ?? rol}</div>
         </div>
       </div>
+      <div className="mt-2">
+        <BotonAyuda nombre={nombre} rol={etiquetaRol[rol] ?? rol} variante="lateral" />
+      </div>
       <button
         type="button"
         onClick={cerrarSesion}
         disabled={saliendo}
-        className="mt-2 flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13.5px] font-semibold text-[var(--sidebar-text)]/70 hover:bg-[var(--sidebar-text)]/5 hover:text-[var(--sidebar-text)] disabled:opacity-50"
+        className="flex items-center gap-3 rounded-[10px] px-3 py-2.5 text-[13.5px] font-semibold text-[var(--sidebar-text)]/70 hover:bg-[var(--sidebar-text)]/5 hover:text-[var(--sidebar-text)] disabled:opacity-50"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} className="h-[17px] w-[17px] shrink-0">
           <path d="M15 4h3a2 2 0 012 2v12a2 2 0 01-2 2h-3M10 17l-5-5 5-5M5 12h11" />

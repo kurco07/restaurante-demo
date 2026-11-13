@@ -3,6 +3,7 @@ import { useCocina } from '../../../../controllers/cocina/useCocina'
 import type { Rol, Usuario } from '../../../../models/types'
 import { BarraSuperior, type PestanaBarra } from '../../../components/layout/BarraSuperior'
 import { IndicadorConexion } from '../../../components/layout/IndicadorConexion'
+import { BotonAyuda } from '../../../components/layout/BotonAyuda'
 import { MenuUsuario } from '../../../components/layout/MenuUsuario'
 
 const ETIQUETA_ROL: Partial<Record<Rol, string>> = {
@@ -70,6 +71,7 @@ export function BarraCocina({ usuario, sugeridos }: { usuario: Usuario; sugerido
       derecha={
         <>
           <IndicadorConexion />
+          <BotonAyuda nombre={usuario.nombre} rol={ETIQUETA_ROL[usuario.rol] ?? usuario.rol} />
           <Reloj />
           <MenuUsuario nombre={usuario.nombre} rol={ETIQUETA_ROL[usuario.rol] ?? usuario.rol} />
         </>
