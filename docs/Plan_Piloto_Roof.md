@@ -29,7 +29,7 @@ Se usa con la interfaz actual: funcional pero básica. **Hay que decírselo clar
 
 ## Qué hay que preparar
 ### Para construir
-- [ ] Hoja imprimible de QR por mesa (Administración → Mesas).
+- [x] Hoja imprimible de QR por mesa: Administración → Mesas → **"Imprimir QR de las mesas"** (`/administracion/mesas/qr`). Construida el 2026-11-13, **falta que Pedro la pruebe**.
 - [ ] Botón "Ayuda" que abre el WhatsApp de soporte.
 - [ ] Consultas de medición del piloto, de solo lectura (puntos 1 y 3 de arriba).
 

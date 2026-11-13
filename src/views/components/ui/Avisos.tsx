@@ -17,7 +17,7 @@ export function Avisos() {
   return (
     <div
       aria-live="polite"
-      className="pointer-events-none fixed inset-x-0 bottom-4 z-[1000] flex flex-col items-center gap-2 px-4"
+      className="pointer-events-none fixed inset-x-0 bottom-4 z-[1000] print:hidden flex flex-col items-center gap-2 px-4"
     >
       {avisos.map((a) => (
         <div

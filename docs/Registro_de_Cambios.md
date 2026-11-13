@@ -4,6 +4,19 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-13 — Piloto: hoja imprimible de QR por mesa (Fase 8, Módulo 4)
+
+Rama: `feature/fase8-piloto-qr`. Autor: Pedro (con Claude Code). Sin migraciones.
+
+Primera pieza del piloto con Roof (`docs/Plan_Piloto_Roof.md`). En **Administración → Mesas** hay un botón nuevo, **"Imprimir QR de las mesas"**, que abre `/administracion/mesas/qr`:
+- **Las tarjetas:** una por mesa de la sede, ordenadas por número. Cada una lleva el logo y el nombre del restaurante (de su marca), "Mesa N", el QR y "Escanea para ver el menú y pedir".
+- **El enlace:** el QR apunta al autopedido de esa mesa (`/autopedido/:mesaId`), el mismo enlace que "Enlace del QR".
+- **Tamaños:** grande (2 por hoja), mediano (4) o chico (9). El botón **Imprimir** usa el diálogo del navegador; al imprimir salen solo las tarjetas, sin barras ni avisos.
+- **Aviso de copia local:** si se abre desde `localhost`, avisa que esos QR apuntarían a la computadora y no a la app publicada.
+- **Cómo se dibuja:** el QR se genera con la librería `qrcode` como SVG, nítido a cualquier tamaño, con corrección de errores media para que aguante manchas o dobleces. La página se carga aparte y solo al abrirla (28 KB).
+
+---
+
 ## 2026-11-12 (tarde) — Se repite la prueba de unión de cuentas: Fase 8, Módulo 1 ✅
 
 Autor: Pedro (con Claude Code). Sin cambios de código.

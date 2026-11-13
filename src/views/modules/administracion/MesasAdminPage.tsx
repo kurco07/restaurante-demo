@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 import { ErrorMessage } from '../../components/ui/ErrorMessage'
@@ -130,14 +131,23 @@ export default function MesasAdminPage() {
             </button>
           </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => setColocando(true)}
-            disabled={m.guardando}
-            className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-bold text-[var(--ink)] disabled:opacity-50"
-          >
-            + Agregar mesa
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {/* Hoja con el QR de cada mesa, para imprimir (Fase 8, Módulo 4) */}
+            <Link
+              to="/administracion/mesas/qr"
+              className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-bold text-[var(--ink)]"
+            >
+              Imprimir QR de las mesas
+            </Link>
+            <button
+              type="button"
+              onClick={() => setColocando(true)}
+              disabled={m.guardando}
+              className="rounded-full border border-[var(--border)] bg-[var(--surface)] px-3.5 py-1.5 text-xs font-bold text-[var(--ink)] disabled:opacity-50"
+            >
+              + Agregar mesa
+            </button>
+          </div>
         )}
       </div>
 

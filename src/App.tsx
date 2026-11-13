@@ -37,6 +37,7 @@ const PedidosAdminPage = lazy(() => import('./views/modules/administracion/Pedid
 const MovimientosPage = lazy(() => import('./views/modules/administracion/MovimientosPage'))
 const ConteoFisicoPage = lazy(() => import('./views/modules/administracion/ConteoFisicoPage'))
 const MesasAdminPage = lazy(() => import('./views/modules/administracion/MesasAdminPage'))
+const HojaQRPage = lazy(() => import('./views/modules/administracion/HojaQRPage'))
 const InsumosPage = lazy(() => import('./views/modules/administracion/InsumosPage'))
 const LotesPage = lazy(() => import('./views/modules/administracion/LotesPage'))
 const ConfiguracionPage = lazy(() => import('./views/modules/administracion/ConfiguracionPage'))
@@ -62,7 +63,7 @@ export default function App() {
       <UsuarioProvider>
         <BrowserRouter>
           {/* Franjas de arriba: versión nueva y "sin conexión" en gestión */}
-          <div className="sticky top-0 z-[1001]">
+          <div className="sticky top-0 z-[1001] print:hidden">
             <AvisoVersionNueva />
             <AvisoSinConexion />
           </div>
@@ -260,6 +261,17 @@ export default function App() {
                   <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
                     <RedDeModulo nombre="administración">
                       <ConfiguracionPage />
+                    </RedDeModulo>
+                  </ProtectedRoute>
+                }
+              />
+              {/* Hoja imprimible con el QR de cada mesa (Fase 8, Módulo 4, piloto) */}
+              <Route
+                path="/administracion/mesas/qr"
+                element={
+                  <ProtectedRoute allowedRoles={rolesPorModulo['/administracion']}>
+                    <RedDeModulo nombre="administración">
+                      <HojaQRPage />
                     </RedDeModulo>
                   </ProtectedRoute>
                 }
