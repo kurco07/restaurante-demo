@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useUsuario } from '../usuario/useUsuario'
 import type { Empleado, Rol } from '../../models/types'
-import { fetchEmpleados, gestionarEmpleado } from '../../models/services/empleadoService'
+import { fetchEmpleados, gestionarEmpleado, resetearContrasena } from '../../models/services/empleadoService'
 
 type FiltroRol = 'todos' | Rol
 
@@ -79,6 +79,15 @@ export function usePersonal() {
     }
   }
 
+  async function resetearContrasenaDe(id: string, nueva: string) {
+    setActuando(true)
+    try {
+      await resetearContrasena(id, nueva)
+    } finally {
+      setActuando(false)
+    }
+  }
+
   return {
     cargando,
     error,
@@ -93,6 +102,7 @@ export function usePersonal() {
     actuando,
     activarODesactivar,
     eliminar,
+    resetearContrasenaDe,
     totales: {
       registrados: empleados.length,
       activos: empleados.filter((e) => e.activo).length,

@@ -1,18 +1,22 @@
 // ============================================================
-// Fase 7, Módulo 6 — Activar/desactivar y eliminar empleados
+// Fase 7, Módulo 6 — Activar/desactivar, eliminar y resetear contraseña
 // ============================================================
 // Misma convención que crear-empleado: anon key + JWT del que llama para
 // derivar su propio tenant_id/rol por RLS, clave de servicio solo para
 // lo que RLS no puede hacer (bloquear el login de verdad, borrar la
-// cuenta de Auth). El usuario objetivo se valida contra el tenant del
-// que llama leyéndolo con SU sesión (RLS), nunca confiando el tenant_id
-// del body — y nadie puede actuar sobre su propia cuenta.
+// cuenta de Auth, cambiar la contraseña). El usuario objetivo se valida
+// contra el tenant del que llama leyéndolo con SU sesión (RLS), nunca
+// confiando el tenant_id del body — y nadie puede actuar sobre su propia
+// cuenta.
 //
 // Desactivar banea al usuario en Supabase Auth (bloquea login/renovar
 // token de verdad, no es solo una bandera decorativa). No corta una
 // sesión de mesa ya abierta ni un dispositivo que siga offline — no hay
 // forma limpia de "desconectar" algo que ya está autenticado localmente;
 // solo impide que vuelva a entrar.
+//
+// resetear_contrasena (2026-11-14): administración siempre controla la
+// contraseña del empleado — el empleado nunca la cambia él mismo.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { autenticar, CORS, responder } from '../_shared/http.ts'
 
@@ -29,9 +33,13 @@ Deno.serve(async (req) => {
   const body = await req.json().catch(() => null)
   const usuarioId = typeof body?.usuario_id === 'string' ? body.usuario_id : ''
   const accion = typeof body?.accion === 'string' ? body.accion : ''
+  const nuevaContrasena = typeof body?.nueva_contrasena === 'string' ? body.nueva_contrasena : ''
 
-  if (!usuarioId || !['activar', 'desactivar', 'eliminar'].includes(accion)) {
+  if (!usuarioId || !['activar', 'desactivar', 'eliminar', 'resetear_contrasena'].includes(accion)) {
     return responder({ ok: false, mensaje: 'Faltan datos o la acción no es válida.' }, 400)
+  }
+  if (accion === 'resetear_contrasena' && nuevaContrasena.length < 6) {
+    return responder({ ok: false, mensaje: 'La contraseña debe tener al menos 6 caracteres.' }, 400)
   }
   if (usuarioId === perfil.id) {
     return responder({ ok: false, mensaje: 'No puedes hacerte esto a ti mismo.' }, 400)
@@ -51,6 +59,15 @@ Deno.serve(async (req) => {
     if (error) {
       console.error(error)
       return responder({ ok: false, mensaje: 'No se pudo eliminar el empleado.' }, 500)
+    }
+    return responder({ ok: true })
+  }
+
+  if (accion === 'resetear_contrasena') {
+    const { error } = await admin.auth.admin.updateUserById(usuarioId, { password: nuevaContrasena })
+    if (error) {
+      console.error(error)
+      return responder({ ok: false, mensaje: 'No se pudo cambiar la contraseña.' }, 500)
     }
     return responder({ ok: true })
   }

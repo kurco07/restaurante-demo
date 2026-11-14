@@ -57,7 +57,7 @@ export default function PersonalPage() {
 
       {invitado && (
         <p className="mb-4 rounded-xl bg-[var(--green-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--green)]">
-          Invitación enviada — el empleado va a aparecer en la lista en cuanto acepte y entre por primera vez.
+          Empleado creado — ya puede entrar con el correo y la contraseña que le diste.
         </p>
       )}
 
@@ -151,10 +151,12 @@ export default function PersonalPage() {
         <div className="h-fit rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5">
           {p.seleccionado ? (
             <FichaEmpleado
+              key={p.seleccionado.id}
               empleado={p.seleccionado}
               actuando={p.actuando}
               onActivarODesactivar={(activo) => p.activarODesactivar(p.seleccionado!.id, activo)}
               onEliminar={() => p.eliminar(p.seleccionado!.id)}
+              onResetearContrasena={(nueva) => p.resetearContrasenaDe(p.seleccionado!.id, nueva)}
             />
           ) : (
             <p className="text-sm text-[var(--ink-soft)]">Selecciona un empleado para ver su ficha.</p>
@@ -170,13 +172,18 @@ function FichaEmpleado({
   actuando,
   onActivarODesactivar,
   onEliminar,
+  onResetearContrasena,
 }: {
   empleado: NonNullable<ReturnType<typeof usePersonal>['seleccionado']>
   actuando: boolean
   onActivarODesactivar: (activo: boolean) => Promise<void>
   onEliminar: () => Promise<void>
+  onResetearContrasena: (nueva: string) => Promise<void>
 }) {
   const [confirmandoEliminar, setConfirmandoEliminar] = useState(false)
+  const [resetenando, setResetenando] = useState(false)
+  const [nuevaContrasena, setNuevaContrasena] = useState('')
+  const [contrasenaCambiada, setContrasenaCambiada] = useState(false)
 
   return (
     <>
@@ -210,6 +217,73 @@ function FichaEmpleado({
           Acceso a: app de {empleado.rol === 'administracion' ? 'administración' : ETIQUETA_ROL[empleado.rol].toLowerCase()}.
           Desactivar bloquea su inicio de sesión de inmediato.
         </p>
+
+        {!resetenando ? (
+          <button
+            type="button"
+            onClick={() => {
+              setResetenando(true)
+              setContrasenaCambiada(false)
+            }}
+            className="rounded-lg border border-[var(--border)] px-3 py-2.5 text-[13px] font-bold text-[var(--ink)]"
+          >
+            Resetear contraseña
+          </button>
+        ) : (
+          <div className="rounded-lg border border-[var(--border)] p-3">
+            {contrasenaCambiada ? (
+              <>
+                <p className="mb-2 text-[12.5px] font-semibold text-[var(--green)]">
+                  Contraseña cambiada — dásela ahora al empleado, no se puede volver a ver.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setResetenando(false)}
+                  className="w-full rounded-lg border border-[var(--border)] py-2 text-[13px] font-bold text-[var(--ink-soft)]"
+                >
+                  Listo
+                </button>
+              </>
+            ) : (
+              <>
+                <label className="mb-2 flex flex-col gap-1 text-[11.5px] font-bold text-[var(--ink)]">
+                  Nueva contraseña
+                  <input
+                    type="text"
+                    value={nuevaContrasena}
+                    onChange={(e) => setNuevaContrasena(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    className="rounded-lg border border-[var(--border)] px-3 py-2 text-[13px] font-normal"
+                  />
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetenando(false)
+                      setNuevaContrasena('')
+                    }}
+                    className="flex-1 rounded-lg border border-[var(--border)] py-2 text-[13px] font-bold text-[var(--ink-soft)]"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    disabled={actuando || nuevaContrasena.length < 6}
+                    onClick={async () => {
+                      await onResetearContrasena(nuevaContrasena)
+                      setNuevaContrasena('')
+                      setContrasenaCambiada(true)
+                    }}
+                    className="flex-1 rounded-lg bg-[var(--orange)] py-2 text-[13px] font-bold text-white disabled:opacity-50"
+                  >
+                    {actuando ? 'Cambiando…' : 'Cambiar'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {!confirmandoEliminar ? (
           <button

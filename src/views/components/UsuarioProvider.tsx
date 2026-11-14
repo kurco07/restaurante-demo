@@ -4,8 +4,11 @@ import { usePowerSyncWatch } from '../../controllers/usePowerSyncWatch'
 import { useAplicarMarca } from '../../controllers/marca/useAplicarMarca'
 import { fetchMarcaPropia } from '../../models/services/marcaService'
 import { fetchModulosActivos, type ModuloOpcional } from '../../models/services/modulosService'
+import { avisar } from '../../controllers/avisos/avisos'
 import type { Usuario } from '../../models/types/usuario'
 import type { Marca } from '../../models/types/marca'
+
+const CLAVE_MI_SESION = 'beta-restaurant-mi-sesion'
 
 interface UsuarioContextValue {
   usuario: Usuario | null
@@ -30,10 +33,25 @@ export const UsuarioContext = createContext<UsuarioContextValue | undefined>(und
 // fetch que nunca puede completar sin conexión (CLAUDE.md: estos módulos
 // deben seguir funcionando sin internet).
 export function UsuarioProvider({ children }: { children: ReactNode }) {
-  const { user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading, signOut } = useAuth()
 
   const filas = usePowerSyncWatch<Usuario>('select * from usuarios where id = ?', [user?.id ?? ''])
   const usuario = filas[0] ?? null
+
+  // Un solo dispositivo conectado a la vez: si otro inició sesión después
+  // que este, usuarios.sesion_token (sincronizado por PowerSync) ya no
+  // coincide con el token que este dispositivo guardó en el login — se
+  // cierra solo. Sin red, este dispositivo no se entera hasta que vuelva
+  // a sincronizar: misma limitación que cualquier bloqueo de cuenta
+  // offline-first (no hay forma de avisarle a algo que no está conectado).
+  useEffect(() => {
+    if (!usuario?.sesion_token) return
+    const miToken = localStorage.getItem(CLAVE_MI_SESION)
+    if (miToken && miToken !== usuario.sesion_token) {
+      avisar.info('Tu cuenta se inició en otro dispositivo — por seguridad, se cerró esta sesión.', { fijo: true })
+      void signOut()
+    }
+  }, [usuario?.sesion_token, signOut])
 
   // "Cargando" solo mientras se resuelve el login en sí (authLoading) o
   // justo después de loguearse, antes de que llegue la primera sincronización

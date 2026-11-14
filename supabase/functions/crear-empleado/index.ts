@@ -9,9 +9,11 @@
 // con su propio JWT a través de RLS (igual que las funciones de IA), así
 // que no hay forma de inyectar un tenant_id ajeno.
 //
-// Se invita por correo (inviteUserByEmail) en vez de que el admin ponga
-// una contraseña a mano: el empleado la define al abrir el link, nadie
-// más la conoce.
+// Decisión del dueño (2026-11-14): administración pone la contraseña al
+// crear al empleado, en vez de invitarlo por correo a que ponga la suya.
+// Así administración siempre sabe cuál es la vigente (puede resetearla
+// desde gestionar-empleado si se olvida) y el empleado nunca se queda
+// sin poder entrar. El empleado nunca cambia su propia contraseña.
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { autenticar, CORS, responder } from '../_shared/http.ts'
 
@@ -29,9 +31,13 @@ Deno.serve(async (req) => {
   const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
   const rol = typeof body?.rol === 'string' ? body.rol : ''
   const sedeId = typeof body?.sede_id === 'string' ? body.sede_id : null
+  const password = typeof body?.password === 'string' ? body.password : ''
 
   if (!nombre || !email || !ROLES_QUE_PUEDE_CREAR.includes(rol)) {
     return responder({ ok: false, mensaje: 'Faltan datos o el rol no es válido.' }, 400)
+  }
+  if (password.length < 6) {
+    return responder({ ok: false, mensaje: 'La contraseña debe tener al menos 6 caracteres.' }, 400)
   }
 
   // La sede pedida tiene que ser del mismo tenant de quien llama — se
@@ -46,14 +52,18 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   })
 
-  const { data: invitado, error: errorInvitar } = await admin.auth.admin.inviteUserByEmail(email)
-  if (errorInvitar || !invitado.user) {
-    console.error(errorInvitar)
-    return responder({ ok: false, mensaje: 'No se pudo invitar a ese correo (¿ya tiene cuenta?).' }, 400)
+  const { data: creado, error: errorCrear } = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  })
+  if (errorCrear || !creado.user) {
+    console.error(errorCrear)
+    return responder({ ok: false, mensaje: 'No se pudo crear la cuenta (¿ese correo ya tiene una?).' }, 400)
   }
 
   const { error: errorUsuario } = await admin.from('usuarios').insert({
-    id: invitado.user.id,
+    id: creado.user.id,
     tenant_id: perfil.tenant_id,
     sede_id: sedeId,
     nombre,
@@ -62,9 +72,9 @@ Deno.serve(async (req) => {
   })
   if (errorUsuario) {
     console.error(errorUsuario)
-    await admin.auth.admin.deleteUser(invitado.user.id)
+    await admin.auth.admin.deleteUser(creado.user.id)
     return responder({ ok: false, mensaje: 'No se pudo crear el perfil del empleado.' }, 500)
   }
 
-  return responder({ ok: true, usuarioId: invitado.user.id })
+  return responder({ ok: true, usuarioId: creado.user.id })
 })

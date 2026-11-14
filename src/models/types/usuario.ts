@@ -14,4 +14,5 @@ export interface Usuario {
   contacto: string | null
   rol: Rol
   creado_en: string
+  sesion_token: string | null
 }

@@ -37,6 +37,9 @@ const usuarios = new Table({
   contacto: column.text,
   rol: column.text,
   creado_en: column.text,
+  // Sesión única por cuenta: el dispositivo cuyo token local deja de
+  // coincidir con este se cierra solo (UsuarioProvider.tsx).
+  sesion_token: column.text,
 })
 
 const categorias_menu = new Table({

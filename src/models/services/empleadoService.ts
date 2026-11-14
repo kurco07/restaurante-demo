@@ -9,17 +9,19 @@ interface ResultadoAccion {
   usuarioId?: string
 }
 
-// Invita a un empleado nuevo a su propio tenant (Fase 7, Módulo 6, Edge
+// Crea un empleado nuevo en su propio tenant (Fase 7, Módulo 6, Edge
 // Function crear-empleado) — solo administracion/gerencia puede llamarla.
-// El empleado recibe un correo para poner su propia contraseña.
+// Administración pone la contraseña (decisión del dueño, 2026-11-14): el
+// empleado nunca la elige ni la cambia él mismo.
 export async function crearEmpleado(datos: {
   nombre: string
   email: string
   rol: RolEmpleadoCreable
   sedeId: string | null
+  password: string
 }) {
   const { data, error } = await supabase.functions.invoke<ResultadoAccion>('crear-empleado', {
-    body: { nombre: datos.nombre, email: datos.email, rol: datos.rol, sede_id: datos.sedeId },
+    body: { nombre: datos.nombre, email: datos.email, rol: datos.rol, sede_id: datos.sedeId, password: datos.password },
   })
   if (error || !data?.ok) throw new Error(data?.mensaje ?? 'No se pudo crear el empleado.')
   return data
@@ -52,4 +54,13 @@ export async function gestionarEmpleado(usuarioId: string, accion: 'activar' | '
     body: { usuario_id: usuarioId, accion },
   })
   if (error || !data?.ok) throw new Error(data?.mensaje ?? 'No se pudo completar la acción.')
+}
+
+// Administración pone una contraseña nueva — el empleado nunca cambia la
+// suya (decisión del dueño, 2026-11-14).
+export async function resetearContrasena(usuarioId: string, nuevaContrasena: string) {
+  const { data, error } = await supabase.functions.invoke<ResultadoAccion>('gestionar-empleado', {
+    body: { usuario_id: usuarioId, accion: 'resetear_contrasena', nueva_contrasena: nuevaContrasena },
+  })
+  if (error || !data?.ok) throw new Error(data?.mensaje ?? 'No se pudo cambiar la contraseña.')
 }

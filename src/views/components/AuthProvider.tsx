@@ -26,6 +26,14 @@ export const AuthContext = createContext<AuthContextValue | undefined>(undefined
 // hasta que vuelva la conexión y el SDK reconcilie la sesión real.
 const CLAVE_CACHE = 'beta-restaurant-sesion-offline'
 
+// Un solo dispositivo conectado a la vez (decisión del dueño,
+// 2026-11-14): este es el token que generó ESTE dispositivo en su
+// último inicio de sesión. UsuarioProvider.tsx lo compara contra
+// usuarios.sesion_token (sincronizado por PowerSync) — si otro
+// dispositivo inició sesión después, los tokens dejan de coincidir y
+// este se cierra solo.
+const CLAVE_MI_SESION = 'beta-restaurant-mi-sesion'
+
 function guardarCache(session: Session) {
   try {
     localStorage.setItem(CLAVE_CACHE, JSON.stringify(session))
@@ -121,7 +129,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn: AuthContextValue['signIn'] = async (email, password) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error: error ? mensajeDeError(error, 'No se pudo iniciar sesión. Intenta de nuevo.') : null }
+    if (error) return { error: mensajeDeError(error, 'No se pudo iniciar sesión. Intenta de nuevo.') }
+
+    // Toma este dispositivo como el único activo — cualquier otro con
+    // sesión abierta antes se cierra solo apenas sincronice el cambio.
+    // No bloquea el login si falla: es un efecto secundario, no la
+    // autenticación en sí.
+    try {
+      const miToken = crypto.randomUUID()
+      const { error: errorToken } = await supabase.rpc('actualizar_mi_sesion', { p_token: miToken })
+      if (!errorToken) localStorage.setItem(CLAVE_MI_SESION, miToken)
+    } catch {
+      // sin red justo después del login, u otro fallo no crítico
+    }
+
+    return { error: null }
   }
 
   const signOut = async () => {
@@ -130,6 +152,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // llamada al servidor de Supabase (que invalida el refresh token del
     // lado del servidor) no pueda completarse sin conexión.
     borrarCache()
+    localStorage.removeItem(CLAVE_MI_SESION)
     await supabase.auth.signOut()
   }
 
