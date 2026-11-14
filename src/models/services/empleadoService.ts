@@ -64,3 +64,21 @@ export async function resetearContrasena(usuarioId: string, nuevaContrasena: str
   })
   if (error || !data?.ok) throw new Error(data?.mensaje ?? 'No se pudo cambiar la contraseña.')
 }
+
+// Enlace de acceso propio de cada empleado (migración 0046): administración
+// lo copia desde la ficha del empleado y se lo manda. No es para
+// administración — ese rol sigue entrando por el login normal.
+export function enlaceAccesoEmpleado(usuarioId: string) {
+  return `${window.location.origin}/acceso/${usuarioId}`
+}
+
+// Sin sesión a propósito (función pública, migración 0046): la pantalla
+// de acceso la necesita para saber a quién saludar y con qué correo
+// autenticar antes de que la persona haya iniciado sesión. Null = el
+// enlace ya no sirve (empleado desactivado, borrado, o es de
+// administración).
+export async function infoAccesoEmpleado(usuarioId: string): Promise<{ nombre: string; email: string } | null> {
+  const { data, error } = await supabase.rpc('info_acceso_empleado', { p_usuario_id: usuarioId })
+  if (error) throw error
+  return (data as { nombre: string; email: string } | null) ?? null
+}

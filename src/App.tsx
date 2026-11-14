@@ -17,6 +17,7 @@ import LoginPage from './views/modules/login/LoginPage'
 // worker guarda todas las partes al instalar la app. Solo el login va en el
 // paquete principal, porque es lo primero que se ve.
 const RegistroPage = lazy(() => import('./views/modules/registro/RegistroPage'))
+const AccesoEmpleadoPage = lazy(() => import('./views/modules/login/AccesoEmpleadoPage'))
 const MesoneroLayout = lazy(() => import('./views/modules/mesoneros/MesoneroLayout'))
 const MesonerosPage = lazy(() => import('./views/modules/mesoneros/MesonerosPage'))
 const MisPedidosPage = lazy(() => import('./views/modules/mesoneros/MisPedidosPage'))
@@ -75,6 +76,9 @@ export default function App() {
               <Route path="/" element={<Navigate to="/login" replace />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/registro" element={<RegistroPage />} />
+              {/* Enlace propio de cada empleado (no administración) — ver
+                  AccesoEmpleadoPage.tsx */}
+              <Route path="/acceso/:usuarioId" element={<AccesoEmpleadoPage />} />
               {/* /autopedido queda pública a propósito: es la vista del cliente por QR.
                   Sin :mesaId muestra "QR no válido". */}
               <Route

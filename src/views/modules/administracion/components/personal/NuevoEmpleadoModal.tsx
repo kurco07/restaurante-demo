@@ -5,7 +5,7 @@ import type { SedeResumen } from '../../../../../models/types'
 import { mensajeDeError } from '../../../../../lib/errores'
 
 interface NuevoEmpleadoModalProps {
-  onCreado: () => void
+  onCreado: (usuarioId: string) => void
   onCerrar: () => void
 }
 
@@ -45,8 +45,8 @@ export function NuevoEmpleadoModal({ onCreado, onCerrar }: NuevoEmpleadoModalPro
     setEnviando(true)
     setError(null)
     try {
-      await crearEmpleado({ nombre: nombre.trim(), email: email.trim(), rol, sedeId: sedeId || null, password })
-      onCreado()
+      const resultado = await crearEmpleado({ nombre: nombre.trim(), email: email.trim(), rol, sedeId: sedeId || null, password })
+      onCreado(resultado.usuarioId!)
     } catch (e) {
       setError(mensajeDeError(e, 'No se pudo crear el empleado.'))
     } finally {

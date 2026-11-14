@@ -6,6 +6,7 @@ import { AdminLayout } from './components/layout/AdminLayout'
 import { EstadoChip } from './components/panel/EstadoChip'
 import { NuevoEmpleadoModal } from './components/personal/NuevoEmpleadoModal'
 import { usePersonal } from '../../../controllers/administracion/usePersonal'
+import { enlaceAccesoEmpleado } from '../../../models/services/empleadoService'
 import type { Rol } from '../../../models/types'
 
 const ETIQUETA_ROL: Record<Rol, string> = {
@@ -21,7 +22,8 @@ export default function PersonalPage() {
   const { usuario, loading, error } = useUsuario()
   const p = usePersonal()
   const [mostrarNuevoEmpleado, setMostrarNuevoEmpleado] = useState(false)
-  const [invitado, setInvitado] = useState(false)
+  const [creadoId, setCreadoId] = useState<string | null>(null)
+  const [enlaceCreadoCopiado, setEnlaceCreadoCopiado] = useState(false)
 
   if (loading) return <LoadingSpinner message="Cargando tu perfil…" />
   if (error) return <ErrorMessage message={error} />
@@ -55,18 +57,39 @@ export default function PersonalPage() {
         </div>
       </header>
 
-      {invitado && (
-        <p className="mb-4 rounded-xl bg-[var(--green-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--green)]">
-          Empleado creado — ya puede entrar con el correo y la contraseña que le diste.
-        </p>
+      {creadoId && (
+        <div className="mb-4 rounded-xl bg-[var(--green-bg)] px-4 py-3 text-sm text-[var(--green)]">
+          <p className="mb-1.5 font-semibold">Empleado creado — mándale este enlace, ya sabe quién es:</p>
+          <p className="mb-1.5 break-all rounded-lg bg-white/60 px-3 py-2 text-[11.5px] text-[var(--ink)]">
+            {enlaceAccesoEmpleado(creadoId)}
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                navigator.clipboard.writeText(enlaceAccesoEmpleado(creadoId)).then(
+                  () => setEnlaceCreadoCopiado(true),
+                  () => setEnlaceCreadoCopiado(false),
+                )
+              }
+              className="text-[12px] font-bold"
+            >
+              {enlaceCreadoCopiado ? 'Copiado ✓' : 'Copiar enlace'}
+            </button>
+            <button type="button" onClick={() => setCreadoId(null)} className="text-[12px] font-bold text-[var(--ink-soft)]">
+              Listo
+            </button>
+          </div>
+        </div>
       )}
 
       {mostrarNuevoEmpleado && (
         <NuevoEmpleadoModal
           onCerrar={() => setMostrarNuevoEmpleado(false)}
-          onCreado={() => {
+          onCreado={(usuarioId) => {
             setMostrarNuevoEmpleado(false)
-            setInvitado(true)
+            setCreadoId(usuarioId)
+            setEnlaceCreadoCopiado(false)
           }}
         />
       )}
@@ -184,6 +207,8 @@ function FichaEmpleado({
   const [resetenando, setResetenando] = useState(false)
   const [nuevaContrasena, setNuevaContrasena] = useState('')
   const [contrasenaCambiada, setContrasenaCambiada] = useState(false)
+  const [enlaceCopiado, setEnlaceCopiado] = useState(false)
+  const esAdministracion = empleado.rol === 'administracion'
 
   return (
     <>
@@ -194,6 +219,32 @@ function FichaEmpleado({
         <Campo label="Teléfono" valor={empleado.telefono ?? '—'} />
         <Campo label="Correo" valor={empleado.email ?? '—'} />
         <Campo label="Fecha de ingreso" valor={new Date(empleado.fechaIngreso).toLocaleDateString('es')} muted />
+
+        {!esAdministracion && (
+          <div>
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-wide text-[var(--ink-soft)]">
+              Enlace de acceso
+            </p>
+            <p className="break-all rounded-lg bg-[var(--surface-alt)] px-3 py-2 text-[11.5px]">
+              {enlaceAccesoEmpleado(empleado.id)}
+            </p>
+            <button
+              type="button"
+              onClick={() =>
+                navigator.clipboard.writeText(enlaceAccesoEmpleado(empleado.id)).then(
+                  () => setEnlaceCopiado(true),
+                  () => setEnlaceCopiado(false),
+                )
+              }
+              className="mt-1.5 text-[12px] font-bold text-[var(--orange-dark)]"
+            >
+              {enlaceCopiado ? 'Copiado ✓' : 'Copiar enlace'}
+            </button>
+            <p className="mt-1 text-[11px] text-[var(--ink-soft)]">
+              Mándaselo por WhatsApp, correo o dáselo en persona — ya sabe quién es, solo le pide la contraseña.
+            </p>
+          </div>
+        )}
 
         <label className="mt-1 flex items-center justify-between text-[12.5px] font-semibold">
           Empleado activo
