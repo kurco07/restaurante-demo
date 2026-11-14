@@ -361,6 +361,7 @@ Con restaurantes reales, según lo ya definido en `Estrategia_Comercial_Ejecutiv
 - *Capacitación con una sesión y una guía de 1 página por rol.*
 - *Soporte por WhatsApp directo, con un botón "Ayuda" en la app.*
 - *Se mide con pedidos sin errores, inventario que cuadra contra un conteo físico, uso real de la app y una encuesta al dueño y al personal.*
+- *⚠️ **Pendiente de decidir con Roof:** cómo proteger el QR de las mesas (hoy el enlace es fijo y alguien podría pedir u ocupar una mesa desde fuera). Opciones en `docs/Pendiente_QR_Seguro.md`.*
 
 Nota honesta sobre el orden: esto significa que el piloto beta se corre con la interfaz de pruebas, no con la versión pulida de la Fase 9. Es una decisión válida — valida primero que la propuesta central funcione (que no se pierda un pedido, que el inventario cuadre) sin el costo de pulir una pantalla que todavía puede cambiar por feedback real. La contrapartida es que los restaurantes del piloto van a ver algo funcional pero visualmente básico, así que hay que ser claro con ellos en la oferta piloto sobre eso.
 
