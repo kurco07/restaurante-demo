@@ -5,6 +5,7 @@ import { useAplicarMarca } from '../../controllers/marca/useAplicarMarca'
 import { fetchMarcaPropia } from '../../models/services/marcaService'
 import { fetchModulosActivos, type ModuloOpcional } from '../../models/services/modulosService'
 import { avisar } from '../../controllers/avisos/avisos'
+import { supabase } from '../../lib/supabaseClient'
 import type { Usuario } from '../../models/types/usuario'
 import type { Marca } from '../../models/types/marca'
 
@@ -44,14 +45,35 @@ export function UsuarioProvider({ children }: { children: ReactNode }) {
   // cierra solo. Sin red, este dispositivo no se entera hasta que vuelva
   // a sincronizar: misma limitación que cualquier bloqueo de cuenta
   // offline-first (no hay forma de avisarle a algo que no está conectado).
+  //
+  // Antes de cerrar se confirma con el servidor (arreglo 2026-11-17): justo
+  // después de volver a iniciar sesión en ESTE mismo dispositivo, la copia
+  // local de PowerSync todavía tiene el token de la sesión anterior hasta
+  // que sincroniza, y se cerraba la sesión recién abierta creyendo que era
+  // otro dispositivo. Si el servidor ya tiene nuestro token, la copia local
+  // solo está atrasada y no se hace nada. Sin red no se puede confirmar:
+  // tampoco se cierra (se revisa de nuevo cuando sincronice).
   useEffect(() => {
-    if (!usuario?.sesion_token) return
+    if (!user?.id || !usuario?.sesion_token) return
     const miToken = localStorage.getItem(CLAVE_MI_SESION)
-    if (miToken && miToken !== usuario.sesion_token) {
-      avisar.info('Tu cuenta se inició en otro dispositivo — por seguridad, se cerró esta sesión.', { fijo: true })
-      void signOut()
+    if (!miToken || miToken === usuario.sesion_token) return
+    let cancelado = false
+    supabase
+      .from('usuarios')
+      .select('sesion_token')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelado || error || !data) return
+        if (data.sesion_token && data.sesion_token !== localStorage.getItem(CLAVE_MI_SESION)) {
+          avisar.info('Tu cuenta se inició en otro dispositivo — por seguridad, se cerró esta sesión.', { fijo: true })
+          void signOut()
+        }
+      })
+    return () => {
+      cancelado = true
     }
-  }, [usuario?.sesion_token, signOut])
+  }, [user?.id, usuario?.sesion_token, signOut])
 
   // "Cargando" solo mientras se resuelve el login en sí (authLoading) o
   // justo después de loguearse, antes de que llegue la primera sincronización

@@ -1,11 +1,12 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Navigate, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../controllers/auth/useAuth'
 import { supabase } from '../../../lib/supabaseClient'
 import { inicioDe } from '../../../lib/rolesPorModulo'
-import { mensajeDeError } from '../../../lib/errores'
+import { esErrorDeRed, mensajeDeError } from '../../../lib/errores'
 import { infoAccesoEmpleado } from '../../../models/services/empleadoService'
 import { useEnLinea } from '../../../controllers/useEnLinea'
+import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import type { Rol } from '../../../models/types'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import { IconoCandado, IconoOjo, IconoOjoTachado, IconoPersona } from '../../components/ui/IconosAuth'
@@ -16,13 +17,22 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner'
 // con su correo y contraseña. Acá el empleado no escribe correo — el
 // enlace ya sabe quién es (/acceso/<su id>), solo pide la contraseña que
 // le dio administración.
+//
+// Si la persona ya tiene la sesión abierta en este dispositivo, el enlace
+// la lleva directo a su pantalla en vez de volver a pedir la contraseña
+// (arreglo 2026-11-17: guardaban el enlace como acceso directo y parecía
+// que la sesión no se guardaba). Funciona también sin internet, porque la
+// sesión y el perfil están guardados en el dispositivo.
 export default function AccesoEmpleadoPage() {
   const { usuarioId } = useParams<{ usuarioId: string }>()
-  const { signIn } = useAuth()
+  const { signIn, user, loading: authLoading } = useAuth()
+  const { usuario } = useUsuario()
   const navigate = useNavigate()
   const enLinea = useEnLinea()
 
-  const [info, setInfo] = useState<{ nombre: string; email: string } | null | undefined>(undefined)
+  // 'sin_red' = no se pudo consultar el enlace por falta de internet (no
+  // es que el enlace sea inválido)
+  const [info, setInfo] = useState<{ nombre: string; email: string } | null | undefined | 'sin_red'>(undefined)
   const [password, setPassword] = useState('')
   const [mostrarPassword, setMostrarPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -32,12 +42,18 @@ export default function AccesoEmpleadoPage() {
     if (!usuarioId) return
     infoAccesoEmpleado(usuarioId)
       .then(setInfo)
-      .catch(() => setInfo(null))
-  }, [usuarioId])
+      .catch((e: unknown) => setInfo(esErrorDeRed(e) ? 'sin_red' : null))
+  }, [usuarioId, enLinea])
+
+  // Ya entró antes en este dispositivo con esta misma cuenta: directo a su
+  // pantalla
+  const yaConectado = !!user && user.id === usuarioId
+  if (yaConectado && usuario) return <Navigate to={inicioDe(usuario.rol)} replace />
+  if (authLoading || (yaConectado && !usuario)) return <LoadingSpinner message="Entrando…" />
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (!info) return
+    if (!info || info === 'sin_red') return
     setSubmitting(true)
     setError(null)
 
@@ -82,6 +98,13 @@ export default function AccesoEmpleadoPage() {
         <div className="flex w-full max-w-[400px] flex-col rounded-xl bg-white p-8 shadow-sm">
           {info === undefined ? (
             <LoadingSpinner message="Cargando…" />
+          ) : info === 'sin_red' ? (
+            <div className="text-center">
+              <h1 className="mb-2 text-xl font-bold text-gray-900">Sin conexión</h1>
+              <p className="text-sm text-gray-500">
+                Para entrar la primera vez en este dispositivo hace falta internet. Conéctate y se carga solo.
+              </p>
+            </div>
           ) : info === null ? (
             <div className="text-center">
               <h1 className="mb-2 text-xl font-bold text-gray-900">Este enlace ya no es válido</h1>
@@ -102,12 +125,25 @@ export default function AccesoEmpleadoPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                {/* El usuario (oculto) para que el navegador ofrezca guardar
+                    la contraseña y la complete sola la próxima vez */}
+                <input
+                  type="email"
+                  name="username"
+                  autoComplete="username"
+                  value={info.email}
+                  readOnly
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  className="sr-only"
+                />
                 <label className="flex flex-col gap-1.5 text-left text-sm">
                   <span className="font-medium text-gray-900">Contraseña</span>
                   <div className="relative flex items-center">
                     <IconoCandado className="pointer-events-none absolute left-3 h-[18px] w-[18px] text-gray-400" />
                     <input
                       type={mostrarPassword ? 'text' : 'password'}
+                      name="password"
                       autoComplete="current-password"
                       autoFocus
                       required
