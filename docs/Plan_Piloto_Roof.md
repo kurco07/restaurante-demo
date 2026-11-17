@@ -29,16 +29,20 @@ Se usa con la interfaz actual: funcional pero básica. **Hay que decírselo clar
 
 ## Qué hay que preparar
 ### Para construir
-- [x] Hoja imprimible de QR por mesa: Administración → Mesas → **"Imprimir QR de las mesas"** (`/administracion/mesas/qr`). Construida el 2026-11-13, **falta que Pedro la pruebe**.
+- [x] Hoja imprimible de QR por mesa: Administración → Mesas → **"Imprimir QR de las mesas"** (`/administracion/mesas/qr`). Construida el 2026-11-13; Pedro la revisó.
 - [x] Botón **"Ayuda"** que abre el WhatsApp de soporte: en las barras de mesonero y cocina y en la barra lateral de administración y gerencia. Los contactos están en `src/lib/soporte.ts`: hoy Pedro (+58 424 9527732) y César (+58 412 0884122). Más adelante puede cambiar, por ejemplo a la jefa del equipo; basta con editar esa lista.
-- [ ] Consultas de medición del piloto, de solo lectura (puntos 1 y 3 de arriba).
+- [x] Consultas de medición, de solo lectura: `supabase/diagnostico/medicion_piloto.sql` (2026-11-16, probadas en una base local):
+  - pedidos sin errores, bloques 1 a 6: resumen por día, cuentas sin cobro, cobros que no coinciden, cuentas dobles, duplicados y platos atascados;
+  - uso real, bloques 7 a 10: QR contra mesonero, mesas por día, actividad por persona y hora, anulaciones.
 
 ### Para escribir
-- [ ] Guía de 1 página para el mesonero.
-- [ ] Guía de 1 página para cocina.
-- [ ] Guía de 1 página para administración.
-- [ ] Lista de pasos para dejar listo el restaurante (onboarding).
-- [ ] Encuesta final para el dueño y el personal.
+- [x] Guía de 1 página para el mesonero: `docs/piloto/Guia_Mesonero.md`.
+- [x] Guía de 1 página para cocina: `docs/piloto/Guia_Cocina.md`.
+- [x] Guía de 1 página para administración: `docs/piloto/Guia_Administracion.md`.
+- [x] Lista de pasos para dejar listo el restaurante: `docs/piloto/Lista_de_Pasos_Onboarding.md`.
+- [x] Encuesta final para el dueño y el personal: `docs/piloto/Encuesta_Final.md`.
+
+*Escritos el 2026-11-16, con los nombres reales de los botones de la app y el acceso nuevo por enlace personal. **Falta que Pedro los revise.***
 
 ### Para hacer con el restaurante
 - [ ] Crear el restaurante de Roof en la plataforma y cargar su menú, recetas, mesas y personal.

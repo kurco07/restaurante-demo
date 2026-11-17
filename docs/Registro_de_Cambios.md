@@ -4,6 +4,24 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-16 — Piloto: material y consultas de medición (Fase 8, Módulo 4)
+
+Autor: Pedro (con Claude Code). Sin cambios de código ni migraciones.
+
+- **`supabase/diagnostico/medicion_piloto.sql`** (solo lectura, para el SQL Editor):
+  - **pedidos sin errores**, bloques 1 a 6: resumen por día, cuentas cerradas sin cobro, cobros que no coinciden con lo pedido, mesas con dos cuentas abiertas, posibles duplicados y platos atascados;
+  - **uso real**, bloques 7 a 10: pedidos por QR contra mesonero, mesas atendidas por día y cómo se abrieron, actividad por persona y hora, y anulaciones con sus motivos.
+
+  Se corrió entero en una base local con las 46 migraciones. **No se puede medir con consultas:** el tiempo de cocina, porque la base no guarda la hora de cada cambio de estado. El inventario se compara con los conteos físicos de la app.
+- **`docs/piloto/`:**
+  - guías de una página para **mesonero**, **cocina** y **administración**, con los nombres reales de los botones y el acceso por enlace personal;
+  - la **lista de pasos** para dejar listo un restaurante (antes, carga, capacitación, durante y al terminar);
+  - la **encuesta final** para el dueño y el personal, relacionada con los bloques de medición.
+
+**Pendiente:** que Pedro revise el material.
+
+---
+
 ## 2026-11-16 — Acceso de empleados: contraseña por administración, un dispositivo, enlace propio (César)
 
 Autor: César (con Claude Code). Lo anotó Pedro con Claude Code a partir de los commits `023d3a4`, `20509a9` y `5da0dc9`. **Decisión del dueño (2026-11-14).** Migraciones `0045` y `0046`; Pedro comprobó con una consulta de solo lectura que las dos están aplicadas en Supabase. Amplía la Fase 7, Módulo 6.
