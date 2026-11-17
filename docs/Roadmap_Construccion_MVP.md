@@ -318,6 +318,15 @@ Dentro de cada restaurante: administración/gerencia puede crear cuentas de meso
 
 En Administración → Personal se invita a empleados por correo, con la Edge Function `crear-empleado`. El `tenant_id` sale siempre de la sesión de quien invita, nunca del formulario.
 
+**Ampliado 2026-11-14/16 (César, decisión del dueño; migraciones `0045` y `0046`), acceso de empleados:**
+- Administración pone y resetea la contraseña de cada empleado. Ya no hay invitación por correo y el empleado no la cambia.
+- Un solo dispositivo con sesión activa por cuenta.
+- Cada empleado que no es de administración entra por su **enlace propio**, `/acceso/<id>`, que solo pide la contraseña.
+- `/login` queda solo para administración y super-admin.
+
+Detalle en `Registro_de_Cambios.md` (2026-11-16).
+- *📌 **Pendiente para más adelante:** la sesión única hoy la controla la app; cada dispositivo se cierra solo. Si algún día hace falta un bloqueo de verdad, hay que hacerlo también del lado del servidor. Ver el Registro.*
+
 ---
 
 ## Fase 8 — Endurecimiento y piloto

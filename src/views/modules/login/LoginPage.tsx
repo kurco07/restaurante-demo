@@ -8,7 +8,6 @@ import { useEnLinea } from '../../../controllers/useEnLinea'
 import type { Rol } from '../../../models/types'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import { IconoCandado, IconoCorreo, IconoEscudo, IconoOjo, IconoOjoTachado, IconoRestaurante } from '../../components/ui/IconosAuth'
-import { AccesosPrueba } from './components/AccesosPrueba'
 
 export default function LoginPage() {
   const { signIn, signOut } = useAuth()
@@ -168,10 +167,6 @@ export default function LoginPage() {
             <IconoEscudo className="h-[15px] w-[15px] text-green-600" />
             Tus datos quedan aislados por restaurante — nunca se mezclan entre cuentas.
           </div>
-
-          {import.meta.env.DEV && (
-            <AccesosPrueba onSeleccionar={iniciarSesion} deshabilitado={submitting || !enLinea} />
-          )}
         </div>
       </div>
     </div>

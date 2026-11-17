@@ -4,6 +4,38 @@ Seguimiento de lo que se cambia en el proyecto, más reciente primero. Cada entr
 
 ---
 
+## 2026-11-16 — Acceso de empleados: contraseña por administración, un dispositivo, enlace propio (César)
+
+Autor: César (con Claude Code). Lo anotó Pedro con Claude Code a partir de los commits `023d3a4`, `20509a9` y `5da0dc9`. **Decisión del dueño (2026-11-14).** Migraciones `0045` y `0046`; Pedro comprobó con una consulta de solo lectura que las dos están aplicadas en Supabase. Amplía la Fase 7, Módulo 6.
+
+### Qué cambió
+1. **Administración maneja la contraseña** de cada empleado. La pone al crearlo y la puede resetear desde la ficha. `crear-empleado` usa `createUser` en vez de `inviteUserByEmail`, y `gestionar-empleado` suma `resetear_contrasena`. Ya no hay invitación por correo y el empleado no la cambia.
+2. **Un solo dispositivo con sesión activa por cuenta** (migración `0045`):
+   - cada inicio de sesión genera un token al azar, lo guarda en el dispositivo (localStorage) y lo escribe en `usuarios.sesion_token` con la función `actualizar_mi_sesion`, que solo toca la fila propia;
+   - como `usuarios` se sincroniza por PowerSync, los otros dispositivos con la misma cuenta ven que su token ya no coincide y **se cierran solos** (`UsuarioProvider.tsx`);
+   - un dispositivo sin internet se entera cuando recupera la señal.
+3. **Enlace propio por empleado** (migración `0046`). Mesoneros, cocina, supervisores y gerencia entran por **`/acceso/<id del usuario>`** (`AccesoEmpleadoPage.tsx`), que ya sabe quién es y solo pide la contraseña.
+   - Administración copia el enlace desde la ficha del empleado, o lo ve al crearlo, y se lo manda.
+   - La función `info_acceso_empleado` es la única que corre sin sesión: devuelve solo nombre y correo, y nada si el usuario no existe, está inactivo o es de administración.
+4. **`/login` solo para administración y super-admin.** Si otro rol inicia sesión ahí, se le cierra la sesión enseguida (`LoginPage.tsx`).
+
+### Ajuste de Pedro (2026-11-16)
+Se quitaron del login los botones de **cuentas de prueba** (`AccesosPrueba.tsx`, que solo se veían en desarrollo), porque con el punto 4 ya no funcionaban para mesonero, cocina, supervisor ni gerencia. Para probar esos roles hay que usar sus enlaces `/acceso/<id>`; están en `docs/Cuentas_de_Prueba.md`.
+
+### Pendiente para más adelante: sesión única del lado del servidor
+Hoy "un solo dispositivo" lo controla **la propia app**: el dispositivo anterior se cierra solo cuando ve el token nuevo. Para el uso normal alcanza, pero **no es una barrera de seguridad**:
+- la sesión vieja **sigue siendo válida en el servidor** (su token de Supabase Auth no se revoca);
+- un dispositivo sin internet sigue trabajando hasta que recupera señal;
+- un cliente modificado podría ignorar la señal.
+
+Si algún día hace falta un bloqueo de verdad (por ejemplo, para echar a alguien que se lleva la tablet), hay dos formas:
+- **revocar las otras sesiones en Supabase Auth** al iniciar sesión, por ejemplo desde una Edge Function con `auth.admin.signOut` sobre las sesiones anteriores;
+- **que el servidor exija el token vigente:** las políticas RLS de las tablas de operación comparan `usuarios.sesion_token` con uno enviado por el dispositivo, así un dispositivo viejo no puede escribir.
+
+Pedro decidió dejarlo para después.
+
+---
+
 ## 2026-11-13 — Piloto: hoja imprimible de QR por mesa (Fase 8, Módulo 4)
 
 Rama: `feature/fase8-piloto-qr`. Autor: Pedro (con Claude Code). Sin migraciones.
