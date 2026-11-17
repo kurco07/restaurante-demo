@@ -11,7 +11,7 @@ import { IconoCandado, IconoCorreo, IconoEscudo, IconoOjo, IconoOjoTachado, Icon
 import { AccesosPrueba } from './components/AccesosPrueba'
 
 export default function LoginPage() {
-  const { signIn } = useAuth()
+  const { signIn, signOut } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -49,6 +49,16 @@ export default function LoginPage() {
       if (errorPerfil) throw errorPerfil
       if (!perfil) {
         setError('Tu cuenta no tiene un perfil en ningún restaurante. Pídele al administrador que te dé acceso.')
+        return
+      }
+      // Solo administración (y super_admin, que no tiene un enlace propio)
+      // entra por aquí — el resto de los roles usa su enlace personal
+      // (/acceso/<id>, migración 0046). Si alguien más llega hasta acá
+      // (por ejemplo escribiendo su propio correo), se le cierra la
+      // sesión antes de dejarlo pasar (decisión del dueño, 2026-11-14).
+      if (perfil.rol !== 'administracion' && perfil.rol !== 'super_admin') {
+        await signOut()
+        setError('Este acceso es solo para administración. Pídele a tu administrador el enlace que te corresponde.')
         return
       }
       navigate(inicioDe(perfil.rol as Rol))
