@@ -46,9 +46,11 @@ Se usa con la interfaz actual: funcional pero básica. **Hay que decírselo clar
 - [ ] Sesión de capacitación.
 - [ ] Inventario inicial: un conteo físico el día que arranca, para tener contra qué comparar al final.
 - [ ] Explicarle a Roof qué es el piloto y que la interfaz es básica.
+- [ ] Pedirle a Roof **internet de respaldo para cocina** (datos móviles en la tablet o un router con 4G). Sin internet, mesonero y cocina no se ven entre ellos hasta que vuelve la conexión; ver `docs/Pendiente_Conexion_Local_Sin_Internet.md`.
 
 ## Falta
 - ~~Número de WhatsApp de soporte~~: los dos, Pedro y César (2026-11-13).
 - **Qué sede de Roof**, cuántas mesas tiene y quiénes del personal van a usar la app (nombres y roles).
 - **Fecha de inicio** de los 14 días.
+- **Proteger el QR de las mesas** para que nadie pida ni ocupe una mesa desde fuera del restaurante. Pedro lo va a hablar con Roof; las opciones están en `docs/Pendiente_QR_Seguro.md`.
 - **Quién va a la sesión de capacitación** y si alguien acompaña el primer servicio.
