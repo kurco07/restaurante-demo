@@ -10,6 +10,10 @@ Autor: Pedro (con Claude Code). Sin migraciones. Lo encontró Pedro probando el 
 
 1. **Abrir el enlace con la sesión ya iniciada volvía a pedir la contraseña.** La sesión sí quedaba guardada, pero `AccesoEmpleadoPage` no lo revisaba, y parecía que no se guardaba. Ahora, si ese dispositivo ya tiene abierta la sesión de esa misma cuenta, el enlace lleva **directo a su pantalla**, también sin internet. Si no hay internet y nunca entró en ese dispositivo, dice "Sin conexión" en vez de "Este enlace ya no es válido".
 2. **El navegador no ofrecía guardar la contraseña.** El formulario no tenía campo de usuario. Se agregó uno oculto (`autocomplete="username"`) con el correo del empleado, para que Chrome y el teléfono la guarden y la completen solos.
+4. **Lo mismo en `/login` (administración):** si ya tiene la sesión abierta, lo lleva directo a su panel en vez de pedir el correo y la contraseña de nuevo. Ahí el navegador ya guardaba la contraseña, porque ese formulario tiene campo de correo.
+
+Los arreglos 1 y 2 están en la página del enlace, la misma para mesonero, supervisor, cocina y gerencia. El 3 está en la sesión de toda la app. Así que **sirven para todos los roles**.
+
 3. **Volver a iniciar sesión en el mismo dispositivo la cerraba enseguida** (error de "un solo dispositivo", 0045). La copia local de PowerSync todavía tenía el token de la sesión anterior, y `UsuarioProvider` creía que era otro dispositivo. Ahora, ante una diferencia, **se confirma con el servidor** antes de cerrar: si el servidor ya tiene el token de este dispositivo, la copia local solo está atrasada y no se hace nada. Sin internet no se puede confirmar, así que tampoco se cierra.
 
 ---

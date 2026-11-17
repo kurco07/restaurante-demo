@@ -1,16 +1,18 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../controllers/auth/useAuth'
 import { supabase } from '../../../lib/supabaseClient'
 import { inicioDe } from '../../../lib/rolesPorModulo'
 import { mensajeDeError } from '../../../lib/errores'
 import { useEnLinea } from '../../../controllers/useEnLinea'
+import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import type { Rol } from '../../../models/types'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import { IconoCandado, IconoCorreo, IconoEscudo, IconoOjo, IconoOjoTachado, IconoRestaurante } from '../../components/ui/IconosAuth'
 
 export default function LoginPage() {
-  const { signIn, signOut } = useAuth()
+  const { signIn, signOut, user } = useAuth()
+  const { usuario } = useUsuario()
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,6 +20,12 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const enLinea = useEnLinea()
+
+  // Ya tiene la sesión abierta en este dispositivo: directo a su pantalla
+  // en vez de volver a pedir el correo y la contraseña (arreglo
+  // 2026-11-17, igual que en el enlace de acceso de empleados). No mientras
+  // se está iniciando sesión, que ahí se revisa el rol.
+  if (!submitting && user && usuario) return <Navigate to={inicioDe(usuario.rol)} replace />
 
   async function iniciarSesion(correo: string, clave: string) {
     setSubmitting(true)
