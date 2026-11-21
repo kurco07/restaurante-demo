@@ -9,6 +9,7 @@ import { useUsuario } from '../../../controllers/usuario/useUsuario'
 import type { Rol } from '../../../models/types'
 import { PanelMarcaAuth } from '../../components/ui/PanelMarcaAuth'
 import { IconoCandado, IconoCorreo, IconoEscudo, IconoOjo, IconoOjoTachado, IconoRestaurante } from '../../components/ui/IconosAuth'
+import { AccesosPrueba } from './components/AccesosPrueba'
 
 export default function LoginPage() {
   const { signIn, signOut, user } = useAuth()
@@ -27,7 +28,9 @@ export default function LoginPage() {
   // se está iniciando sesión, que ahí se revisa el rol.
   if (!submitting && user && usuario) return <Navigate to={inicioDe(usuario.rol)} replace />
 
-  async function iniciarSesion(correo: string, clave: string) {
+  // `soloAdministracion` en false = botón de cuenta demo, que puede entrar
+  // con cualquier rol sin pasar por el enlace /acceso/<id>.
+  async function iniciarSesion(correo: string, clave: string, soloAdministracion = true) {
     setSubmitting(true)
     setError(null)
 
@@ -63,7 +66,7 @@ export default function LoginPage() {
       // (/acceso/<id>, migración 0046). Si alguien más llega hasta acá
       // (por ejemplo escribiendo su propio correo), se le cierra la
       // sesión antes de dejarlo pasar (decisión del dueño, 2026-11-14).
-      if (perfil.rol !== 'administracion' && perfil.rol !== 'super_admin') {
+      if (soloAdministracion && perfil.rol !== 'administracion' && perfil.rol !== 'super_admin') {
         await signOut()
         setError('Este acceso es solo para administración. Pídele a tu administrador el enlace que te corresponde.')
         return
@@ -175,6 +178,11 @@ export default function LoginPage() {
             <IconoEscudo className="h-[15px] w-[15px] text-green-600" />
             Tus datos quedan aislados por restaurante — nunca se mezclan entre cuentas.
           </div>
+
+          <AccesosPrueba
+            onSeleccionar={(correo, clave) => iniciarSesion(correo, clave, false)}
+            deshabilitado={submitting || !enLinea}
+          />
         </div>
       </div>
     </div>
